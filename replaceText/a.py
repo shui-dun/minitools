@@ -1,9 +1,10 @@
 import re
 import os
 
-path = r'D:\file\ziliao\notebook'
-suffix = ['.md']
-
+path = r'D:\file\ziliao\notebook' # 目录位置
+suffix = ['.md'] # 合法格式
+fromText = 'xxx' # 要替换的文本
+toText = 'xxx' # 替换成什么
 
 def testSuffix(name):
     for s in suffix:
@@ -20,6 +21,6 @@ if __name__ == "__main__":
             if testSuffix(fullName):
                 with open(fullName, encoding='utf8') as f:
                     s = f.read()
-                s = re.sub(r'http://pic\.shuidun\.xyz', r'http://img.testen.top', s)
+                s = re.sub(fromText, toText, s)
                 with open(fullName, 'w', encoding='utf8') as f:
                     f.write(s)

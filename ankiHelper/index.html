@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>title</title>
+  <script type="text/javascript">
+    function foo(e) {
+      if (e.keyCode == 13) { //回车事件
+        var txt = document.getElementById("theinput").value;
+        document.getElementById("thediv").innerHTML = txt;
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <div style="margin: auto; text-align: center;">
+    <input type="text" id="theinput" onkeydown="foo(event);"/>
+  </div>
+  <div id="thediv" style="background-color: aquamarine;text-align: center;margin: auto; width: 300px; margin-top: 20px; border-radius: 5px; padding: 8px;"> </div>
+</body>
+
+</html>

@@ -1,10 +1,10 @@
 import re
 import os
 
-path = r'D:\file\ziliao\notebook' # 目录位置
+path = r'D:\file\cloud\notebook' # 目录位置
 suffix = ['.md'] # 合法格式
-fromText = 'xxx' # 要替换的文本
-toText = 'xxx' # 替换成什么
+fromText = r'review #review' # 要替换的文本
+toText = 'tags: [ review' # 替换成什么
 
 def testSuffix(name):
     for s in suffix:

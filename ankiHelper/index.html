@@ -4,21 +4,47 @@
 <head>
   <meta charset="UTF-8">
   <title>title</title>
+  <style>
+    #myButton {
+      border: 5px;
+      width: 50%;
+      padding: 1%;
+      margin: 2%;
+    }
+
+    #myButton:hover {
+      background-color: aqua;
+    }
+
+    div {
+      text-align: center;
+    }
+
+    #myDiv {
+      background-color: aquamarine;
+      text-align: center;
+      margin: auto;
+      width: 70%;
+      height: 70%;
+      margin-top: 20px;
+      border-radius: 5px;
+      padding: 2%;
+    }
+  </style>
 </head>
 
 <body>
-  <div style="text-align: center;">
-    <button id="myButton" style="border: 5px; width: 50%;  padding: 1%; margin: 2%;">
+  <div>
+    <button id="myButton">
       <h1>paste</h1>
     </button>
   </div>
 
-  <div id="myDiv"
-    style="background-color: aquamarine;text-align: center;margin: auto; width: 70%; height: 70%; margin-top: 20px; border-radius: 5px; padding: 2%;">
+  <div id="myDiv">
   </div>
 
   <script type="text/javascript">
-    document.getElementById("myButton").addEventListener('click', async function(e) {
+    document.getElementById("myButton").addEventListener('click', async function (e) {
       const text = await navigator.clipboard.readText();
       document.getElementById("myDiv").innerHTML = text;
     });

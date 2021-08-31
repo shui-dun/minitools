@@ -7,16 +7,20 @@
 </head>
 
 <body>
-  <div style="margin: auto; text-align: center;">
-    <input type="text" id="myInput"  onclick="this.select()" style="font-size:large" />
+  <div style="text-align: center;">
+    <button id="myButton" style="border: 5px; width: 50%;  padding: 1%; margin: 2%;">
+      <h1>paste</h1>
+    </button>
   </div>
+
   <div id="myDiv"
-    style="background-color: aquamarine;text-align: center;margin: auto; width: 300px; margin-top: 20px; border-radius: 5px; padding: 8px;">
+    style="background-color: aquamarine;text-align: center;margin: auto; width: 70%; height: 70%; margin-top: 20px; border-radius: 5px; padding: 2%;">
   </div>
+
   <script type="text/javascript">
-    document.getElementById('myInput').addEventListener('input', function (e) {
-      var txt = document.getElementById("myInput").value;
-      document.getElementById("myDiv").innerHTML = txt;
+    document.getElementById("myButton").addEventListener('click', async function(e) {
+      const text = await navigator.clipboard.readText();
+      document.getElementById("myDiv").innerHTML = text;
     });
   </script>
 </body>

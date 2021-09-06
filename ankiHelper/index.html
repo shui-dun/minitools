@@ -20,9 +20,8 @@
       text-align: center;
     }
 
-    #myDiv {
+    #myText {
       background-color: aquamarine;
-      text-align: center;
       margin: auto;
       width: 70%;
       height: 70%;
@@ -40,13 +39,16 @@
     </button>
   </div>
 
-  <div id="myDiv">
+  <div>
+    <p id="myText"></p>
   </div>
 
   <script type="text/javascript">
     document.getElementById("myButton").addEventListener('click', async function (e) {
-      const text = await navigator.clipboard.readText();
-      document.getElementById("myDiv").innerHTML = text;
+      let text = await navigator.clipboard.readText();
+      console.log(text);
+      let breakline = /\-(\r\n|\r|\n)/ig;
+      document.getElementById("myText").innerHTML = text.replaceAll(breakline, '');
     });
   </script>
 </body>

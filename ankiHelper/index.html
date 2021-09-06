@@ -5,48 +5,35 @@
   <meta charset="UTF-8">
   <title>title</title>
   <style>
-    #myButton {
-      border: 5px;
-      width: 50%;
-      padding: 1%;
-      margin: 2%;
-    }
-
-    #myButton:hover {
-      background-color: aqua;
-    }
-
-    div {
-      text-align: center;
+    #myInput {
+      width: 60%;
+      padding: 2%;
     }
 
     #myText {
       background-color: aquamarine;
-      margin: auto;
-      width: 70%;
-      height: 70%;
-      margin-top: 20px;
-      border-radius: 5px;
       padding: 2%;
+      border-radius: 5px;
+      margin-left: 15%;
+      margin-right: 15%;
+      margin-top: 3%;
+    }
+
+    .warp {
+      text-align: center;
     }
   </style>
 </head>
 
 <body>
-  <div>
-    <button id="myButton">
-      <h1>paste</h1>
-    </button>
+  <div class="warp">
+    <input type="text" id="myInput" onclick="this.select()" />
   </div>
-
-  <div>
-    <p id="myText"></p>
-  </div>
+  <div id="myText"></p>
 
   <script type="text/javascript">
-    document.getElementById("myButton").addEventListener('click', async function (e) {
-      let text = await navigator.clipboard.readText();
-      console.log(text);
+    document.getElementById('myInput').addEventListener('input', function (e) {
+      let text = document.getElementById("myInput").value;
       let breakline = /\-(\r\n|\r|\n)/ig;
       document.getElementById("myText").innerHTML = text.replaceAll(breakline, '');
     });

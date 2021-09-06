@@ -54,7 +54,7 @@
       return text.replaceAll(/\[.+]/g, "");
     }
 
-    function handleText(val) {
+    async function handleText(val) {
       let text = document.getElementById("myInput").value;
       if (val == 1) {
         text = breakLine(text);
@@ -65,6 +65,7 @@
         text = removeCite(text);
       }
       document.getElementById("myText").innerHTML = text;
+      navigator.clipboard.writeText(text);
     }
 
     document.getElementById('strongMode').onchange = function () {

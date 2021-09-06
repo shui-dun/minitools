@@ -51,7 +51,7 @@
     }
 
     function removeCite(text) {
-      return text.replaceAll(/\[.+]/g, "");
+      return text.replaceAll(/\[.+?]/g, "");
     }
 
     function handleText() {

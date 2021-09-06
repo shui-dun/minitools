@@ -34,7 +34,7 @@
   <script type="text/javascript">
     document.getElementById('myInput').addEventListener('input', function (e) {
       let text = document.getElementById("myInput").value;
-      document.getElementById("myText").innerHTML = text.replaceAll(/\- (\w)/g, "$1");
+      document.getElementById("myText").innerHTML = text.replaceAll(/\- (\w)/g, "$1").replaceAll(/\[(\d|,|\s)+\]/g, "");
     });
   </script>
 </body>

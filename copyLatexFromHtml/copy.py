@@ -18,7 +18,8 @@ import time
 import random
 import win32clipboard
 
-#---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
 #  Convenience functions to do the most common operation
 
 def HasHtml():
@@ -49,10 +50,9 @@ def PutHtml(fragment):
     cb.PutFragment(fragment)
 
 
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 
 class HtmlClipboard:
-
     CF_HTML = None
 
     MARKER_BLOCK_OUTPUT = \
@@ -82,7 +82,7 @@ class HtmlClipboard:
         "EndHTML:(\d+)\s+" \
         "StartFragment:(\d+)\s+" \
         "EndFragment:(\d+)\s+" \
-           "SourceURL:(\S+)"
+        "SourceURL:(\S+)"
     MARKER_BLOCK_RE = re.compile(MARKER_BLOCK)
 
     DEFAULT_HTML_BODY = \
@@ -96,7 +96,6 @@ class HtmlClipboard:
         self.source = None
         self.htmlClipboardVersion = None
 
-
     def GetCfHtml(self):
         """
         Return the FORMATID of the HTML format
@@ -105,7 +104,6 @@ class HtmlClipboard:
             self.CF_HTML = win32clipboard.RegisterClipboardFormat("HTML Format")
 
         return self.CF_HTML
-
 
     def GetAvailableFormats(self):
         """
@@ -123,13 +121,11 @@ class HtmlClipboard:
 
         return formats
 
-
     def HasHtmlFormat(self):
         """
         Return a boolean indicating if the clipboard has data in HTML format
         """
         return (self.GetCfHtml() in self.GetAvailableFormats())
-
 
     def GetFromClipboard(self):
         """
@@ -144,7 +140,7 @@ class HtmlClipboard:
                 win32clipboard.OpenClipboard(0)
                 src = win32clipboard.GetClipboardData(self.GetCfHtml())
                 src = src.decode("UTF-8")
-                #print(src)
+                # print(src)
                 self.DecodeClipboardSource(src)
 
                 cbOpened = True
@@ -157,13 +153,13 @@ class HtmlClipboard:
                     pass
                     # wait on clipboard because something else has it. we're waiting a
                     # random amount of time before we try again so we don't collide again
-                    time.sleep( random.random()/50 )
+                    time.sleep(random.random() / 50)
                 elif err.winerror == 1418:  # doesn't have board open
                     pass
                 elif err.winerror == 0:  # open failure
                     pass
                 else:
-                    print( 'ERROR in Clipboard section of readcomments: %s' % err)
+                    print('ERROR in Clipboard section of readcomments: %s' % err)
 
                     pass
 
@@ -191,7 +187,6 @@ class HtmlClipboard:
                 self.source = matches.group(6)
                 self.selection = self.fragment
 
-
     def GetHtml(self, refresh=False):
         """
         Return the entire Html document
@@ -199,7 +194,6 @@ class HtmlClipboard:
         if not self.html or refresh:
             self.GetFromClipboard()
         return self.html
-
 
     def GetFragment(self, refresh=False):
         """
@@ -209,7 +203,6 @@ class HtmlClipboard:
             self.GetFromClipboard()
         return self.fragment
 
-
     def GetSelection(self, refresh=False):
         """
         Return the part of the HTML that was selected. It might not be well-formed.
@@ -218,7 +211,6 @@ class HtmlClipboard:
             self.GetFromClipboard()
         return self.selection
 
-
     def GetSource(self, refresh=False):
         """
         Return the URL of the source of this HTML
@@ -226,7 +218,6 @@ class HtmlClipboard:
         if not self.selection or refresh:
             self.GetFromClipboard()
         return self.source
-
 
     def PutFragment(self, fragment, selection=None, html=None, source=None):
         """
@@ -248,7 +239,6 @@ class HtmlClipboard:
         selectionEnd = selectionStart + len(selection)
         self.PutToClipboard(html, fragmentStart, fragmentEnd, selectionStart, selectionEnd, source)
 
-
     def PutToClipboard(self, html, fragmentStart, fragmentEnd, selectionStart, selectionEnd, source="None"):
         """
         Replace the Clipboard contents with the given html information.
@@ -259,11 +249,10 @@ class HtmlClipboard:
             win32clipboard.EmptyClipboard()
             src = self.EncodeClipboardSource(html, fragmentStart, fragmentEnd, selectionStart, selectionEnd, source)
             src = src.encode("UTF-8")
-            #print(src)
+            # print(src)
             win32clipboard.SetClipboardData(self.GetCfHtml(), src)
         finally:
             win32clipboard.CloseClipboard()
-
 
     def EncodeClipboardSource(self, html, fragmentStart, fragmentEnd, selectionStart, selectionEnd, source):
         """
@@ -273,10 +262,10 @@ class HtmlClipboard:
         dummyPrefix = self.MARKER_BLOCK_OUTPUT % (0, 0, 0, 0, 0, 0, source)
         lenPrefix = len(dummyPrefix)
 
-        prefix = self.MARKER_BLOCK_OUTPUT % (lenPrefix, len(html)+lenPrefix,
-                        fragmentStart+lenPrefix, fragmentEnd+lenPrefix,
-                        selectionStart+lenPrefix, selectionEnd+lenPrefix,
-                        source)
+        prefix = self.MARKER_BLOCK_OUTPUT % (lenPrefix, len(html) + lenPrefix,
+                                             fragmentStart + lenPrefix, fragmentEnd + lenPrefix,
+                                             selectionStart + lenPrefix, selectionEnd + lenPrefix,
+                                             source)
         return (prefix + html)
 
 
@@ -284,15 +273,18 @@ def DumpHtml():
     ans = ""
     cb = HtmlClipboard()
     ans += "GetAvailableFormats()=%s" % str(cb.GetAvailableFormats()) + '\n'
-    ans +="HasHtmlFormat()=%s" % str(cb.HasHtmlFormat()) + '\n'
+    ans += "HasHtmlFormat()=%s" % str(cb.HasHtmlFormat()) + '\n'
     if cb.HasHtmlFormat():
         cb.GetFromClipboard()
-        ans +="prefix=>>>%s<<<END" % cb.prefix + '\n'
-        ans +="htmlClipboardVersion=>>>%s<<<END" % cb.htmlClipboardVersion + '\n'
-        ans +="GetSelection()=>>>%s<<<END" % cb.GetSelection() + '\n'
-        ans +="GetFragment()=>>>%s<<<END" % cb.GetFragment() + '\n'
-        ans +="GetHtml()=>>>%s<<<END" % cb.GetHtml() + '\n'
-        ans +="GetSource()=>>>%s<<<END" % cb.GetSource() + '\n'
+        try:
+            ans += "prefix=>>>%s<<<END" % cb.prefix + '\n'
+        except Exception as e:
+            print(e)
+        ans += "htmlClipboardVersion=>>>%s<<<END" % cb.htmlClipboardVersion + '\n'
+        ans += "GetSelection()=>>>%s<<<END" % cb.GetSelection() + '\n'
+        ans += "GetFragment()=>>>%s<<<END" % cb.GetFragment() + '\n'
+        ans += "GetHtml()=>>>%s<<<END" % cb.GetHtml() + '\n'
+        ans += "GetSource()=>>>%s<<<END" % cb.GetSource() + '\n'
     return ans
 
 
@@ -306,5 +298,6 @@ if __name__ == '__main__':
         else:
             print("failed")
 
+
     test_SimpleGetPutHtml()
-    #DumpHtml()
+    # DumpHtml()

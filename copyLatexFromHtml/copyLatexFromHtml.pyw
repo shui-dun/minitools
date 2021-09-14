@@ -2,6 +2,7 @@ import re
 import pyperclip
 from bs4 import BeautifulSoup
 import copy
+import win32clipboard
 
 ans = ""
 
@@ -43,11 +44,26 @@ def zhihu(soup):
     if soup.name == "img":
         try:
             ans += handleLatex(soup['data-formula'])
-        except:
-            pass
+        except Exception as e:
+            print(e)
         return
     for child in soup.children:
         zhihu(child)
+
+
+def normal(soup):
+    global ans
+    if not hasattr(soup, "children"):
+        ans += soup
+        return
+    if soup.name == "img":
+        try:
+            ans += handleLatex(soup['alt'])
+        except Exception as e:
+            print(e)
+        return
+    for child in soup.children:
+        normal(child)
 
 
 def getChoice(url):
@@ -55,11 +71,16 @@ def getChoice(url):
         return "zhihu"
     if re.match(r"https://.+\.wikipedia\.org.*", url):
         return "wikipedia"
+    return "normal"
 
 
 if __name__ == '__main__':
     s = copy.DumpHtml()
-    choice = getChoice(re.search(r'SourceURL:(.+)', s).group(1))
+    try:
+        choice = getChoice(re.search(r'SourceURL:(.+)', s).group(1))
+    except Exception as e:
+        print(e)
+        choice = "normal"
     s = re.sub(r'.+<!--StartFragment-->(.+)<!--EndFragment-->.+', r"\1", s, flags=re.S)
     soup = BeautifulSoup(s, 'html.parser')
     locals()[choice](soup)

@@ -3,8 +3,8 @@ import os
 
 path = r'D:\file\cloud\notebook' # 目录位置
 suffix = ['.md'] # 合法格式
-fromText = r'review #review' # 要替换的文本
-toText = 'tags: [ review' # 替换成什么
+fromText = r'\(asserts\/Pasted%20image' # 要替换的文本
+toText = '(assets/Pasted%20image' # 替换成什么
 
 def testSuffix(name):
     for s in suffix:

@@ -12,7 +12,10 @@ def wikipedia(soup):
         ans += soup
         return
     if soup.name == "img":
-        ans += " ${}$ ".format(re.sub('\r|\n|(\r\n)|\s', ' ', soup['alt']).strip())
+        try:
+            ans += " ${}$ ".format(re.sub('\r|\n|(\r\n)|\s', ' ', soup['alt']).strip())
+        except:
+            pass
         return
     if soup.name == "annotation":
         return
@@ -26,7 +29,10 @@ def zhihu(soup):
         ans += soup
         return
     if soup.name == "img":
-        ans += " ${}$ ".format(re.sub('\r|\n|(\r\n)|\s', ' ', soup['data-formula']).strip())
+        try:
+            ans += " ${}$ ".format(re.sub('\r|\n|(\r\n)|\s', ' ', soup['data-formula']).strip())
+        except:
+            pass
         return
     for child in soup.children:
         zhihu(child)

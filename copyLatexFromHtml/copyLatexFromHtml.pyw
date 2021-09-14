@@ -6,6 +6,18 @@ import copy
 ans = ""
 
 
+def handleLatex(origin):
+    if origin is None or origin == "":
+        return ""
+    origin = origin.strip()
+    origin = re.sub(r'\s+', ' ', origin)
+    origin = re.sub(r'\\\\ *', r'\\\\\r\n', origin)
+    if '\\\\' in origin:
+        return '\r\n\r\n$$\r\n{}\r\n$$\r\n\r\n'.format(origin)
+    else:
+        return ' ${}$ '.format(origin)
+
+
 def wikipedia(soup):
     global ans
     if not hasattr(soup, "children"):
@@ -13,10 +25,7 @@ def wikipedia(soup):
         return
     if soup.name == "img":
         try:
-            latex = re.sub('\r|\n|(\r\n)|\s', ' ', soup['alt']).strip()
-            if latex == "":
-                return
-            ans += " ${}$ ".format(latex)
+            ans += handleLatex(soup['alt'])
         except:
             pass
         return
@@ -33,10 +42,7 @@ def zhihu(soup):
         return
     if soup.name == "img":
         try:
-            latex = re.sub('\r|\n|(\r\n)|\s', ' ', soup['data-formula']).strip()
-            if latex == "":
-                return
-            ans += " ${}$ ".format(latex)
+            ans += handleLatex(soup['data-formula'])
         except:
             pass
         return

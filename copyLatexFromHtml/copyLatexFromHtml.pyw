@@ -2,7 +2,6 @@ import re
 import pyperclip
 from bs4 import BeautifulSoup
 import copy
-import win32clipboard
 
 ans = ""
 
@@ -13,7 +12,7 @@ def handleLatex(origin):
     origin = origin.strip()
     origin = re.sub(r'\s+', ' ', origin)
     origin = re.sub(r'\\\\ *', r'\\\\\r\n', origin)
-    if '\\\\' in origin:
+    if '\\\\' in origin or len(origin) > 32:
         return '\r\n\r\n$$\r\n{}\r\n$$\r\n\r\n'.format(origin)
     else:
         return ' ${}$ '.format(origin)

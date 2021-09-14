@@ -50,7 +50,24 @@ def zhihu(soup):
         zhihu(child)
 
 
-def normal(soup):
+def katex(soup):
+    global ans
+    if not hasattr(soup, "children"):
+        ans += soup
+        return
+    if soup.has_attr('class') and "katex-mathml" in soup['class']:
+        try:
+            ans += handleLatex(soup.text)
+        except Exception as e:
+            print(e)
+        return
+    if soup.has_attr('class') and "katex-html" in soup['class']:
+        return
+    for child in soup.children:
+        katex(child)
+
+
+def imgAlt(soup):
     global ans
     if not hasattr(soup, "children"):
         ans += soup
@@ -62,7 +79,7 @@ def normal(soup):
             print(e)
         return
     for child in soup.children:
-        normal(child)
+        imgAlt(child)
 
 
 def getChoice(url):
@@ -70,7 +87,11 @@ def getChoice(url):
         return "zhihu"
     if re.match(r"https://.+\.wikipedia\.org.*", url):
         return "wikipedia"
-    return "normal"
+    if re.match(r'https://.*csdn\..*', url):
+        return "katex"
+    if re.match(r"https://www\.jianshu\.com/.*", url):
+        return "imgAlt"
+    return "katex"
 
 
 if __name__ == '__main__':

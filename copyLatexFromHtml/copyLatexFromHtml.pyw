@@ -13,7 +13,10 @@ def wikipedia(soup):
         return
     if soup.name == "img":
         try:
-            ans += " ${}$ ".format(re.sub('\r|\n|(\r\n)|\s', ' ', soup['alt']).strip())
+            latex = re.sub('\r|\n|(\r\n)|\s', ' ', soup['alt']).strip()
+            if latex == "":
+                return
+            ans += " ${}$ ".format(latex)
         except:
             pass
         return
@@ -30,7 +33,10 @@ def zhihu(soup):
         return
     if soup.name == "img":
         try:
-            ans += " ${}$ ".format(re.sub('\r|\n|(\r\n)|\s', ' ', soup['data-formula']).strip())
+            latex = re.sub('\r|\n|(\r\n)|\s', ' ', soup['data-formula']).strip()
+            if latex == "":
+                return
+            ans += " ${}$ ".format(latex)
         except:
             pass
         return

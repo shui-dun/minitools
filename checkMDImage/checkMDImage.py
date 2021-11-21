@@ -57,3 +57,4 @@ def traverse(path):
 
 if __name__ == '__main__':
     traverse(r"D:\file\ziliao\notebook")
+    print('ok')

@@ -1,10 +1,9 @@
 import re
 import os
 
-path = r'D:\file\cloud\notebook' # 目录位置
+# path = r'D:\file\cloud\notebook' # 目录位置
+path = r'C:\Users\26046\Desktop'
 suffix = ['.md'] # 合法格式
-fromText = r'\(asserts\/Pasted%20image' # 要替换的文本
-toText = '(assets/Pasted%20image' # 替换成什么
 
 def testSuffix(name):
     for s in suffix:
@@ -21,6 +20,7 @@ if __name__ == "__main__":
             if testSuffix(fullName):
                 with open(fullName, encoding='utf8') as f:
                     s = f.read()
-                s = re.sub(fromText, toText, s)
-                with open(fullName, 'w', encoding='utf8') as f:
-                    f.write(s)
+                # s = re.sub(r'\n', r' ', s)
+                # 必须用二进制形式打开，不然会改变换行符
+                with open(fullName, 'wb') as f:
+                    f.write(bytes(s,  encoding = "utf8"))

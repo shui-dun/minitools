@@ -83,13 +83,11 @@ def imgAlt(soup):
 
 
 def getChoice(url):
-    if re.match(r'https://www\.zhihu\.com/.*', url):
+    if re.match(r'https://.+\.zhihu\.com.*', url):
         return "zhihu"
     if re.match(r"https://.+\.wikipedia\.org.*", url):
         return "wikipedia"
-    if re.match(r'https://.*csdn\..*', url):
-        return "katex"
-    if re.match(r"https://www\.jianshu\.com/.*", url):
+    if re.match(r"https://.+\.jianshu\.com.*", url):
         return "imgAlt"
     return "katex"
 
@@ -100,7 +98,7 @@ if __name__ == '__main__':
         choice = getChoice(re.search(r'SourceURL:(.+)', s).group(1))
     except Exception as e:
         print(e)
-        choice = "normal"
+        choice = "katex"
     s = re.sub(r'.+<!--StartFragment-->(.+)<!--EndFragment-->.+', r"\1", s, flags=re.S)
     soup = BeautifulSoup(s, 'html.parser')
     locals()[choice](soup)

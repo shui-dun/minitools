@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>title</title>
+  <style>
+    .warp {
+      margin: 2%;
+      text-align: center;
+    }
+
+    #myInput {
+      width: 60%;
+      padding: 2%;
+    }
+
+    #myText {
+      background-color: aquamarine;
+      padding: 2%;
+      border-radius: 5px;
+      margin-left: 15%;
+      margin-right: 15%;
+      margin-top: 3%;
+    }
+
+    #strongMode {
+      font-family: monospace;
+      padding: 1%;
+      border-radius: 1mm;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="warp">
+    <input type="text" id="myInput" onclick="this.select()" />
+  </div>
+  <div id="myText"></div>
+  <div class="warp">
+    <select id="strongMode">
+      <option value="1">all</option>
+      <option value="2">breakLine only</option>
+      <option value="3">removeCite only</option>
+    </select>
+  </div>
+
+  <script type="text/javascript">
+    function breakLine(text) {
+      return text.replaceAll(/\- (\w)/g, "$1");
+    }
+
+    function removeCite(text) {
+      return text.replaceAll(/\[.+?]/g, "");
+    }
+
+    function handleText() {
+      let text = document.getElementById("myInput").value;
+      let val = document.getElementById('strongMode').value;
+      if (val == 1) {
+        text = breakLine(text);
+        text = removeCite(text);
+      } else if (val == 2) {
+        text = breakLine(text);
+      } else if (val == 3) {
+        text = removeCite(text);
+      }
+      document.getElementById("myText").innerHTML = text;
+      navigator.clipboard.writeText(text);
+    }
+
+    document.getElementById('strongMode').onchange = function () {
+      handleText();
+    }
+
+    document.getElementById('myInput').addEventListener('input', function (e) {
+      handleText();
+    });
+  </script>
+</body>
+
+</html>

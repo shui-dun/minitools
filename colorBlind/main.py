@@ -3,11 +3,6 @@ from PIL import Image
 from PIL import ImageEnhance
 from daltonize import daltonize as dz
 
-"""
-失败了，
-- 两块相同的颜色，daltonize库处理后，颜色就不同了
-- 增加对比度后还是看不清
-"""
 
 def colorblind_img(img, type):
     rgb_arr = np.array(img)

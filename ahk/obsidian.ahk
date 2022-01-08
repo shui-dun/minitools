@@ -50,20 +50,61 @@ Return
 ^5::title(5)
 ^6::title(6)
 
-title(times) {
+title(times) 
+{
 	backup := Clipboard
 	Clipboard := ""
 	Send {Home}+{End}^c
 	Clipboard := LTrim(Clipboard, OmitChars := " #")
-	if (%times% != 0) {
+	if (%times% != 0) 
+	{
 		Clipboard := " " . Clipboard
-		Loop, %times% {
+		Loop, %times% 
+		{
 			Clipboard := "#" . Clipboard
 		}
 	}
 	Send ^v
 	Clipboard := backup
 }
+
+; 所有标题进一级
+
+^9::
+	Send ^c
+	tmpString := ""
+	Loop, Parse, Clipboard, `n 
+	{
+		if (RegExMatch(A_LoopField, "^#+ ") != 0) 
+		{
+			tmpString := tmpString . "#" . A_LoopField . "`n"
+		} else 
+		{
+			tmpString := tmpString . A_LoopField . "`n"
+		}
+	}
+	Clipboard := tmpString
+	Send ^v
+Return
+
+; 所有标题退一级
+
+^8::
+	Send ^c
+	tmpString := ""
+	Loop, Parse, Clipboard, `n 
+	{
+		if (RegExMatch(A_LoopField, "^#+ ") != 0) 
+		{
+			tmpString := tmpString . StrReplace(A_LoopField, "#", "", 0, 1) . "`n"
+		} else 
+		{
+			tmpString := tmpString . A_LoopField . "`n"
+		}
+	}
+	Clipboard := tmpString
+	Send ^v
+Return
 
 ; 段落
 

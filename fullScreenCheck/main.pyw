@@ -2,6 +2,7 @@ from isFullScreen import isFullScreen
 import time
 import pyautogui
 
+# 禁用FAILSAFE
 pyautogui.FAILSAFE = False
 
 if __name__ == '__main__':

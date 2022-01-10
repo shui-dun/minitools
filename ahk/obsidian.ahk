@@ -55,6 +55,7 @@ title(times)
 	backup := Clipboard
 	Clipboard := ""
 	Send {Home}+{End}^c
+	ClipWait  0.05
 	Clipboard := LTrim(Clipboard, OmitChars := " #")
 	if (%times% != 0) 
 	{
@@ -71,7 +72,9 @@ title(times)
 ; 所有标题进一级
 
 ^9::
+	Clipboard := ""
 	Send ^c
+	ClipWait  1
 	tmpString := ""
 	Loop, Parse, Clipboard, `n 
 	{
@@ -90,7 +93,9 @@ Return
 ; 所有标题退一级
 
 ^8::
+	Clipboard := ""
 	Send ^c
+	ClipWait  1
 	tmpString := ""
 	Loop, Parse, Clipboard, `n 
 	{

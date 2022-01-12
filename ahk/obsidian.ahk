@@ -2,32 +2,6 @@
 
 #If WinActive("ahk_exe Obsidian.exe")
 
-; 包裹inline公式
-
-#z::
-	backup := Clipboard
-	Clipboard := ""
-	Send ^c  ; Send Ctrl+C to get selection on clipboard.
-	ClipWait  1  ; Wait for the copied text to arrive at the clipboard.
-	Clipboard = %Clipboard% ; strip blank character
-	Clipboard := " $" . Clipboard  . "$ " ; quote
-	Send ^v ; paste
-	Clipboard := backup
-Return
-
-; 包裹inline代码
-#c::
-	backup := Clipboard
-	Clipboard := ""
-	Send ^c  ; Send Ctrl+C to get selection on clipboard.
-	ClipWait  1  ; Wait for the copied text to arrive at the clipboard.
-	Clipboard = %Clipboard% ; strip blank character
-	Clipboard := " ``" . Clipboard  . "`` " ; quote
-	Send ^v ; paste
-	Clipboard := backup
-Return
-
-
 ; 包裹公式块
 
 #+z::
@@ -68,6 +42,32 @@ title(times)
 	Send ^v
 	Clipboard := backup
 }
+
+; 补全公式块
+
+:*:$$`n::$$`n`n$${Up}
+
+; 补全代码块
+
+:*:``````::```````n``````{Up}{End}	
+
+#If
+
+
+
+#If WinActive("ahk_exe Obsidian.exe") || WinActive("ahk_exe Typora.exe")
+
+; 段落
+
+#p::
+	backup := Clipboard
+	Clipboard := ""
+	Send +{Home}^c
+	ClipWait  1 
+	Clipboard := "**" . Clipboard  . ".** "
+	Send ^v 
+	Clipboard := backup
+Return
 
 ; 所有标题进一级
 
@@ -111,24 +111,29 @@ Return
 	Send ^v
 Return
 
-; 段落
+; 包裹inline公式
 
-#p::
+#z::
 	backup := Clipboard
 	Clipboard := ""
-	Send +{Home}^c
-	ClipWait  1 
-	Clipboard := "**" . Clipboard  . ".** "
-	Send ^v 
+	Send ^c  ; Send Ctrl+C to get selection on clipboard.
+	ClipWait  1  ; Wait for the copied text to arrive at the clipboard.
+	Clipboard = %Clipboard% ; strip blank character
+	Clipboard := " $" . Clipboard  . "$ " ; quote
+	Send ^v ; paste
 	Clipboard := backup
 Return
 
-; 补全公式块
-
-:*:$$`n::$$`n`n$${Up}
-
-; 补全代码块
-
-:*:``````::```````n``````{Up}{End}	
+; 包裹inline代码
+#c::
+	backup := Clipboard
+	Clipboard := ""
+	Send ^c  ; Send Ctrl+C to get selection on clipboard.
+	ClipWait  1  ; Wait for the copied text to arrive at the clipboard.
+	Clipboard = %Clipboard% ; strip blank character
+	Clipboard := " ``" . Clipboard  . "`` " ; quote
+	Send ^v ; paste
+	Clipboard := backup
+Return
 
 #If

@@ -23,7 +23,7 @@ def isFullScreen():
         rect = win32gui.GetWindowRect(foregroundWindow)  # 获得该窗口的矩形坐标
         processName = windowProcessName(foregroundWindow)  # 获得该窗口的进程名称
         print("window: ({}), rect: ({}), proces: ({})".format(foregroundWindow, rect, processName))
-        # 只有前台应有全屏并且不是桌面才返回True
+        # 只有前台应用全屏并且不是桌面才返回True
         return rect == full_screen_rect and processName != "explorer.exe"
     except:
         return False

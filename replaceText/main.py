@@ -1,11 +1,6 @@
 import re
 import os
-import json
-
-path = ""  # 目录位置
-suffix = []  # 合法格式
-origin = ""  # 被替换的字符串
-dest = ""  # 替换成的字符串
+from settings import *
 
 
 def testSuffix(name):
@@ -15,18 +10,7 @@ def testSuffix(name):
     return False
 
 
-def readConfig():
-    global path, suffix, origin, dest
-    with open("config.json", encoding="utf8") as f:
-        js = json.load(f)
-    path = js["path"]
-    suffix = js["suffix"]
-    origin = js["origin"]
-    dest = js["dest"]
-
-
 if __name__ == "__main__":
-    readConfig()
     for root, subDirs, files in os.walk(path):
         for file in files:
             fullName = r'{}\{}'.format(root, file)

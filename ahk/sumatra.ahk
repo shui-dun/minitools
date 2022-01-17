@@ -4,7 +4,7 @@
 
 ; 复制
 
-^c::
++^c::
 	Send ^c
 	ClipWait  1
 	Clipboard := StrReplace(Clipboard, "-`r`n", "")

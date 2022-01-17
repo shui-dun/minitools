@@ -2,19 +2,7 @@
 
 #If WinActive("ahk_exe SumatraPDF.exe")
 
-; 方向
-
-^Left::Send {Home}
-^Right::Send {End}
-^Up::Send {PgUp}
-^Down::Send {PgDn}
-
-+^Left::Send +{Home}
-+^Right::Send +{End}
-+^Up::Send +{PgUp}
-+^Down::Send +{PgDn}
-
-; 沙拉查词
+; 复制
 
 ^c::
 	Send ^c

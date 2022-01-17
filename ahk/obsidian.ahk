@@ -29,7 +29,7 @@ title(times)
 	backup := Clipboard
 	Clipboard := ""
 	Send {Home}+{End}^c
-	ClipWait  0.05
+	ClipWait  0.1
 	Clipboard := LTrim(Clipboard, OmitChars := " #")
 	if (%times% != 0) 
 	{

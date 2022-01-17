@@ -13,10 +13,11 @@
 ; 沙拉查词
 
 !x::
-	Clipboard := ""
 	Send ^c
 	ClipWait  1
-	Clipboard := StrReplace(StrReplace(Clipboard, "-`r`n", ""), "`r`n", " ")
+	Clipboard := StrReplace(Clipboard, "-`r`n", "")
+	Clipboard := StrReplace(Clipboard, "`r`n", " ")
+	Clipboard := RegExReplace(Clipboard, "\[\d+\]", "")
 	Send !l
 	Loop, 40 {
 		If (WinExist("沙拉查词") || WinExist("Saladict")) {

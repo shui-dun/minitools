@@ -29,3 +29,27 @@
 	}
 Return
 
+; TIM OCR
+
+^!o::
+	Send ^!o
+	Loop, 200 {
+		If (WinExist("屏幕识图")) {
+			WinActivate
+			sleep, 50
+			Send ^c
+			WinKill
+			Break
+		} Else {
+			Sleep, 100
+		}
+	}
+Return
+
+; 手工模拟下一帧
+
+^!+Right::
+	Send {Space}
+	sleep 50
+	Send {Space}
+Return

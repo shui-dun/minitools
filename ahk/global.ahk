@@ -31,14 +31,31 @@ Return
 
 ; TIM OCR
 
-^!o::
+^!i::
 	Send ^!o
 	Loop, 200 {
 		If (WinExist("屏幕识图")) {
 			WinActivate
-			sleep, 50
 			Send ^c
+			ClipWait  1
 			WinKill
+			Break
+		} Else {
+			Sleep, 100
+		}
+	}
+Return
+
+^!+i::
+	backupclip := Clipboard
+	Send ^!o
+	Loop, 200 {
+		If (WinExist("屏幕识图")) {
+			WinActivate
+			Send ^c
+			ClipWait  1
+			WinKill
+			Clipboard := backupclip . Clipboard 
 			Break
 		} Else {
 			Sleep, 100
@@ -50,6 +67,6 @@ Return
 
 ^!+Right::
 	Send {Space}
-	sleep 50
+	sleep 25
 	Send {Space}
 Return

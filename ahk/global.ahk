@@ -36,6 +36,7 @@ Return
 	Loop, 200 {
 		If (WinExist("屏幕识图")) {
 			WinActivate
+			sleep 100
 			Send ^c
 			ClipWait  1
 			WinKill

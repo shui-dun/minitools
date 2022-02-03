@@ -2,18 +2,6 @@
 
 #If WinActive("ahk_exe Obsidian.exe")
 
-; 包裹公式块
-
-#+z::
-	backup := Clipboard
-	Clipboard := ""
-	Send ^x
-	ClipWait  1 
-	Clipboard := "`n$$`n" . Clipboard  . "`n$$`n"
-	Send ^v
-	Clipboard := backup
-Return
-
 ; 标题
 
 ^0::title(0)
@@ -64,10 +52,32 @@ title(times)
 	Clipboard := ""
 	Send +{Home}^c
 	ClipWait  1 
-	Clipboard := "**" . Clipboard  . ".** "
+	if (InStr(Clipboard, "- ") != 0)
+	{
+		Clipboard := StrReplace(Clipboard, "- ", "- **") . ".** "
+	} else if (InStr(Clipboard, "* ") != 0)
+	{
+		Clipboard := StrReplace(Clipboard, "* ", "* **") . ".** "
+	} else
+	{
+		Clipboard := "**" . Clipboard  . ".** "
+	}
 	Send ^v 
 	Clipboard := backup
 Return
+
+; 取消段落
+
+#+p::
+	backup := Clipboard
+	Clipboard := ""
+	Send ^c
+	ClipWait 1 
+	Clipboard := RegExReplace(Clipboard, "\*\*(.+)\.\*\* ", "$1")
+	Send ^v 
+	Clipboard := backup
+Return
+	
 
 ; 所有标题进一级
 
@@ -125,6 +135,7 @@ Return
 Return
 
 ; 包裹inline代码
+
 #c::
 	backup := Clipboard
 	Clipboard := ""
@@ -133,6 +144,18 @@ Return
 	Clipboard = %Clipboard% ; strip blank character
 	Clipboard := " ``" . Clipboard  . "`` " ; quote
 	Send ^v ; paste
+	Clipboard := backup
+Return
+
+; 包裹公式块
+
+#+z::
+	backup := Clipboard
+	Clipboard := ""
+	Send ^x
+	ClipWait  1 
+	Clipboard := "`n$$`n" . Clipboard  . "`n$$`n"
+	Send ^v
 	Clipboard := backup
 Return
 

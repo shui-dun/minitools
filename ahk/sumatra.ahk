@@ -9,7 +9,7 @@
 	ClipWait  1
 	Clipboard := StrReplace(Clipboard, "-`r`n", "")
 	Clipboard := StrReplace(Clipboard, "`r`n", " ")
-	Clipboard := RegExReplace(Clipboard, "\[\d+\]", "")
+	Clipboard := RegExReplace(Clipboard, "\[[\d, ]+\]", "")
 Return
 
 #If

@@ -47,7 +47,7 @@ title(times)
 
 ; 段落
 
-#p::
+!p::
 	backup := Clipboard
 	Clipboard := ""
 	Send +{Home}^c
@@ -68,7 +68,7 @@ Return
 
 ; 取消段落
 
-#+p::
+!+p::
 	backup := Clipboard
 	Clipboard := ""
 	Send ^c
@@ -123,7 +123,7 @@ Return
 
 ; 包裹inline公式
 
-#z::
+!x::
 	backup := Clipboard
 	Clipboard := ""
 	Send ^c  ; Send Ctrl+C to get selection on clipboard.
@@ -136,7 +136,7 @@ Return
 
 ; 包裹inline代码
 
-#c::
+!c::
 	backup := Clipboard
 	Clipboard := ""
 	Send ^c  ; Send Ctrl+C to get selection on clipboard.
@@ -144,18 +144,6 @@ Return
 	Clipboard = %Clipboard% ; strip blank character
 	Clipboard := " ``" . Clipboard  . "`` " ; quote
 	Send ^v ; paste
-	Clipboard := backup
-Return
-
-; 包裹公式块
-
-#+z::
-	backup := Clipboard
-	Clipboard := ""
-	Send ^x
-	ClipWait  1 
-	Clipboard := "`n$$`n" . Clipboard  . "`n$$`n"
-	Send ^v
 	Clipboard := backup
 Return
 

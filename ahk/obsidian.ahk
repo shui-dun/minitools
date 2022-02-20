@@ -68,7 +68,7 @@ Return
 
 ; 取消段落
 
-!+p::
++!p::
 	backup := Clipboard
 	Clipboard := ""
 	Send ^c
@@ -121,9 +121,9 @@ Return
 	Send ^v
 Return
 
-; 包裹inline公式
+; 包裹inline数学公式
 
-!x::
+!m::
 	backup := Clipboard
 	Clipboard := ""
 	Send ^c  ; Send Ctrl+C to get selection on clipboard.

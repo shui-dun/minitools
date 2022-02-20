@@ -10,9 +10,12 @@
 +^Up::Send +{PgUp}
 +^Down::Send +{PgDn}
 
+Space::Send {Space}
+F4::Send {F4}
+
 ; 沙拉查词
 
-#x::
+Space & s::
 	Send ^c
 	ClipWait  1
 	Clipboard := StrReplace(Clipboard, "-`r`n", "")
@@ -66,7 +69,7 @@ Return
 
 ; 手工模拟下一帧
 
-^!+Right::
+Space & Right::
 	Send {Space}
 	sleep 25
 	Send {Space}

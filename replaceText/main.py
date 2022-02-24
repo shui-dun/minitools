@@ -15,9 +15,12 @@ if __name__ == "__main__":
         for file in files:
             fullName = r'{}\{}'.format(root, file)
             if testSuffix(fullName):
-                with open(fullName, encoding='utf8') as f:
-                    s = f.read()
-                s = re.sub(origin, dest, s, count)
-                # 必须用二进制形式打开，不然会改变换行符
-                with open(fullName, 'wb') as f:
-                    f.write(bytes(s, encoding="utf8"))
+                try:
+                    with open(fullName, encoding='utf8') as f:
+                        s = f.read()
+                    s = re.sub(origin, dest, s, count)
+                    # 必须用二进制形式打开，不然会改变换行符
+                    with open(fullName, 'wb') as f:
+                        f.write(bytes(s, encoding="utf8"))
+                except Exception as e:
+                    print('in file: {}\texcept: {}'.format(fullName, e))

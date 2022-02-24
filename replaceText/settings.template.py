@@ -12,3 +12,6 @@ dest = "dest"
 
 # 替换次数，0代表替换所有
 count = 0
+
+# 要忽略的文件夹
+ignoredFolders = ['a']

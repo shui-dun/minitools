@@ -12,6 +12,10 @@ def testSuffix(name):
 
 if __name__ == "__main__":
     for root, subDirs, files in os.walk(path):
+        if os.path.basename(root) in ignoredFolders:
+            # dir = []并没有改变原来的列表，而dir[:] = []则是原地修改列表
+            subDirs[:] = []
+            continue
         for file in files:
             fullName = r'{}\{}'.format(root, file)
             if testSuffix(fullName):

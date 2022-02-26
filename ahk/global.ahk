@@ -13,6 +13,12 @@
 Space::Send {Space}
 F4::Send {F4}
 
+; 部分英文符号覆盖中文符号
+	
+`::Send {ASC 96}
+
+$::Send {ASC 36}
+
 ; 沙拉查词
 
 Space & s::

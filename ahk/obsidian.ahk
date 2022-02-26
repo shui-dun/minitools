@@ -33,11 +33,11 @@ title(times)
 
 ; 补全公式块
 
-:*:$$::$$+`n$${Up}{End}
+:*:$$::{ASC 36}{ASC 36}+`n{ASC 36}{ASC 36}{Up}{End}
 
 ; 补全代码块
 
-:*:``````::``````+`n``````{Up}{End}	
+:*:``````::{ASC 96}{ASC 96}{ASC 96}+`n{ASC 96}{ASC 96}{ASC 96}{Up}{End}	
 
 #If
 

@@ -1,6 +1,7 @@
 import re
 import os
 from settings import *
+import traceback
 
 
 def testSuffix(name):
@@ -27,4 +28,4 @@ if __name__ == "__main__":
                     with open(fullName, 'wb') as f:
                         f.write(bytes(s, encoding="utf8"))
                 except Exception as e:
-                    print('in file: {}\texcept: {}'.format(fullName, e))
+                    print('in file: {}\t{}'.format(fullName, traceback.format_exc()))

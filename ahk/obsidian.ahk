@@ -31,17 +31,7 @@ title(times)
 	Clipboard := backup
 }
 
-; 补全公式块
-
-:*:$$::{ASC 36}{ASC 36}+`n{ASC 36}{ASC 36}{Up}{End}
-
-; 补全代码块
-
-:*:``````::{ASC 96}{ASC 96}{ASC 96}+`n{ASC 96}{ASC 96}{ASC 96}{Up}{End}	
-
 #If
-
-
 
 #If WinActive("ahk_exe Obsidian.exe") || WinActive("ahk_exe Typora.exe")
 
@@ -120,6 +110,12 @@ Return
 	Clipboard := tmpString
 	Send ^v
 Return
+
+; 部分英文符号覆盖中文符号
+	
+`::Send {ASC 96}{Shift}
+
+$::Send {ASC 36}{Shift}
 
 ; 包裹inline数学公式
 

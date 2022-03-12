@@ -10,14 +10,9 @@
 +^Up::Send +{PgUp}
 +^Down::Send +{PgDn}
 
+; 松开Space后，仍然产生Space
+
 Space::Send {Space}
-F4::Send {F4}
-
-; 部分英文符号覆盖中文符号
-	
-`::Send {ASC 96}
-
-$::Send {ASC 36}
 
 ; 沙拉查词
 
@@ -40,7 +35,7 @@ Return
 
 ; TIM OCR
 
-^!i::
+^!+o::
 	Send ^!o
 	Loop, 200 {
 		If (WinExist("屏幕识图")) {
@@ -52,23 +47,6 @@ Return
 			Break
 		} Else {
 			Sleep, 200
-		}
-	}
-Return
-
-^!+i::
-	backupclip := Clipboard
-	Send ^!o
-	Loop, 200 {
-		If (WinExist("屏幕识图")) {
-			WinActivate
-			Send ^c
-			ClipWait  1
-			WinKill
-			Clipboard := backupclip . Clipboard 
-			Break
-		} Else {
-			Sleep, 100
 		}
 	}
 Return

@@ -1,4 +1,4 @@
-#NoTrayIcon
+﻿#NoTrayIcon
 
 #If WinActive("ahk_exe Typora.exe")
 

@@ -120,14 +120,12 @@ $::Send {ASC 36}{Shift}
 ; 包裹inline数学公式
 
 !m::
-	backup := Clipboard
 	Clipboard := ""
 	Send ^c  ; Send Ctrl+C to get selection on clipboard.
 	ClipWait  1  ; Wait for the copied text to arrive at the clipboard.
 	Clipboard = %Clipboard% ; strip blank character
 	Clipboard := " $" . Clipboard  . "$ " ; quote
 	Send ^v ; paste
-	Clipboard := backup
 Return
 
 ; 包裹inline代码

@@ -10,27 +10,23 @@
 +^Up::Send +{PgUp}
 +^Down::Send +{PgDn}
 
-; 松开Space后，仍然产生Space
-
-Space::Send {Space}
-
 ; 沙拉查词
 
-Space & s::
+^!s::
 	Send ^c
 	ClipWait  1
 	Clipboard := StrReplace(Clipboard, "-`r`n", "")
 	Clipboard := StrReplace(Clipboard, "`r`n", " ")
-	Clipboard := RegExReplace(Clipboard, "\[[\d, ]+\]", "")
+	Clipboard := RegExReplace(Clipboard, "\[[\d, ]+\]([–\-]\[[\d, ]+\])?", "")
 	Send !l
-	Loop, 40 {
-		If (WinExist("沙拉查词") || WinExist("Saladict")) {
-			WinActivate
-			Break
-		} Else {
-			Sleep, 50
-		}
-	}
+	; Loop, 40 {
+	; 	If (WinExist("沙拉查词") || WinExist("Saladict")) {
+	; 		WinActivate
+	; 		Break
+	; 	} Else {
+	; 		Sleep, 50
+	; 	}
+	; }
 Return
 
 ; TIM OCR
@@ -53,7 +49,7 @@ Return
 
 ; 手工模拟下一帧
 
-Space & Right::
+^!Right::
 	Send {Space}
 	sleep 25
 	Send {Space}

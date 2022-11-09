@@ -23,9 +23,11 @@ if __name__ == "__main__":
                 try:
                     with open(fullName, encoding='utf8') as f:
                         s = f.read()
-                    s = re.sub(origin, dest, s, count)
-                    # 必须用二进制形式打开，不然会改变换行符
-                    with open(fullName, 'wb') as f:
-                        f.write(bytes(s, encoding="utf8"))
+                    sNew = re.sub(origin, dest, s, count)
+                    if sNew != s:
+                        print(fullName)
+                        # 必须用二进制形式打开，不然会改变换行符
+                        with open(fullName, 'wb') as f:
+                            f.write(bytes(sNew, encoding="utf8"))
                 except Exception as e:
                     print('in file: {}\t{}'.format(fullName, traceback.format_exc()))

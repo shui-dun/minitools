@@ -23,7 +23,7 @@ if __name__ == "__main__":
                 try:
                     with open(fullName, encoding='utf8') as f:
                         s = f.read()
-                    sNew = re.sub(origin, dest, s, count)
+                    sNew = re.sub(origin, dest, s, count, flags=flags)
                     if sNew != s:
                         print(fullName)
                         # 必须用二进制形式打开，不然会改变换行符

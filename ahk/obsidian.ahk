@@ -112,10 +112,10 @@ Return
 Return
 
 ; 部分英文符号覆盖中文符号
-	
-`::Send {ASC 96}{Shift}
 
-$::Send {ASC 36}{Shift}
+`::Send {U+0060}{Shift}
+
+$::Send {U+0024}{Shift}
 
 ; 包裹inline数学公式
 

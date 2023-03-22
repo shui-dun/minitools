@@ -7,14 +7,16 @@
 +^c::
 	Send ^c
 	ClipWait  1
-	Clipboard := StrReplace(Clipboard, "-`r`n", "")
-	; 如果含有非ASCII字符（例如中文字符）
-	if (RegExmatch(Clipboard, "[^[:ascii:]]")) {
-		Clipboard := StrReplace(Clipboard, "`r`n", "")
-	} else {
-		Clipboard := StrReplace(Clipboard, "`r`n", " ")
-	}
-	; Clipboard := RegExReplace(Clipboard, "\[[\d, ]+\]([–\-]\[[\d, ]+\])?", "")
+	clipboard := Clipboard
+	; 恢复中途换行的单词
+	clipboard := StrReplace(clipboard, "-`r`n", "")
+	; 将英语单词之间的换行符变为空格
+	clipboard := RegExReplace(clipboard, "([A-Za-z])[\r\n]+([A-Za-z])", "$1 $2")
+	; 删去剩下的换行符（即中文字符间的换行符）
+	clipboard := RegExReplace(clipboard, "[\r\n]+", "")
+	; 删除参考文献的引用
+	; clipboard := RegExReplace(clipboard, "\[[\d, ]+\]([–\-]\[[\d, ]+\])?", "")
+	Clipboard := clipboard
 Return
 
 #If

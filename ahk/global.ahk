@@ -14,7 +14,7 @@
 
 ^!s::
 	Send ^c
-	ClipWait  1
+	ClipWait  5
 	Clipboard := StrReplace(Clipboard, "-`r`n", "")
 	Clipboard := StrReplace(Clipboard, "`r`n", " ")
 	Clipboard := RegExReplace(Clipboard, "\[[\d, ]+\]([–\-]\[[\d, ]+\])?", "")

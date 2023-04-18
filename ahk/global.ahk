@@ -30,7 +30,7 @@
 			Click, Left
 			Send, ^a
 			Send, ^v
-			Send, {Enter}
+			; Send, {Enter}
 			Break
 		} Else {
 			Sleep, 50

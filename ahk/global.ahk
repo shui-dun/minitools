@@ -13,6 +13,8 @@
 ; 翻译
 
 ^!s::
+	; 防止误触ctrl+alt+c
+	Sleep, 200
 	Send ^c
 	ClipWait  5
 	Clipboard := StrReplace(Clipboard, "-`r`n", "")

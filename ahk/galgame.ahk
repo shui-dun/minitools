@@ -1,5 +1,5 @@
 ﻿#Persistent
-SetTimer, Foo, 1500
+SetTimer, Foo, 1200
 
 Foo:
     ; SendInput, {Space}

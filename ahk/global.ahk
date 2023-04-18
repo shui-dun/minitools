@@ -10,7 +10,7 @@
 +^Up::Send +{PgUp}
 +^Down::Send +{PgDn}
 
-; 沙拉查词
+; 翻译
 
 ^!s::
 	Send ^c
@@ -18,16 +18,40 @@
 	Clipboard := StrReplace(Clipboard, "-`r`n", "")
 	Clipboard := StrReplace(Clipboard, "`r`n", " ")
 	Clipboard := RegExReplace(Clipboard, "\[[\d, ]+\]([–\-]\[[\d, ]+\])?", "")
-	Send !l
+	Send ^!t
 	Loop, 40 {
-		If (WinExist("沙拉查词") || WinExist("Saladict")) {
+		If (WinExist("OpenAI Translator")) {
 			WinActivate
+			; 移动光标（相对于窗口左上角）并点击左键
+			MouseMove, 240, 240
+			Sleep, 100
+			Click, Left
+			Send, ^a
+			Send, ^v
+			Send, {Enter}
 			Break
 		} Else {
 			Sleep, 50
 		}
 	}
 Return
+
+; ^!s::
+	; Send ^c
+	; ClipWait  5
+	; Clipboard := StrReplace(Clipboard, "-`r`n", "")
+	; Clipboard := StrReplace(Clipboard, "`r`n", " ")
+	; Clipboard := RegExReplace(Clipboard, "\[[\d, ]+\]([–\-]\[[\d, ]+\])?", "")
+	; Send !l
+	; Loop, 40 {
+		; If (WinExist("沙拉查词") || WinExist("Saladict")) {
+			; WinActivate
+			; Break
+		; } Else {
+			; Sleep, 50
+		; }
+	; }
+; Return
 
 ; TIM OCR
 

@@ -16,10 +16,10 @@ title(times)
 {
 	backup := Clipboard
 	sleep 100
+	; 使用ClipWait前必须要将剪切板置空
 	Clipboard := ""
 	Send {Home}+{End}^c
-	; 不知道为啥ClipWait无效，因此改用sleep
-	sleep 100
+	ClipWait, 1
 	Clipboard := LTrim(Clipboard, OmitChars := " #")
 	if (%times% != 0) 
 	{

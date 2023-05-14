@@ -15,9 +15,9 @@
 title(times) 
 {
 	backup := Clipboard
-	Clipboard := ""
+	sleep 100
 	Send {Home}+{End}^c
-	ClipWait  0.1
+	ClipWait, 1
 	Clipboard := LTrim(Clipboard, OmitChars := " #")
 	if (%times% != 0) 
 	{
@@ -28,6 +28,7 @@ title(times)
 		}
 	}
 	Send ^v
+	sleep 100
 	Clipboard := backup
 }
 

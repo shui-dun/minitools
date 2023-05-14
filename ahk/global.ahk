@@ -21,16 +21,20 @@
 	Clipboard := StrReplace(Clipboard, "`r`n", " ")
 	Clipboard := RegExReplace(Clipboard, "\[[\d, ]+\]([–\-]\[[\d, ]+\])?", "")
 	Send ^!t
-	Loop, 40 {
+	Loop, 10 {
 		If (WinExist("OpenAI Translator")) {
+			; Sleep, 300
 			WinActivate
 			; 移动光标（相对于窗口左上角）并点击左键
 			MouseMove, 240, 240
-			Sleep, 100
+			Sleep, 30
 			Click, Left
+			Sleep, 30
 			Send, ^a
+			Sleep, 30
 			Send, ^v
-			; Send, {Enter}
+			Sleep, 30
+			Send, {Enter}
 			Break
 		} Else {
 			Sleep, 50

@@ -16,7 +16,7 @@
 	; 防止误触ctrl+alt+c
 	Sleep, 200
 	Send ^c
-	ClipWait  5
+	Sleep, 200
 	Clipboard := StrReplace(Clipboard, "-`r`n", "")
 	Clipboard := StrReplace(Clipboard, "`r`n", " ")
 	Clipboard := RegExReplace(Clipboard, "\[[\d, ]+\]([–\-]\[[\d, ]+\])?", "")
@@ -37,27 +37,10 @@
 			Send, {Enter}
 			Break
 		} Else {
-			Sleep, 50
+			Sleep, 25
 		}
 	}
 Return
-
-; ^!s::
-	; Send ^c
-	; ClipWait  5
-	; Clipboard := StrReplace(Clipboard, "-`r`n", "")
-	; Clipboard := StrReplace(Clipboard, "`r`n", " ")
-	; Clipboard := RegExReplace(Clipboard, "\[[\d, ]+\]([–\-]\[[\d, ]+\])?", "")
-	; Send !l
-	; Loop, 40 {
-		; If (WinExist("沙拉查词") || WinExist("Saladict")) {
-			; WinActivate
-			; Break
-		; } Else {
-			; Sleep, 50
-		; }
-	; }
-; Return
 
 ; TIM OCR
 

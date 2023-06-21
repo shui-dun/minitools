@@ -13,24 +13,26 @@
 ; 翻译
 
 ^!s::
+	Clipboard := ""
 	; 防止误触ctrl+alt+c
-	Sleep, 200
 	Send ^c
-	Sleep, 200
+	ClipWait 3 ; 等待剪贴板的内容到来（不为空），最多等待3s
 	Clipboard := StrReplace(Clipboard, "-`r`n", "")
 	Clipboard := StrReplace(Clipboard, "`r`n", " ")
 	Clipboard := RegExReplace(Clipboard, "\[[\d, ]+\]([–\-]\[[\d, ]+\])?", "")
-	Send ^!t
+	; 添加prompt
+	Clipboard := "“" . Clipboard . "”"
 	Loop, 10 {
-		If (WinExist("OpenAI Translator")) {
-			; Sleep, 300
+		If (WinExist("LetsTranslate")) {
 			WinActivate
 			; 移动光标（相对于窗口左上角）并点击左键
-			MouseMove, 240, 240
+			MouseMove, 351, 959
 			Sleep, 30
 			Click, Left
 			Sleep, 30
-			Send, ^a
+			MouseMove, 515, 947
+			Sleep, 30
+			Click, Left
 			Sleep, 30
 			Send, ^v
 			Sleep, 30

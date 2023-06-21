@@ -13,27 +13,31 @@
 ; 翻译
 
 ^!s::
+	; 清空剪贴板并进行复制
 	Clipboard := ""
-	; 防止误触ctrl+alt+c
 	Send ^c
-	ClipWait 3 ; 等待剪贴板的内容到来（不为空），最多等待3s
+	ClipWait 2 ; 等待剪贴板的内容到来（不为空），最多等待2s
+	; 删除换行符以及参考文献的引用
 	Clipboard := StrReplace(Clipboard, "-`r`n", "")
 	Clipboard := StrReplace(Clipboard, "`r`n", " ")
 	Clipboard := RegExReplace(Clipboard, "\[[\d, ]+\]([–\-]\[[\d, ]+\])?", "")
-	; 添加prompt
+	; 添加引号
 	Clipboard := "“" . Clipboard . "”"
 	Loop, 10 {
 		If (WinExist("LetsTranslate")) {
+			; 打开LetsTranslate
 			WinActivate
-			; 移动光标（相对于窗口左上角）并点击左键
+			; 移动光标（相对于窗口左上角）并点击清空当前会话
 			MouseMove, 351, 959
 			Sleep, 30
 			Click, Left
 			Sleep, 30
+			; 点击输入框
 			MouseMove, 515, 947
 			Sleep, 30
 			Click, Left
 			Sleep, 30
+			; 复制并回车
 			Send, ^v
 			Sleep, 30
 			Send, {Enter}

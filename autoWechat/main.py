@@ -23,7 +23,7 @@ if __name__ == '__main__':
         appellations = msgGroup['appellation']
         msg = msgGroup['msg']
         for name, appellation in appellations.items():
-            finalMsg = f"{appellation}，{msg}"
+            finalMsg = msg.replace('{}', appellation)
             g.hotkey('ctrl', 'f')
             time.sleep(pause)
             pyperclip.copy(name)

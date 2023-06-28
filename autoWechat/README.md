@@ -4,23 +4,17 @@
 
 ## 使用方法
 
-- 安装依赖：`pip install -r requirements.txt`
+- 安装pipenv：`pip install pipenv`
+- 安装环境以及依赖：`pipenv install`
 - 按照 `msg.template.json` 编写 `msg.json`
-- 登录微信
-- 运行 `python main.py`
+- 登录并打开微信窗口
+- 运行 `pipenv run main.py`
 
 ## 打包方法
 
 如果目标电脑没有python环境，可以打包
 
 ```python
-# 建立虚拟环境（如果不建立新环境，打包时会包含很多不需要的包）
-pip install pipenv
-pipenv install
-# 进入虚拟环境
-pipenv shell
-# 安装模块
-pip install -r requirements.txt
 # 设置编码，否则读取文件会有编码问题
 chcp 65001
 # 开始打包

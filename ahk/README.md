@@ -1,6 +1,6 @@
 # ahk
 
-autohotkey快捷键
+autohotkey脚本
 
 ## npp4ahk
 

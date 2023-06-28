@@ -60,7 +60,7 @@ def writeNewReadme():
         sortedSubReadme.append((subFolder, description))
     # 将新的索引写入README.md文件
     with open('README.md', 'w', encoding='utf-8') as f:
-        f.write('# minitools\n\n迷你工具，不想一个个单独做成仓库，于是放在了一起\n\n')
+        f.write('# minitools\n\n迷你工具，不想一个个单独做成仓库，于是放在了一起\n\n## 项目列表\n\n')
         for subFolder, description in sortedSubReadme:
             f.write(f'- [{subFolder}](./{subFolder}) {description}\n')
 

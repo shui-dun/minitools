@@ -1,11 +1,16 @@
-{
-	"name": {
-		"friend_name1": "小张",
-		"friend_name2": "伯伯",
-		"friend_name3": "小明"
+[
+	{
+		"appellation": {
+			"张晓": "小张",
+			"孙苏里": "伯伯"
+		},
+		"msg": "端午节快乐😊"
 	},
-	"mixin_msg": "端午节快乐😊",
-	"exception": {
-		"friend_name4": "小强，端午节快乐，晚上出来玩吗"
+	{
+		"appellation": {
+			"王川途": "小王",
+			"李亦须": "小李"
+		},
+		"msg": "端午节快乐😊，晚上出来玩吗"
 	}
-}
+]

@@ -1,1 +1,6 @@
 msg.json
+dist/
+build/
+*.spec
+Pipfile
+Pipfile.lock

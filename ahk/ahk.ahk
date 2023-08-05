@@ -28,7 +28,7 @@
 			; 打开LetsTranslate
 			WinActivate
 			; 移动光标（相对于窗口左上角）并点击清空当前会话
-			MouseMove, 500, 950
+			MouseMove, 550, 960
 			Sleep, 30
 			Click, Left
 			Sleep, 30

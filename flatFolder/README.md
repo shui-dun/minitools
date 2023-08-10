@@ -7,8 +7,8 @@
 ```
 .
 ├── a.txt
-│   ├── folder1
-│   │   ├── b.txt
+└── folder1
+    └── b.txt
 ```
 
 生成如下文件：

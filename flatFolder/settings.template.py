@@ -6,3 +6,6 @@ allowFileTypes = ["vue", "java"]
 
 # 排除的文件夹
 excludeFolders = ["node_modules", "dist", "build", "target", "out", "bin", "obj"]
+
+# 排除的文件
+excludeFiles = ["a.md"]

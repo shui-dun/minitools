@@ -12,6 +12,9 @@ def concat_files_in_folder(root_dir, output_file_name):
             # 只允许指定的文件类型
             filenames = [filename for filename in filenames if filename.split('.')[-1] in allowFileTypes]
 
+            # 排除指定的文件
+            filenames = [filename for filename in filenames if filename not in excludeFiles]
+
             for filename in filenames:
                 filepath = os.path.join(dirpath, filename)
                 relative_filepath = os.path.relpath(filepath, root_dir)

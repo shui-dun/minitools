@@ -18,6 +18,7 @@
 - [randomFile](./randomFile) 生成指定大小的内容完全随机的文件
 - [localizeMD](./localizeMD) 将指定文件夹下的所有markdown文件中引用的图片下载到本地
 - [headers2dict](./headers2dict) 将http消息头转化为python字典（json）
+- [downloader](./downloader) 多线程下载器
 - [html2pdf](./html2pdf) 将网页批量转化为pdf文件，方便打印
 - [copyHtml](./copyHtml) 复制网页上的文本，以及latex公式
 - [clash_helper](./clash_helper) 使用clash的restful API，实现代理手动切换，以方便爬虫绕过IP限制

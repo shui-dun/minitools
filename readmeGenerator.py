@@ -70,6 +70,7 @@ def writeNewReadme():
         f.write('# 迷你工具箱\n\n一系列迷你工具，不想一个个单独做成仓库，于是放在了一起\n\n## 工具列表\n\n')
         for subFolder, description in sortedSubReadme:
             f.write(f'- [{subFolder}](./{subFolder}) {description}\n')
+        f.write('\n## License\n\n[MIT](./LICENSE)')
 
 
 if __name__ == '__main__':

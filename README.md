@@ -11,6 +11,7 @@
 - [fullScreenCheck](./fullScreenCheck) 当你运行全屏应用，例如全屏播放视频时，每隔一分钟，输入`'shift'+'ctrl'+'alt'+'.'`，使得Stretchly不要误以为你没有使用电脑
 - [replaceText](./replaceText) 替换指定文件夹下指定格式的文件中的指定文本
 - [autoWechat](./autoWechat) 微信自动发消息
+- [handles](./handles) 持续监视一个进程占有的句柄
 - [checkMDImage](./checkMDImage) 检测某个目录下的markdown文件中所对应的本地图片是否存在，并检测文件夹中的文件是否被markdown文件引用
 - [localizeWebsite](./localizeWebsite) 将一个网站中所有的文件中的所有远程路径改为本地路径，方便复刻网站
 - [dictionaryAttack](./dictionaryAttack) 使用字典攻击破解压缩包密码
@@ -30,3 +31,7 @@
 - [saladictHelper](./saladictHelper) 沙拉查词无法获得输入框中的单词的上下文，在这个网页粘贴句子，沙拉查词就可以获取上下文
 - [img-spider](./img-spider) 批量从百度图片上下载图片
 - [liuji](./liuji) 爬取六级词汇表
+
+## License
+
+[MIT](./LICENSE)

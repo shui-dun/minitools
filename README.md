@@ -1,11 +1,12 @@
-# minitools
+# 迷你工具箱
 
-迷你工具，不想一个个单独做成仓库，于是放在了一起
+一系列迷你工具，不想一个个单独做成仓库，于是放在了一起
 
-## 项目列表
+## 工具列表
 
 - [ahk](./ahk) autohotkey脚本
 - [rmMd](./rmMd) 删除markdown文件以及其链接的图片
+- [flatFolder](./flatFolder) 递归地读取文件夹下的所有文件，将其转化为一个大文件，以便于与Claude2等LLM通话。
 - [fullScreenCheck](./fullScreenCheck) 当你运行全屏应用，例如全屏播放视频时，每隔一分钟，输入`'shift'+'ctrl'+'alt'+'.'`，使得Stretchly不要误以为你没有使用电脑
 - [replaceText](./replaceText) 替换指定文件夹下指定格式的文件中的指定文本
 - [autoWechat](./autoWechat) 微信自动发消息

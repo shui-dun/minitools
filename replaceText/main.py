@@ -94,8 +94,13 @@ class TextReplacerApp(wx.App):
         self.settingPath = os.path.join(os.path.expanduser('~'), '.TextReplacer.json')
         # 创建一个新的窗口框架，大小为500x600，标题为"Text Replacer"
         frame = wx.Frame(None, wx.ID_ANY, "Text Replacer", size=(500, 600))
+        # 最大化
+        frame.Maximize(True)
         # 在窗口框架中创建一个面板
         panel = wx.Panel(frame)
+        # 设置字体大小
+        font = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL, False, "Consolas")
+        panel.SetFont(font)
 
         # 创建一个垂直布局容器
         main_sizer = wx.BoxSizer(wx.VERTICAL)

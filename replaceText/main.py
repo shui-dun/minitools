@@ -50,7 +50,7 @@ class TextReplacerApp(wx.App):
         """
         从文件中读取设置
         """
-        if not os.path.exists('settings.json'):
+        if not os.path.exists(self.settingPath):
             self.settings = {
                 "path": "",
                 "origin": "",
@@ -60,7 +60,7 @@ class TextReplacerApp(wx.App):
                 "ignoredFolders": []
             }
         else:
-            with open('settings.json', encoding='utf8') as f:
+            with open(self.settingPath, encoding='utf8') as f:
                 self.settings = json.load(f)
         self.folder_path.SetPath(self.settings["path"])
         self.input_origin.SetValue(self.settings["origin"])
@@ -84,12 +84,14 @@ class TextReplacerApp(wx.App):
                 self.settings["suffix"][i] = '.' + self.settings["suffix"][i]
         self.settings["count"] = self.replace_count.GetValue()
         self.settings["ignoredFolders"] = self.input_ignored_folders.GetStrings()
-        with open('settings.json', 'w', encoding='utf8') as f:
+        with open(self.settingPath, 'w', encoding='utf8') as f:
             json.dump(self.settings, f, ensure_ascii=False, indent=4)
 
 
     # 定义应用程序初始化函数
     def OnInit(self):
+        # 设置文件应该位于该文件的同级目录下，而非工作目录
+        self.settingPath = os.path.join(os.path.dirname(__file__), 'settings.json')
         # 创建一个新的窗口框架，大小为500x600，标题为"Text Replacer"
         frame = wx.Frame(None, wx.ID_ANY, "Text Replacer", size=(500, 600))
         # 在窗口框架中创建一个面板

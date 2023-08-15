@@ -2,7 +2,6 @@
 
 替换指定文件夹下指定格式的文件中的指定文本
 
-## 使用方法
+## 截图
 
-- 修改`settings.template.py`，形成`settings.py`
-- 运行`main.py`
+![image-20230815192416335](assets/image-20230815192416335.png)

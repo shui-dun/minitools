@@ -50,16 +50,15 @@ def main():
     if not is_admin():
         elevate(show_console=True)  # 这会提高权限并重启脚本
 
-    if len(sys.argv) < 2:
-        print('Usage: script.py <path_to_python_file>')
-        sys.exit(1)
-
-    python_file = sys.argv[1]
+    python_file = input('请输入python文件的路径：')
+    # 删除引号
+    python_file = python_file.strip('"')
 
     find_project, project_path = find_pipfile_in_path(os.path.dirname(python_file))
 
     if not find_project:
         print('Could not find Pipfile in path')
+        input('Press Enter to exit...')
         sys.exit(1)
     else:
         create_venv(project_path)
@@ -70,6 +69,7 @@ def main():
     
     if not venv_path:
         print('Could not find pipenv virtual environment for', python_file)
+        input('Press Enter to exit...')
         sys.exit(1)
 
     interpreter = 'pythonw.exe' if python_file.endswith('.pyw') else 'python.exe'
@@ -83,9 +83,7 @@ def main():
 
     create_shortcut(interpreter_path, f'"{python_file}"', shortcut_name)
 
-
-    
-
+    input('Press Enter to exit...')
 
 if __name__ == "__main__":
     main()

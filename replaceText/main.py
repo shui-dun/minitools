@@ -90,8 +90,8 @@ class TextReplacerApp(wx.App):
 
     # 定义应用程序初始化函数
     def OnInit(self):
-        # 设置文件应该位于该文件的同级目录下，而非工作目录
-        self.settingPath = os.path.join(os.path.dirname(__file__), 'settings.json')
+        # 设置文件应该位于用户的家目录下
+        self.settingPath = os.path.join(os.path.expanduser('~'), '.TextReplacer.json')
         # 创建一个新的窗口框架，大小为500x600，标题为"Text Replacer"
         frame = wx.Frame(None, wx.ID_ANY, "Text Replacer", size=(500, 600))
         # 在窗口框架中创建一个面板
@@ -202,7 +202,7 @@ class TextReplacerApp(wx.App):
         """
         # 如果路径为空，或者路径不存在，则直接返回
         if not self.settings["path"] or not os.path.exists(self.settings["path"]):
-            wx.MessageBox("路径为空或者路径不存在", "错误", wx.OK | wx.ICON_ERROR)
+            wx.MessageBox("路径不存在", "错误", wx.OK | wx.ICON_ERROR)
             return
         for root, subDirs, files in os.walk(self.settings["path"]):
             if os.path.basename(root) in self.settings["ignoredFolders"]:

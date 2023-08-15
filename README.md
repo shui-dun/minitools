@@ -4,6 +4,7 @@
 
 ## 工具列表
 
+- [pipenvInstaller](./pipenvInstaller) 指定一个pipenv项目中的的python文件，会自动安装项目所需的python环境，并为该文件创建快捷方式。
 - [ahk](./ahk) autohotkey脚本
 - [pipenvRun](./pipenvRun) 在windows上一键使用pipenv运行python文件
 - [rmMd](./rmMd) 删除markdown文件以及其链接的图片

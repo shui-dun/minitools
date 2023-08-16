@@ -33,13 +33,17 @@ class TextReplacerApp(wx.App):
 
     # 定义测试替换功能的事件处理函数
     def on_test_replace(self, event):
-        self.writeSettings()
-        # 获取测试输入区的文本
-        test_input = self.input_test_area_in.GetValue()
-        # 将输入区文本中的指定字符串替换为另一个字符串
-        test_output = re.sub(self.input_origin.GetValue(), self.input_dest.GetValue(), test_input, int(self.replace_count.GetValue()), flags=re.M)
-        # 将替换后的文本显示在测试输出区中
-        self.output_test_area_out.SetValue(test_output)
+        try:
+            self.writeSettings()
+            # 获取测试输入区的文本
+            test_input = self.input_test_area_in.GetValue()
+            # 将输入区文本中的指定字符串替换为另一个字符串
+            test_output = re.sub(self.input_origin.GetValue(), self.input_dest.GetValue(), test_input, int(self.replace_count.GetValue()), flags=re.M)
+            # 将替换后的文本显示在测试输出区中
+            self.output_test_area_out.SetValue(test_output)
+        except Exception as e:
+           print(traceback.format_exc())
+           wx.MessageBox(traceback.format_exc(), "错误", wx.OK | wx.ICON_ERROR)
 
     # 定义执行替换功能的事件处理函数
     def on_replace(self, event):
@@ -215,7 +219,7 @@ class TextReplacerApp(wx.App):
                 subDirs[:] = []
                 continue
             for file in files:
-                fullName = r'{}\{}'.format(root, file)
+                fullName = os.path.join(root, file)
                 if self.testSuffix(fullName):
                     try:
                         with open(fullName, encoding='utf8') as f:
@@ -239,4 +243,3 @@ if __name__ == "__main__":
     # 开始应用程序的主事件循环
     app.MainLoop()
 
-        

@@ -10,6 +10,12 @@
 +^Up::Send +{PgUp}
 +^Down::Send +{PgDn}
 
+; 复制与粘贴控制台的文本
+; 由于键盘没有insert键，所以将ctrl+pause键映射为ctrl+insert键，将shift+pause键映射为shift+insert键
+; 注意ctrl+pause会被转化为ctrlbreak，所以最后是将ctrlbreak映射为ctrl+insert
+CtrlBreak::^Insert
++Pause::+Insert
+
 ; 翻译
 
 ^!s::

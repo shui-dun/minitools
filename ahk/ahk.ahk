@@ -20,6 +20,19 @@ Capslock::Esc
 CtrlBreak::^Insert
 +Pause::+Insert
 
+; 将剪切板内容一个个字符输出（而非粘贴）
+; 应用场景：例如，在vim录制宏时，按下<shift+insert>时，vim会记作这个粘贴操作，而不会记住其内容
+; 因此，当你的剪切板内容变化后，宏无法正常运行
+^!v::
+	content := Clipboard
+	Loop, Parse, content
+	{
+		; SendRaw 相比于 Send，不会转义{}等特殊字符
+		SendRaw %A_LoopField%
+		Sleep 10
+	}
+Return
+
 ; 翻译
 
 ^!s::

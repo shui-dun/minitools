@@ -37,15 +37,18 @@ Return
 
 ^!s::
 	; 清空剪贴板并进行复制
+	backUp := Clipboard
 	Clipboard := ""
 	Send ^c
-	ClipWait 2 ; 等待剪贴板的内容到来（不为空），最多等待2s
+	ClipWait 2 ; 等待剪贴板的内容到来（剪切板不为空），最多等待2s
+	clipboard := Clipboard
 	; 删除换行符以及参考文献的引用
-	Clipboard := StrReplace(Clipboard, "-`r`n", "")
-	Clipboard := StrReplace(Clipboard, "`r`n", " ")
-	Clipboard := RegExReplace(Clipboard, "\[[\d, ]+\]([–\-]\[[\d, ]+\])?", "")
+	clipboard := StrReplace(clipboard, "-`r`n", "")
+	clipboard := StrReplace(clipboard, "`r`n", " ")
+	clipboard := RegExReplace(clipboard, "\[[\d, ]+\]([–\-]\[[\d, ]+\])?", "")
 	; 添加引号
-	Clipboard := "“" . Clipboard . "”"
+	clipboard := "“" . clipboard . "”"
+	Clipboard := clipboard
 	Loop, 10 {
 		If (WinExist("LetsTranslate")) {
 			; 打开LetsTranslate
@@ -69,6 +72,7 @@ Return
 			Sleep, 25
 		}
 	}
+	Clipboard := backUp
 Return
 
 ; TIM OCR
@@ -175,7 +179,7 @@ Return
 	Send ^v
 Return
 
-; 部分英文符号覆盖中文符号
+; 部分英文符号覆盖中文符号，并自动切换输入法
 
 `::Send {U+0060}{Shift}
 
@@ -204,42 +208,6 @@ Return
 	Send ^v ; paste
 	Clipboard := backup
 Return
-
-#If
-
-#If WinActive("ahk_exe Obsidian.exe")
-
-; 标题
-
-^0::title(0)
-^1::title(1)
-^2::title(2)
-^3::title(3)
-^4::title(4)
-^5::title(5)
-^6::title(6)
-
-title(times) 
-{
-	backup := Clipboard
-	sleep 100
-	; 使用ClipWait前必须要将剪切板置空
-	Clipboard := ""
-	Send {Home}+{End}^c
-	ClipWait, 1
-	Clipboard := LTrim(Clipboard, OmitChars := " #")
-	if (%times% != 0) 
-	{
-		Clipboard := " " . Clipboard
-		Loop, %times% 
-		{
-			Clipboard := "#" . Clipboard
-		}
-	}
-	Send ^v
-	sleep 100
-	Clipboard := backup
-}
 
 #If
 

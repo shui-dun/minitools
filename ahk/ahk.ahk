@@ -255,4 +255,8 @@ Return
 	Clipboard := clipboard
 Return
 
+; 将ctrl+left和ctrl+right映射为alt+left和alt+right进行跳转，因为sumatra的alt+left和alt+right快捷键已经被占用了
+^Left::Send !{Left}
+^Right::Send !{Right}
+
 #If

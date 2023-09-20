@@ -241,6 +241,7 @@ Return
 ; 复制
 
 +^c::
+	Clipboard := ""
 	Send ^c
 	ClipWait  1
 	clipboard := Clipboard

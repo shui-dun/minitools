@@ -18,6 +18,7 @@
 - [localizeWebsite](./localizeWebsite) 将一个网站中所有的文件中的所有远程路径改为本地路径，方便复刻网站
 - [dictionaryAttack](./dictionaryAttack) 使用字典攻击破解压缩包密码
 - [fullcpu](./fullcpu) 一键使CPU满载
+- [dockerClear](./dockerClear) 清理docker-desktop占用的内存
 - [randomFile](./randomFile) 生成指定大小的内容完全随机的文件
 - [localizeMD](./localizeMD) 将指定文件夹下的所有markdown文件中引用的图片下载到本地
 - [headers2dict](./headers2dict) 将http消息头转化为python字典（json）

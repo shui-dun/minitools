@@ -7,8 +7,11 @@ def run_command():
 
 def main():
     while True:
-        run_command()
-        time.sleep(180)  # 等待180秒，即3分钟
+        try:
+            run_command()
+            time.sleep(180)  # 等待180秒，即3分钟
+        except Exception as e:
+            print(e)
 
 if __name__ == "__main__":
     main()

@@ -6,10 +6,12 @@ def run_command():
     subprocess.run(command, creationflags=subprocess.CREATE_NO_WINDOW)
 
 def main():
+    # 运行Docker Desktop.exe
+    subprocess.run('"Docker Desktop.exe"', creationflags=subprocess.CREATE_NO_WINDOW)
     while True:
         try:
-            run_command()
             time.sleep(180)  # 等待180秒，即3分钟
+            run_command()
         except Exception as e:
             print(e)
 

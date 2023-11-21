@@ -4,7 +4,7 @@
 
 ## 详细介绍
 
-运行 `pipenv run python main.py /path/to/file.py`，效果如下：
+运行 `pipenv run python main.py`，并输入目标python文件 `file.py` 的路径，效果如下：
 
 - 找到与 `file.py` 关联的 pipfile 位置，安装 pipfile 中指定的 python 环境
 

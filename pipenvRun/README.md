@@ -12,4 +12,5 @@
 ## 使用方法
 
 - 你的电脑首先应该安装 `python` 和 `pipenv`
-- 将 `pipenvRun.bat` 作为默认的 `.py` 和 `.pyw` 文件打开方式
+- 为 `.py` 和 `.pyw` 添加右键菜单：`"path\to\pythonw.exe" "path\to\pipenvRun.py" "%V"`
+

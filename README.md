@@ -31,6 +31,7 @@
 - [colorBlind](./colorBlind) 将图片处理后色盲容易辨认的图片，但效果不好
 - [pan-spider](./pan-spider) 通过bing搜索找到有效的网盘链接
 - [questionnaire-spider](./questionnaire-spider) 自动填写“问卷星”
+- [lockScreen](./lockScreen) 一键锁屏，如果因为某种原因不适合使用 `Win+L`
 - [saladictHelper](./saladictHelper) 沙拉查词无法获得输入框中的单词的上下文，在这个网页粘贴句子，沙拉查词就可以获取上下文
 - [img-spider](./img-spider) 批量从百度图片上下载图片
 - [liuji](./liuji) 爬取六级词汇表

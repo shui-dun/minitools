@@ -12,6 +12,7 @@
 - [flatFolder](./flatFolder) 递归地读取文件夹下的所有文件，将其转化为一个大文件，以便于与Claude2等LLM通话。
 - [handright](./handright) 使用handright库，生成手写笔记
 - [fullScreenCheck](./fullScreenCheck) 当你运行全屏应用，例如全屏播放视频时，每隔一分钟，输入`'shift'+'ctrl'+'alt'+'.'`，使得Stretchly不要误以为你没有使用电脑
+- [mklinks](./mklinks) 如果需要频繁地将某些文件或文件夹创建符号链接到多个不同目录，那么这个工具可能会对你有所帮助。
 - [autoWechat](./autoWechat) 微信自动发消息
 - [handles](./handles) 持续监视一个进程占有的句柄
 - [checkMDImage](./checkMDImage) 检测某个目录下的markdown文件中所对应的本地图片是否存在，并检测文件夹中的文件是否被markdown文件引用

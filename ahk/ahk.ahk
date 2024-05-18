@@ -74,25 +74,6 @@ Return
 ;     Clipboard := backUp
 ; Return
 
-
-; TIM OCR
-
-^!+o::
-	Send +^o ; 这需要先将TIM OCR的默认快捷键修改为shift+ctrl+o
-	Loop, 200 {
-		If (WinExist("屏幕识图")) {
-			WinActivate
-			sleep 200
-			Send ^c
-			ClipWait  1
-			WinKill
-			Break
-		} Else {
-			Sleep, 200
-		}
-	}
-Return
-
 ; 播放视频时手工模拟下一帧
 
 ^!+Right::

@@ -8,6 +8,7 @@
 - [pipenvInstaller](./pipenvInstaller) 指定一个pipenv项目中的的python文件，会自动安装项目所需的python环境，并为该文件创建快捷方式。
 - [ahk](./ahk) autohotkey脚本
 - [pipenvRun](./pipenvRun) 在windows上一键使用pipenv运行python文件
+- [copyMd](./copyMd) 复制markdown以及其链接的本地图片（使用go实现）
 - [rmMd](./rmMd) 删除markdown文件以及其链接的图片
 - [flatFolder](./flatFolder) 递归地读取文件夹下的所有文件，将其转化为一个大文件，以便于与Claude2等LLM通话。
 - [handright](./handright) 使用handright库，生成手写笔记

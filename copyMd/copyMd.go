@@ -48,7 +48,7 @@ func copyMarkdownAndImages(mdFilePath string, destDir string) error {
 		matches := imagePattern.FindAllStringSubmatch(line, -1)
 		for _, match := range matches {
 			imagePath := urlDecode(match[1])
-			if !isURL(imagePath) {
+			if isRelativePath(imagePath) {
 				imageFilePath := filepath.Join(filepath.Dir(mdFilePath), imagePath)
 				destImageFileDir := filepath.Join(destDir, filepath.Dir(imagePath))
 				err := copyFile(imageFilePath, destImageFileDir)
@@ -90,9 +90,21 @@ func copyFile(src string, dstFolder string) error {
 	return err
 }
 
-func isURL(path string) bool {
-	// 是否包含://
-	return strings.Contains(path, "://")
+// 判断是否是相对路径的文件
+func isRelativePath(path string) bool {
+	// 如果以 / 开头，说明是绝对路径
+	if strings.HasPrefix(path, "/") {
+		return false
+	}
+	// windows 下的绝对路径
+	if len(path) > 2 && path[1] == ':' {
+		return false
+	}
+	// 如果包含 ://，说明是URL
+	if strings.Contains(path, "://") {
+		return false
+	}
+	return true
 }
 
 // url解码

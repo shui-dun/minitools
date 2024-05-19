@@ -38,6 +38,10 @@
 - [liuji](./liuji) 爬取六级词汇表
 - [img-spider](./img-spider) 批量从百度图片上下载图片
 
+## hooks
+
+你可以将 [.githooks](.githooks) 软链接到 `.git/hooks`，以实现 `pre-commit` 时自动更新README
+
 ## License
 
 [MIT](./LICENSE)

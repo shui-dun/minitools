@@ -1,0 +1,5 @@
+#!/bin/sh
+
+echo "run readmeGenerator before commit"
+
+python3 readmeGenerator.py

@@ -47,7 +47,8 @@ func copyMarkdownAndImages(mdFilePath string, destDir string) error {
 		line := scanner.Text()
 		matches := imagePattern.FindAllStringSubmatch(line, -1)
 		for _, match := range matches {
-			imagePath := urlDecode(match[1])
+			// 解码 URL 编码的字符串
+			imagePath, _ := url.QueryUnescape(match[1])
 			if isRelativePath(imagePath) {
 				imageFilePath := filepath.Join(filepath.Dir(mdFilePath), imagePath)
 				destImageFileDir := filepath.Join(destDir, filepath.Dir(imagePath))
@@ -113,10 +114,4 @@ func isRelativePath(path string) bool {
 		return false
 	}
 	return true
-}
-
-// url解码
-func urlDecode(str string) string {
-	s, _ := url.QueryUnescape(str)
-	return s
 }

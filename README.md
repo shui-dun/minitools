@@ -35,11 +35,8 @@
 - [questionnaire-spider](./questionnaire-spider) 自动填写“问卷星”
 - [lockScreen](./lockScreen) 一键锁屏，如果因为某种原因不适合使用 `Win+L`
 - [saladictHelper](./saladictHelper) 沙拉查词无法获得输入框中的单词的上下文，在这个网页粘贴句子，沙拉查词就可以获取上下文
+- [liuji](./liuji) 爬取六级词汇表
 - [img-spider](./img-spider) 批量从百度图片上下载图片
-
-## hooks
-
-你可以将 `.githooks` 软链接到 `.git/hooks` 来实现 pre-commit 时自动更新README
 
 ## License
 

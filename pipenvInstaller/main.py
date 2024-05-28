@@ -4,7 +4,6 @@ import subprocess
 import win32com.client
 from elevate import elevate
 import ctypes
-import shutil
 
 def is_admin():
     """检查当前用户是否具有管理员权限"""
@@ -51,7 +50,7 @@ def create_venv(project_path):
 def create_bat_file(interpreter_path, python_file, bat_file_path):
     """创建批处理文件来运行指定的Python脚本"""
     with open(bat_file_path, 'w') as bat_file:
-        bat_file.write(f'@echo off\n"{interpreter_path}" {python_file}\n')
+        bat_file.write(f'@echo off\n"{interpreter_path}" {python_file} %*\n')
 
 def exit(retVal=0):
     if interactive:

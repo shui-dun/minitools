@@ -7,7 +7,6 @@
 - [replaceText](./replaceText) 替换指定文件夹下指定格式的文件中的指定文本
 - [pipenvInstaller](./pipenvInstaller) 指定一个pipenv项目中的的python文件，会自动安装项目所需的python环境，并为该文件创建快捷方式。
 - [ahk](./ahk) autohotkey脚本
-- [pipenvRun](./pipenvRun) 在windows上一键使用pipenv运行python文件
 - [copyMd](./copyMd) 复制markdown以及其链接的本地图片（使用go实现）
 - [rmMd](./rmMd) 删除markdown文件以及其链接的图片
 - [flatFolder](./flatFolder) 递归地读取文件夹下的所有文件，将其转化为一个大文件，以便于与Claude2等LLM通话。
@@ -23,6 +22,7 @@
 - [dockerClear](./dockerClear) 清理docker-desktop占用的内存
 - [randomFile](./randomFile) 生成指定大小的内容完全随机的文件
 - [localizeMD](./localizeMD) 将指定文件夹下的所有markdown文件中引用的图片下载到本地
+- [pipenvRun](./pipenvRun) 在windows上一键使用pipenv运行python文件
 - [headers2dict](./headers2dict) 将http消息头转化为python字典（json）
 - [downloader](./downloader) 多线程下载器
 - [cnkiCrawler](./cnkiCrawler) 爬取知网摘要数据

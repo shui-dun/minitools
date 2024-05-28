@@ -7,13 +7,15 @@ import ctypes
 import shutil
 
 def is_admin():
+    """检查当前用户是否具有管理员权限"""
     try:
-        # Only Windows Vista and newer support the isUserAnAdmin API, so we'll check the OS version
+        # Only Windows Vista and newer support the isUserAnAdmin API
         return ctypes.windll.shell32.IsUserAnAdmin()
     except:
         return False
 
 def find_pipenv_venv(python_file):
+    """在指定Python文件目录中查找并返回虚拟环境路径"""
     try:
         result = subprocess.check_output(['pipenv', '--venv'], cwd=os.path.dirname(python_file))
         return result.decode().strip()
@@ -32,6 +34,7 @@ def find_pipfile_in_path(path):
     return (False, '')
 
 def create_shortcut(target, arguments, shortcut_name, start_dir=''):
+    """在开始菜单创建快捷方式"""
     shell = win32com.client.Dispatch('WScript.Shell')
     shortcut = shell.CreateShortCut(shortcut_name)
     shortcut.TargetPath = target
@@ -45,6 +48,10 @@ def create_venv(project_path):
     """
     subprocess.check_call(['pipenv', 'install'], cwd=project_path)
 
+def create_bat_file(interpreter_path, python_file, bat_file_path):
+    """创建批处理文件来运行指定的Python脚本"""
+    with open(bat_file_path, 'w') as bat_file:
+        bat_file.write(f'@echo off\n"{interpreter_path}" {python_file}\n')
 
 def main():
     if not is_admin():
@@ -76,12 +83,13 @@ def main():
     interpreter_path = os.path.join(venv_path, 'Scripts', interpreter)
 
     destination = r"C:\ProgramData\Microsoft\Windows\Start Menu\Programs"
-
     shortcut_name = os.path.join(destination, project_name + ".lnk")
-
     print(f'Creating shortcut for {interpreter_path} {python_file} at {shortcut_name}')
-
     create_shortcut(interpreter_path, f'"{python_file}"', shortcut_name)
+
+    bat_file_path = os.path.join('C:\\Windows\\System32', project_name + '.bat')
+    print(f'Creating BAT file at {bat_file_path}')
+    create_bat_file(interpreter_path, f'"{python_file}"', bat_file_path)
 
     input('Press Enter to exit...')
 

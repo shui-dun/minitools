@@ -75,6 +75,9 @@ if __name__ == "__main__":
         print('指定的Python文件不存在')
         exit(1)
 
+    # 得到完整路径
+    python_file = os.path.abspath(python_file)
+
     find_project, project_path = find_pipfile_in_path(os.path.dirname(python_file))
 
     if not find_project:

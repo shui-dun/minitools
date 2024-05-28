@@ -57,7 +57,12 @@ def main():
     if not is_admin():
         elevate(show_console=True)  # 这会提高权限并重启脚本
 
-    python_file = input('请输入python文件的路径：')
+    # 是否是交互形式
+    interactive = len(sys.argv) == 1
+
+    # 获得目标Python文件路径
+    python_file = sys.argv[1] if (not interactive) else input('请输入python文件的路径：')
+
     # 删除引号
     python_file = python_file.strip('"')
 
@@ -91,7 +96,8 @@ def main():
     print(f'Creating BAT file at {bat_file_path}')
     create_bat_file(interpreter_path, f'"{python_file}"', bat_file_path)
 
-    input('Press Enter to exit...')
+    if interactive:
+        input('Press Enter to exit...')
 
 if __name__ == "__main__":
     main()

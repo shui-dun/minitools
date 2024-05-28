@@ -53,7 +53,12 @@ def create_bat_file(interpreter_path, python_file, bat_file_path):
     with open(bat_file_path, 'w') as bat_file:
         bat_file.write(f'@echo off\n"{interpreter_path}" {python_file}\n')
 
-def main():
+def exit(retVal=0):
+    if interactive:
+        input('Press Enter to exit...')
+    sys.exit(retVal)
+
+if __name__ == "__main__":
     if not is_admin():
         elevate(show_console=True)  # 这会提高权限并重启脚本
 
@@ -66,12 +71,16 @@ def main():
     # 删除引号
     python_file = python_file.strip('"')
 
+    # 判断目标文件是否存在
+    if not os.path.exists(python_file):
+        print('指定的Python文件不存在')
+        exit(1)
+
     find_project, project_path = find_pipfile_in_path(os.path.dirname(python_file))
 
     if not find_project:
         print('Could not find Pipfile in path')
-        input('Press Enter to exit...')
-        sys.exit(1)
+        exit(1)
     else:
         create_venv(project_path)
 
@@ -81,8 +90,7 @@ def main():
     
     if not venv_path:
         print('Could not find pipenv virtual environment for', python_file)
-        input('Press Enter to exit...')
-        sys.exit(1)
+        exit(1)        
 
     interpreter = 'pythonw.exe' if python_file.endswith('.pyw') else 'python.exe'
     interpreter_path = os.path.join(venv_path, 'Scripts', interpreter)
@@ -96,8 +104,4 @@ def main():
     print(f'Creating BAT file at {bat_file_path}')
     create_bat_file(interpreter_path, f'"{python_file}"', bat_file_path)
 
-    if interactive:
-        input('Press Enter to exit...')
-
-if __name__ == "__main__":
-    main()
+    exit(0)

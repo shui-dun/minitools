@@ -3,12 +3,14 @@
 # loopMonths: 例如[1, 7, 31]，表示每月的1号、7号、31号
 # loopMonths2: 例如[[2, 6], [-2, 7]]，表示每月第2个周六和倒数第2个周日
 # loopYears: 例如[[1, 31], [3, 2]]，表示每年1月31日和3月2日
+# loopYears2: 例如[[4, 3, 1], [12, -1, 7]]，表示每年4月第3个星期一和12月最后一个星期日
 # startTime: 开始时分，例如12:00，如果为空表示全天事件
 # endTime: 结束时分，例如13:00
 loopWeeks: []
 loopMonths: []
 loopMonths2: []
 loopYears: []
+loopYears2: []
 startTime:
 endTime:
 ---

@@ -2,6 +2,7 @@
 // loopMonths: 例如[1, 7, 31]，表示每月的1号、7号、31号
 // loopMonths2: 例如[[2, 6], [-2, 7]]，表示每月第2个周六和倒数第2个周日
 // loopYears: 例如[[1, 31], [3, 2]]，表示每年1月31日和3月2日
+// loopYears2: 例如[[4, 3, 1], [12, -1, 7]]，表示每年4月第3个星期一和12月最后一个星期日
 // startTime: 开始时分，例如12:00，如果为空表示全天事件
 // endTime: 结束时分，例如13:00
 
@@ -144,7 +145,31 @@ dv.pages('"计划/loop"').forEach((p) => {
           }
         }
       });
-    }
+    } else if (isNotNullOrEmptyArray(p.loopYears2)) {
+      p.loopYears2.forEach(([month, week, weekday]) => {
+        let year = today.year;
+        let processedYears = 0; // 添加一个计数器来避免无限循环
+        while (processedYears < 2) { // 限制处理的最大年份范围
+          let monthDate = DateTime.fromObject({ year: year, month: month, day: 1 });
+          let targetWeekdayDate;
+          if (week > 0) {
+            // 正数星期：计算从月初开始的第 week 个 weekday
+            let dayOffset = (weekday - monthDate.weekday + 7) % 7;
+            targetWeekdayDate = monthDate.plus({ days: dayOffset }).plus({ weeks: week - 1 });
+          } else {
+            // 负数星期：计算从月末开始的倒数第 |week| 个 weekday
+            let lastDayOfMonth = monthDate.plus({ months: 1 }).minus({ days: 1 });
+            let dayOffset = (lastDayOfMonth.weekday - weekday + 7) % 7;
+            targetWeekdayDate = lastDayOfMonth.minus({ days: dayOffset }).minus({ weeks: -week - 1 });
+          }
+          if (targetWeekdayDate.isValid && targetWeekdayDate >= today && targetWeekdayDate <= oneWeekLater) {
+            pushEvent(p, targetWeekdayDate);
+          }
+          year++; // 确保每次循环都推进到下一年
+          processedYears++;
+        }
+      });
+    }    
   } catch (error) {
     pushError(p, error.message);
   }

@@ -178,30 +178,33 @@ function handleLoopYears2(p) {
   if (isNotNullOrEmptyArray(p.loopYears2)) { // 如果 loopYears2 数组不为空
     p.loopYears2.forEach(([month, week, weekday]) => {
       let year = today.year; // 获取当前年份
-      let processedYears = 0; // 初始化一个处理年份的计数器，避免无限循环
-      while (processedYears < 2) {
+      while (true) {
         // 获取当前月份的第一天
-        let monthDate = DateTime.fromObject({ year: year, month: month, day: 1 });
-        let targetWeekdayDate; // 初始化目标日期变量
+        let firstDayOfThisMonth = DateTime.fromObject({ year: year, month: month, day: 1 });
+        let nextOccurrence; // 初始化目标日期变量
 
         if (week > 0) {
           // 如果 week 是正数：计算从月初开始的第 week 个指定 weekday
-          let dayOffset = (weekday - monthDate.weekday + 7) % 7; // 计算星期几的偏移量，确保为非负值
-          targetWeekdayDate = monthDate.plus({ days: dayOffset }).plus({ weeks: week - 1 }); // 计算目标日期
+          let dayOffset = (weekday - firstDayOfThisMonth.weekday + 7) % 7; // 计算星期几的偏移量，确保为非负值
+          nextOccurrence = firstDayOfThisMonth.plus({ days: dayOffset }).plus({ weeks: week - 1 }); // 计算目标日期
         } else {
           // 如果 week 是负数：计算从月末开始的倒数第 |week| 个指定 weekday
-          let lastDayOfMonth = monthDate.plus({ months: 1 }).minus({ days: 1 }); // 获取当前月份的最后一天
+          let lastDayOfMonth = firstDayOfThisMonth.plus({ months: 1 }).minus({ days: 1 }); // 获取当前月份的最后一天
           let dayOffset = (lastDayOfMonth.weekday - weekday + 7) % 7; // 计算星期几的偏移量，确保为非负值
-          targetWeekdayDate = lastDayOfMonth.minus({ days: dayOffset }).minus({ weeks: -week - 1 }); // 计算目标日期
+          nextOccurrence = lastDayOfMonth.minus({ days: dayOffset }).minus({ weeks: -week - 1 }); // 计算目标日期
         }
 
-        // 检查计算出的目标日期是否有效，并且是否在今天到一周后的范围内
-        if (targetWeekdayDate.isValid && targetWeekdayDate >= today && targetWeekdayDate <= oneWeekLater) {
-          pushEvent(p, targetWeekdayDate); // 如果满足条件，将目标日期的事件添加到事件数组中
+        if (year > oneWeekLater.year) { // 如果年份大于一周后的年份
+          break; // 退出循环
         }
-
-        year++; // 增加年份，确保每次循环都推进到下一年
-        processedYears++;
+        if (!nextOccurrence.isValid || nextOccurrence < today) { // 如果日期无效或早于今天
+          year++; // 增加年份
+        } else if (nextOccurrence <= oneWeekLater) { // 如果日期在一周内
+          pushEvent(p, nextOccurrence); // 添加事件
+          year++; // 增加年份
+        } else {
+          break; // 否则退出循环
+        }
       }
     });
   }
@@ -249,11 +252,26 @@ events.sort((a, b) => {
   return aEndTime.localeCompare(bEndTime); // 比较结束时间
 });
 
+// 格式化日期和时间
+function formatTime(e) {
+  let time = e.date.toFormat("MM-dd");
+  if (e.startTime || e.endTime) {
+    time += ' ';
+  }
+  if (e.startTime) {
+    time += e.startTime;
+  }
+  if (e.endTime) {
+    time += '->' + e.endTime;
+  }
+  return `<code>${time}</code>`;
+}
+
 // 使用 dv.table 显示事件数组
 dv.table(
   ["", ""], // 表头为空
   events.map((e) => [
     e.title, // 事件标题
-    `<code>${e.date.toFormat("MM-dd") + ' '}${e.startTime || ""}${e.endTime ? '->' + e.endTime : ''}</code>`, // 格式化日期和时间
+    formatTime(e), // 事件时间
   ])
 );

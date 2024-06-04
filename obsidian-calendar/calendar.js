@@ -207,6 +207,21 @@ function handleLoopYears2(p) {
   }
 }
 
+// 处理特定日期的事件
+function handleSpecificDate(p) {
+  if (isNotNullOrEmptyArray(p.specificDate)) {
+    p.specificDate.forEach(([year, month, day]) => {
+      let date = DateTime.fromObject({ year: year, month: month, day: day });
+      if (!date.isValid) {
+        throw new Error("Invalid specific date");
+      }
+      if (date >= today && date <= oneWeekLater) {
+        pushEvent(p, date);
+      }
+    });
+  }
+}
+
 // 遍历指定路径下的每个页面
 dv.pages('"计划/loop"').forEach((p) => {
   try {
@@ -215,6 +230,7 @@ dv.pages('"计划/loop"').forEach((p) => {
     handleLoopMonths2(p);
     handleLoopYears(p);
     handleLoopYears2(p);
+    handleSpecificDate(p);
   } catch (error) {
     pushError(p, error.message); // 如果发生错误，记录错误信息
   }

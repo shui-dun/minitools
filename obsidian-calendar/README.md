@@ -11,7 +11,3 @@ obsidian日历插件，支持循环事件
 ## 截图
 
 ![alt text](assets/image-1.png)
-
-## TODO
-
-- 进行单元测试

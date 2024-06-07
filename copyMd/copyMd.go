@@ -22,16 +22,14 @@ func main() {
 	sourcePath := os.Args[1]
 	destDir := os.Args[2]
 
-	err := copyMarkdownAndImages(sourcePath, destDir)
-	if err != nil {
+	if err := copyMarkdownAndImages(sourcePath, destDir); err != nil {
 		fmt.Printf("Error %+v\n", xerrors.Errorf("copying markdown and images: %w", err))
 	}
 }
 
 func copyMarkdownAndImages(mdFilePath string, destDir string) error {
 	// 复制md文件
-	err := copyFile(mdFilePath, destDir)
-	if err != nil {
+	if err := copyFile(mdFilePath, destDir); err != nil {
 		return xerrors.Errorf("copying markdown file: %w", err)
 	}
 
@@ -53,8 +51,7 @@ func copyMarkdownAndImages(mdFilePath string, destDir string) error {
 			if isRelativePath(imagePath) {
 				imageFilePath := filepath.Join(filepath.Dir(mdFilePath), imagePath)
 				destImageFileDir := filepath.Join(destDir, filepath.Dir(imagePath))
-				err := copyFile(imageFilePath, destImageFileDir)
-				if err != nil {
+				if err := copyFile(imageFilePath, destImageFileDir); err != nil {
 					fmt.Printf("Error %+v\n", xerrors.Errorf("copying image file: %w", err))
 				}
 			}
@@ -79,8 +76,7 @@ func copyFile(src string, dstFolder string) error {
 	defer srcFile.Close()
 
 	// 创建目标文件夹
-	err = os.MkdirAll(dstFolder, os.ModePerm)
-	if err != nil {
+	if err = os.MkdirAll(dstFolder, os.ModePerm); err != nil {
 		return xerrors.Errorf("creating destination directory: %w", err)
 	}
 
@@ -92,8 +88,7 @@ func copyFile(src string, dstFolder string) error {
 	}
 	defer destFile.Close()
 
-	_, err = io.Copy(destFile, srcFile)
-	if err != nil {
+	if _, err = io.Copy(destFile, srcFile); err != nil {
 		return xerrors.Errorf("copying file: %w", err)
 	}
 

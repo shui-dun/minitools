@@ -1,3 +1,13 @@
+// 当仓库没有加载完成时，等待
+async function waitForVaultLoading() {
+  while (dv.current() === undefined) {
+    await new Promise(resolve => setTimeout(resolve, 200));
+  }
+  return dv.current();
+}
+
+await waitForVaultLoading();
+
 // 从 DateTime 对象中获取本地日期时间
 let { DateTime } = dv.luxon;
 

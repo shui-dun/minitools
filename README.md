@@ -4,6 +4,7 @@
 
 ## 工具列表
 
+- [lunarDateCrawling](./lunarDateCrawling) 农历日期爬取
 - [replaceText](./replaceText) 替换指定文件夹下指定格式的文件中的指定文本
 - [pipenvInstaller](./pipenvInstaller) 指定一个pipenv项目中的的python文件，会自动安装项目所需的python环境，并为该文件创建快捷方式。
 - [ahk](./ahk) autohotkey脚本

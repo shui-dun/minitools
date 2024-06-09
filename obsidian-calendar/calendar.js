@@ -213,8 +213,8 @@ function handleLoopYears2(p) {
 // 处理特定日期的事件
 function handleSpecificDate(p) {
   if (isNotNullOrEmptyArray(p.specificDate)) {
-    p.specificDate.forEach(([year, month, day]) => {
-      let date = DateTime.fromObject({ year: year, month: month, day: day });
+    p.specificDate.forEach((dateString) => {
+      let date = DateTime.fromISO(dateString);
       if (!date.isValid) {
         throw new Error("Invalid specific date");
       }

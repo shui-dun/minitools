@@ -226,7 +226,7 @@ function handleSpecificDate(p) {
 }
 
 // 遍历指定路径下的每个页面
-dv.pages('"计划/loop"').forEach((p) => {
+dv.pages(`"${dv.current().file.folder}"`).forEach((p) => {
   try {
     handleLoopWeeks(p);
     handleLoopMonths(p);

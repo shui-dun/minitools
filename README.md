@@ -4,7 +4,6 @@
 
 ## 工具列表
 
-- [lunarDateCrawling](./lunarDateCrawling) 农历日期爬取
 - [replaceText](./replaceText) 替换指定文件夹下指定格式的文件中的指定文本
 - [pipenvInstaller](./pipenvInstaller) 指定一个pipenv项目中的的python文件，会自动安装项目所需的python环境，并为该文件创建快捷方式。
 - [ahk](./ahk) autohotkey脚本
@@ -27,10 +26,11 @@
 - [pipenvRun](./pipenvRun) 在windows上一键使用pipenv运行python文件
 - [headers2dict](./headers2dict) 将http消息头转化为python字典（json）
 - [downloader](./downloader) 多线程下载器（未完成）
-- [cnkiCrawler](./cnkiCrawler) 爬取知网摘要数据（已废弃）
 - [html2pdf](./html2pdf) 将网页批量转化为pdf文件，方便打印
 - [copyHtml](./copyHtml) 复制网页上的文本，以及latex公式
 - [clash_helper](./clash_helper) 使用clash的restful API，实现代理手动切换，以方便爬虫绕过IP限制
+- [lunarDateCrawling](./lunarDateCrawling) 农历日期爬取
+- [cnkiCrawler](./cnkiCrawler) 爬取知网摘要数据（已废弃）
 - [auto-qq](./auto-qq) 使用pyautogui，打开qq并自动发送消息（已废弃）
 - [colorBlind](./colorBlind) 将图片处理后色盲容易辨认的图片，但效果不好
 - [pan-spider](./pan-spider) 通过bing搜索找到有效的网盘链接（已废弃）

@@ -1,15 +1,46 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div id="app">
+    <div class="container">
+      <div class="textarea-container">
+        <textarea v-model="inputText" placeholder="输入文本" class="textarea"></textarea>
+        <textarea v-model="outputText" placeholder="输出文本" class="textarea"></textarea>
+      </div>
+      <div class="button-container">
+        <button @click="processText('uppercase')">转换为大写</button>
+        <button @click="processText('lowercase')">转换为小写</button>
+        <!-- 添加更多按钮 -->
+      </div>
+      <div class="diff-container">
+        <vue-diff :old-string="inputText" :new-string="outputText"></vue-diff>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import VueDiff from 'vue-diff'
+import 'vue-diff/dist/index.css'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    VueDiff
+  },
+  data() {
+    return {
+      inputText: '',
+      outputText: ''
+    };
+  },
+  methods: {
+    processText(type) {
+      if (type === 'uppercase') {
+        this.outputText = this.inputText.toUpperCase();
+      } else if (type === 'lowercase') {
+        this.outputText = this.inputText.toLowerCase();
+      }
+      // 添加更多处理逻辑
+    }
   }
 }
 </script>
@@ -20,7 +51,46 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
   margin-top: 60px;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.textarea-container {
+  display: flex;
+  width: 100%;
+  max-width: 800px;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.textarea {
+  width: 45%;
+  height: 200px;
+}
+
+.button-container {
+  display: flex;
+  gap: 10px;
+}
+
+.diff-container {
+  width: 100%;
+  max-width: 800px;
+  margin-top: 20px;
+}
+
+@media (max-width: 600px) {
+  .textarea-container {
+    flex-direction: column;
+  }
+  .textarea {
+    width: 90%;
+    margin-bottom: 10px;
+  }
 }
 </style>

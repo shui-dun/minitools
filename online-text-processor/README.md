@@ -10,5 +10,5 @@
 
 ```shell
 docker build -t text-processor .
-docker run -p 80:80 text-processor
+docker run -d -p 80:80 text-processor
 ```

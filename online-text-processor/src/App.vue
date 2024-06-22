@@ -34,8 +34,6 @@ export default {
       outputText: '',
       diffMode: 'split',
       actions: [
-        { label: '转换为大写', func: (text) => text.toUpperCase() },
-        { label: '转换为小写', func: (text) => text.toLowerCase() },
         {
           label: '替换数学公式风格',
           func: (text) => {
@@ -67,7 +65,9 @@ export default {
             text = text.replace(/`<comment>`[\s\S]*?`<\/comment>`/g, '');
             return text;
           }
-        }
+        },
+        { label: '转换为大写', func: (text) => text.toUpperCase() },
+        { label: '转换为小写', func: (text) => text.toLowerCase() }
       ]
     };
   },

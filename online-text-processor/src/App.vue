@@ -1,5 +1,10 @@
 <template>
   <div id="app">
+    <!-- 标题和图片 -->
+    <div class="header-container">
+      <img src="@/assets/logo.png" alt="Text Processor" class="header-image">
+      <h3>TextProcessor</h3>
+    </div>
     <div class="container">
       <!-- 文本输入和输出框 -->
       <div class="textarea-container">
@@ -87,6 +92,19 @@ export default {
 <style>
 #app {
   text-align: center;
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.header-image {
+  width: 70px;
+  height: auto;
+  margin-right: 10px;
 }
 
 .container {

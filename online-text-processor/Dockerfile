@@ -1,5 +1,5 @@
 # 构建阶段
-FROM node:14 as build-stage
+FROM node:14.17.0 as build-stage
 
 WORKDIR /app
 

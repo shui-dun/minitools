@@ -8,9 +8,9 @@
       </div>
       <!-- 按钮区 -->
       <div class="button-container">
-        <button @click="processText('uppercase')" class="button">转换为大写</button>
-        <button @click="processText('lowercase')" class="button">转换为小写</button>
-        <!-- 可以添加更多按钮 -->
+        <button v-for="action in actions" :key="action.label" @click="processText(action.func)" class="button">
+          {{ action.label }}
+        </button>
       </div>
       <!-- 文本比较区 -->
       <div class="diff-container">
@@ -32,7 +32,12 @@ export default {
     return {
       inputText: '',
       outputText: '',
-      diffMode: 'split'
+      diffMode: 'split',
+      actions: [
+        { label: '转换为大写', func: (text) => text.toUpperCase() },
+        { label: '转换为小写', func: (text) => text.toLowerCase() }
+        // 可以在这里添加更多操作
+      ]
     };
   },
   mounted() {
@@ -41,13 +46,8 @@ export default {
     }
   },
   methods: {
-    processText(type) {
-      if (type === 'uppercase') {
-        this.outputText = this.inputText.toUpperCase();
-      } else if (type === 'lowercase') {
-        this.outputText = this.inputText.toLowerCase();
-      }
-      // 添加更多处理逻辑
+    processText(func) {
+      this.outputText = func(this.inputText);
     }
   }
 }
@@ -56,7 +56,6 @@ export default {
 <style>
 #app {
   text-align: center;
-  margin-top: 60px;
 }
 
 .container {

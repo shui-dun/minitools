@@ -102,7 +102,6 @@ export default {
 .textarea-container {
   display: flex;
   width: 100%;
-  max-width: 800px;
   justify-content: space-between;
   margin-bottom: 20px;
 }
@@ -123,7 +122,9 @@ export default {
 
 .button-container {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
+  justify-content: center;
 }
 
 .button {
@@ -143,17 +144,26 @@ export default {
 
 .diff-container {
   width: 100%;
-  max-width: 800px;
   margin-top: 20px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 600px) { /* 当设备的视口宽度不超过 600 像素时，应用特定的样式规则 */
   .textarea-container {
     flex-direction: column;
   }
   .textarea {
     width: 90%;
     margin-bottom: 10px;
+  }
+  .button-container {
+    flex-direction: column;
+    width: 100%;
+  }
+  .button {
+    font-size: 12px;
+    padding: 8px 16px;
+    width: 90%;
+    margin: 5px auto;
   }
 }
 </style>

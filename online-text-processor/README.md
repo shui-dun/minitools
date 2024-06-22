@@ -1,24 +1,14 @@
 # online-text-processor
 
-## Project setup
-```
-npm install
-```
+基于 Vue.js 的纯前端文本处理工具
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+## 截图
 
-### Compiles and minifies for production
-```
-npm run build
-```
+![alt text](assets/image.png)
 
-### Lints and fixes files
-```
-npm run lint
-```
+## 安装
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+```shell
+docker build -t text-processor .
+docker run -p 80:80 text-processor
+```

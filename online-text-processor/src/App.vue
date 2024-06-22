@@ -40,7 +40,7 @@ export default {
       diffMode: 'split',
       actions: [
         {
-          label: '替换数学公式风格',
+          label: '替换公式风格',
           func: (text) => {
             // 替换行内数学公式
             text = text.replace(/\\\(\s*(.{0,}?)\s*\\\)/g, '$$$1$$');
@@ -50,7 +50,7 @@ export default {
           }
         },
         {
-          label: '隐藏markdown的标题',
+          label: '隐藏Markdown标题',
           func: (text) => {
             // 遍历每一行，检测是否以# 开头，如果是，只将#用``包裹
             return text.split('\n').map(line => {
@@ -62,7 +62,7 @@ export default {
           }
         },
         {
-          label: '移除markdown中的标签',
+          label: '移除Markdown标签',
           func: (text) => {
             // 移除markdown中的特定标签
             text = text.replace(/`<ignore-until-end\/>`/g, '');

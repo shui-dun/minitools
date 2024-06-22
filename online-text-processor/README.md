@@ -10,5 +10,5 @@
 
 ```shell
 docker build -t text-processor .
-docker run -d -p 80:80 --name text-processor-instance text-processor
+docker run -d -p 80:80 --name text-processor-instance --restart unless-stopped text-processor
 ```

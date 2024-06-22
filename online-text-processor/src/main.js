@@ -1,4 +1,8 @@
-import { createApp } from 'vue'
-import App from './App.vue'
+import { createApp } from 'vue';
+import App from './App.vue';
+import Diff from 'vue-diff';
+import 'vue-diff/dist/index.css';
 
-createApp(App).mount('#app')
+const app = createApp(App);
+app.use(Diff);
+app.mount('#app');

@@ -1,30 +1,33 @@
 <template>
   <div id="app">
     <div class="container">
+      <!-- 文本输入和输出框 -->
       <div class="textarea-container">
         <textarea v-model="inputText" placeholder="输入文本" class="textarea"></textarea>
         <textarea v-model="outputText" placeholder="输出文本" class="textarea"></textarea>
       </div>
+      <!-- 按钮区 -->
       <div class="button-container">
         <button @click="processText('uppercase')">转换为大写</button>
         <button @click="processText('lowercase')">转换为小写</button>
-        <!-- 添加更多按钮 -->
+        <!-- 可以添加更多按钮 -->
       </div>
+      <!-- 文本比较区 -->
       <div class="diff-container">
-        <vue-diff :old-string="inputText" :new-string="outputText"></vue-diff>
+      <Diff :prev="inputText" :current="outputText" mode="split" theme="light" language="plaintext" />
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import VueDiff from 'vue-diff'
-import 'vue-diff/dist/index.css'
+import { Diff } from 'vue-diff';
+import 'vue-diff/dist/index.css';
 
 export default {
   name: 'App',
   components: {
-    VueDiff
+    Diff
   },
   data() {
     return {

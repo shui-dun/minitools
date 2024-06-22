@@ -8,13 +8,13 @@
       </div>
       <!-- 按钮区 -->
       <div class="button-container">
-        <button @click="processText('uppercase')">转换为大写</button>
-        <button @click="processText('lowercase')">转换为小写</button>
+        <button @click="processText('uppercase')" class="button">转换为大写</button>
+        <button @click="processText('lowercase')" class="button">转换为小写</button>
         <!-- 可以添加更多按钮 -->
       </div>
       <!-- 文本比较区 -->
       <div class="diff-container">
-      <Diff :prev="inputText" :current="outputText" mode="split" theme="light" language="plaintext" />
+        <Diff :prev="inputText" :current="outputText" mode="split" theme="light" language="plaintext" />
       </div>
     </div>
   </div>
@@ -61,6 +61,10 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .textarea-container {
@@ -74,11 +78,35 @@ export default {
 .textarea {
   width: 45%;
   height: 200px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  font-size: 14px;
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.textarea:focus {
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
 }
 
 .button-container {
   display: flex;
   gap: 10px;
+}
+
+.button {
+  padding: 10px 20px;
+  font-size: 14px;
+  border: none;
+  border-radius: 4px;
+  background: #007bff;
+  color: white;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+}
+
+.button:hover {
+  background: #0056b3;
 }
 
 .diff-container {

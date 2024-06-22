@@ -14,7 +14,7 @@
       </div>
       <!-- 文本比较区 -->
       <div class="diff-container">
-        <Diff :prev="inputText" :current="outputText" mode="split" theme="light" language="plaintext" />
+        <Diff :prev="inputText" :current="outputText" :mode="diffMode" theme="light" language="plaintext" />
       </div>
     </div>
   </div>
@@ -31,8 +31,14 @@ export default {
   data() {
     return {
       inputText: '',
-      outputText: ''
+      outputText: '',
+      diffMode: 'split'
     };
+  },
+  mounted() {
+    if (/Mobi|Android|iPhone|iPad|iPod/.test(navigator.userAgent)) {
+      this.diffMode = 'unified';
+    }
   },
   methods: {
     processText(type) {

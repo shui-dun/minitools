@@ -35,8 +35,39 @@ export default {
       diffMode: 'split',
       actions: [
         { label: '转换为大写', func: (text) => text.toUpperCase() },
-        { label: '转换为小写', func: (text) => text.toLowerCase() }
-        // 可以在这里添加更多操作
+        { label: '转换为小写', func: (text) => text.toLowerCase() },
+        {
+          label: '替换数学公式风格',
+          func: (text) => {
+            // 替换行内数学公式
+            text = text.replace(/\\\(\s*(.{0,}?)\s*\\\)/g, '$$$1$$');
+            // 替换块级数学公式
+            text = text.replace(/\\\[(\s*[\s\S]*?\s*)\\\]/g, '$$$$$1$$$$');
+            return text;
+          }
+        },
+        {
+          label: '隐藏markdown的标题',
+          func: (text) => {
+            // 遍历每一行，检测是否以# 开头，如果是，只将#用``包裹
+            return text.split('\n').map(line => {
+              if (/^#+\s+/.test(line)) {
+                return line.replace(/^(#+)\s+/, '`$1` ');
+              }
+              return line;
+            }).join('\n');
+          }
+        },
+        {
+          label: '移除markdown中的标签',
+          func: (text) => {
+            // 移除markdown中的特定标签
+            text = text.replace(/`<ignore-until-end\/>`/g, '');
+            text = text.replace(/`<todo>`[\s\S]*?`<\/todo>`/g, '');
+            text = text.replace(/`<comment>`[\s\S]*?`<\/comment>`/g, '');
+            return text;
+          }
+        }
       ]
     };
   },

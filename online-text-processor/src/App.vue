@@ -68,6 +68,8 @@ export default {
             text = text.replace(/`<ignore-until-end\/>`/g, '');
             text = text.replace(/`<todo>`[\s\S]*?`<\/todo>`/g, '');
             text = text.replace(/`<comment>`[\s\S]*?`<\/comment>`/g, '');
+            // 超过两个换行符替换为两个换行符
+            text = text.replace(/\n([ \t]*\n[ \t]*)+\n/g, '\n\n');
             return text;
           }
         },

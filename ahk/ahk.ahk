@@ -34,46 +34,6 @@ Capslock::Esc
 	}
 Return
 
-; 翻译
-; ^!s::
-;     ; 清空剪贴板并进行复制
-;     backUp := Clipboard
-;     Clipboard := ""
-;     Send ^c
-;     ClipWait 2 ; 等待剪贴板的内容到来（剪切板不为空），最多等待2s
-;     clipboard := Clipboard
-;     ; 删除换行符以及参考文献的引用
-;     clipboard := StrReplace(clipboard, "-`r`n", "")
-;     clipboard := StrReplace(clipboard, "`r`n", " ")
-;     clipboard := RegExReplace(clipboard, "\[[\d, ]+\]([–\-]\[[\d, ]+\])?", "")
-;     ; 添加prompt
-;     clipboard := "请对以下内容进行中英互翻（如果输入是中文，则翻译为英语，反之，如果输入是英语，则翻译为中文），要求语句流程，符合学术论文规范，如果只给了一个单词，那就输出该单词的多种释义，需要翻译的语句如下：" . clipboard
-;     Clipboard := clipboard
-;     Loop, 10 {
-;         If (WinExist("Claude")) {
-;             ; 打开窗口
-;             WinActivate
-;             MouseMove, 59, 97
-;             Sleep, 30
-;             Click, Left
-;             Sleep, 300
-;             ; 点击输入框
-;             MouseMove, 493, 422
-;             Sleep, 30
-;             Click, Left
-;             Sleep, 30
-;             ; 复制并回车
-;             Send, ^v
-;             Sleep, 30
-;             Send, {Enter}
-;             Break
-;         } Else {
-;             Sleep, 25
-;         }
-;     }
-;     Clipboard := backUp
-; Return
-
 ; 播放视频时手工模拟下一帧
 
 ^!+Right::
@@ -189,31 +149,6 @@ Return
 	Send ^v ; paste
 	Clipboard := backup
 Return
-
-#If
-
-#If WinActive("ahk_exe Typora.exe")
-
-; 方便敲latex公式
-
-::/mat::\begin{{}bmatrix{}}`n\end{{}bmatrix{}}{Up}{End}
-::/arr::\begin{{}array{}}{{}ccc{}}`n\end{{}array{}}{Up}{End}
-::/ali::\begin{{}aligned{}}`n\end{{}aligned{}}{Up}{End}
-
-::/>::\left<\right>{Left 7}
-::/)::\left(\right){Left 7}
-::/]::\left[\right]{Left 7}
-::/|::\left|\right|{Left 7}
-::/\|::\left\|\right\|{Left 8}
-::/}::\left\{{}\right\{}}{Left 8}
-
-:*:/bs::\boldsymbol{{}{}}{Left}
-:*:/tt::\text{{}{}}{Left}
-:*:/bb::\mathbb{{}{}}{Left}
-:*:/rm::\mathrm{{}{}}{Left}
-:*:/frak::\mathfrak{{}{}}{Left}
-:*:/bf::\mathbf{{}{}}{Left}
-:*:/cal::\mathcal{{}{}}{Left}
 
 #If
 

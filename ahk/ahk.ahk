@@ -1,3 +1,13 @@
+; 将字符串转换为Unicode并发送
+SendUnicode(str) {
+    unicodeString := ""
+    Loop, Parse, str
+    {
+        unicodeString .= "{" . Format("U+{:04X}", Asc(A_LoopField)) . "}"
+    }
+    SendInput, %unicodeString%
+}
+
 ; 方向
 
 ; !Left::SendInput {Home}
@@ -26,11 +36,7 @@ Capslock::Esc
 ; 因此，当你的剪切板内容变化后，宏无法正常运行
 ^!v::
 	content := Clipboard
-	Loop, Parse, content
-	{
-		SendInput {Raw}%A_LoopField%
-		Sleep 10
-	}
+	SendUnicode(content)
 Return
 
 ; 播放视频时手工模拟下一帧
@@ -161,6 +167,20 @@ Return
 	SendInput ^v ; paste
 	sleep 100
 	Clipboard := backup
+Return
+
+; 添加注释
+
++!c::
+  SendUnicode(" ``<comment>``  ``</comment>`` ")
+  SendInput {Left 14}
+Return
+
+; 添加todo
+
+!t::
+  SendUnicode(" ``<todo>``  ``</todo>`` ")
+  SendInput {Left 11}
 Return
 
 #If

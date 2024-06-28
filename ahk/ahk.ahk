@@ -1,14 +1,14 @@
 ; 方向
 
-; !Left::Send {Home}
-; !Right::Send {End}
-; !Up::Send {PgUp}
-; !Down::Send {PgDn}
+; !Left::SendInput {Home}
+; !Right::SendInput {End}
+; !Up::SendInput {PgUp}
+; !Down::SendInput {PgDn}
 
-; +!Left::Send +{Home}
-; +!Right::Send +{End}
-; +!Up::Send +{PgUp}
-; +!Down::Send +{PgDn}
+; +!Left::SendInput +{Home}
+; +!Right::SendInput +{End}
+; +!Up::SendInput +{PgUp}
+; +!Down::SendInput +{PgDn}
 
 ; 交换esc和capslock
 Esc::Capslock
@@ -28,8 +28,7 @@ Capslock::Esc
 	content := Clipboard
 	Loop, Parse, content
 	{
-		; SendRaw 相比于 Send，不会转义{}等特殊字符
-		SendRaw %A_LoopField%
+		SendInput {Raw}%A_LoopField%
 		Sleep 10
 	}
 Return
@@ -37,9 +36,9 @@ Return
 ; 播放视频时手工模拟下一帧
 
 ^!+Right::
-	Send {Space}
+	SendInput {Space}
 	sleep 25
-	Send {Space}
+	SendInput {Space}
 Return
 
 #If WinActive("ahk_exe Obsidian.exe") || WinActive("ahk_exe Typora.exe")
@@ -49,7 +48,8 @@ Return
 !p::
 	backup := Clipboard
 	Clipboard := ""
-	Send +{Home}^c
+	SendInput +{Home}^c
+	; 等待剪切板变为非空，最多等待1s
 	ClipWait  1 
 	if (InStr(Clipboard, "- ") != 0)
 	{
@@ -61,7 +61,9 @@ Return
 	{
 		Clipboard := "**" . Clipboard  . ".** "
 	}
-	Send ^v 
+	SendInput ^v
+	; 等待100ms，再恢复剪切板，防止还没粘贴完，剪切板就被替换为了backup
+	sleep 100
 	Clipboard := backup
 Return
 
@@ -70,10 +72,11 @@ Return
 +!p::
 	backup := Clipboard
 	Clipboard := ""
-	Send ^c
+	SendInput ^c
 	ClipWait 1 
 	Clipboard := RegExReplace(Clipboard, "\*\*(.+)\.\*\* ", "$1")
-	Send ^v 
+	SendInput ^v 
+	sleep 100
 	Clipboard := backup
 Return
 	
@@ -81,8 +84,9 @@ Return
 ; 所有标题进一级
 
 ^9::
+	backup := Clipboard
 	Clipboard := ""
-	Send ^c
+	SendInput ^c
 	ClipWait  1
 	tmpString := ""
 	Loop, Parse, Clipboard, `n 
@@ -96,14 +100,17 @@ Return
 		}
 	}
 	Clipboard := tmpString
-	Send ^v
+	SendInput ^v
+	sleep 100
+	Clipboard := backup
 Return
 
 ; 所有标题退一级
 
 ^8::
+	backup := Clipboard
 	Clipboard := ""
-	Send ^c
+	SendInput ^c
 	ClipWait  1
 	tmpString := ""
 	Loop, Parse, Clipboard, `n 
@@ -117,24 +124,29 @@ Return
 		}
 	}
 	Clipboard := tmpString
-	Send ^v
+	SendInput ^v
+	sleep 100
+	Clipboard := backup
 Return
 
 ; 部分英文符号覆盖中文符号，并自动切换输入法
 
-`::Send {U+0060}{Shift}
+`::SendInput {U+0060}{Shift}
 
-$::Send {U+0024}{Shift}
+$::SendInput {U+0024}{Shift}
 
 ; 包裹inline数学公式
 
 !m::
+	backup := Clipboard
 	Clipboard := ""
-	Send ^c  ; Send Ctrl+C to get selection on clipboard.
+	SendInput ^c  ; Send Ctrl+C to get selection on clipboard.
 	ClipWait  1  ; Wait for the copied text to arrive at the clipboard.
 	Clipboard = %Clipboard% ; strip blank character
 	Clipboard := " $" . Clipboard  . "$ " ; quote
-	Send ^v ; paste
+	SendInput ^v ; paste
+	sleep 100
+	Clipboard := backup
 Return
 
 ; 包裹inline代码
@@ -142,11 +154,12 @@ Return
 !c::
 	backup := Clipboard
 	Clipboard := ""
-	Send ^c  ; Send Ctrl+C to get selection on clipboard.
+	SendInput ^c  ; Send Ctrl+C to get selection on clipboard.
 	ClipWait  1  ; Wait for the copied text to arrive at the clipboard.
 	Clipboard = %Clipboard% ; strip blank character
 	Clipboard := " ``" . Clipboard  . "`` " ; quote
-	Send ^v ; paste
+	SendInput ^v ; paste
+	sleep 100
 	Clipboard := backup
 Return
 
@@ -158,7 +171,7 @@ Return
 
 +^c::
 	Clipboard := ""
-	Send ^c
+	SendInput ^c
 	ClipWait  1
 	clipboard := Clipboard
 	; 恢复中途换行的单词
@@ -173,7 +186,7 @@ Return
 Return
 
 ; 将ctrl+left和ctrl+right映射为alt+left和alt+right进行跳转，因为sumatra的alt+left和alt+right快捷键已经被占用了
-^Left::Send !{Left}
-^Right::Send !{Right}
+^Left::SendInput !{Left}
+^Right::SendInput !{Right}
 
 #If

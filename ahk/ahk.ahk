@@ -78,12 +78,15 @@ Return
 +!p::
 	backup := Clipboard
 	Clipboard := ""
+	SendInput +{Home}
+	sleep 100 ; 使得a显示为**a**，这样才能复制
 	SendInput ^c
 	ClipWait 1 
-	Clipboard := RegExReplace(Clipboard, "\*\*(.+)\.\*\* ", "$1")
+	Clipboard := RegExReplace(Clipboard, "\*\*(.+)\.\*\*\s*", "$1")
 	SendInput ^v 
 	sleep 100
 	Clipboard := backup
+	SendInput +{Home} ; 便于下一步进行剪切等操作
 Return
 	
 

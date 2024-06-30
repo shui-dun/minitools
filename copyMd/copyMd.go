@@ -15,7 +15,7 @@ import (
 func main() {
 	// 处理命令行参数
 	if len(os.Args) != 3 {
-		fmt.Println("Usage: copyMd /source/path/to/mdfile /dest/directory")
+		fmt.Println("Usage: copyMd /source/path/to/mdfile /dest/directory/or/mdfile")
 		return
 	}
 
@@ -28,8 +28,15 @@ func main() {
 }
 
 func copyMarkdownAndImages(mdFilePath string, destDir string) error {
+	// 获得目标文件夹路径和文件名
+	destName := ""
+	if filepath.Ext(destDir) == ".md" {
+		destName = filepath.Base(destDir)
+		destDir = filepath.Dir(destDir)
+	}
+
 	// 复制md文件
-	if err := copyFile(mdFilePath, destDir); err != nil {
+	if err := copyFile(mdFilePath, destDir, destName); err != nil {
 		return xerrors.Errorf("copying markdown file: %w", err)
 	}
 
@@ -51,7 +58,7 @@ func copyMarkdownAndImages(mdFilePath string, destDir string) error {
 			if isRelativePath(imagePath) {
 				imageFilePath := filepath.Join(filepath.Dir(mdFilePath), imagePath)
 				destImageFileDir := filepath.Join(destDir, filepath.Dir(imagePath))
-				if err := copyFile(imageFilePath, destImageFileDir); err != nil {
+				if err := copyFile(imageFilePath, destImageFileDir, ""); err != nil {
 					fmt.Printf("Error %+v\n", xerrors.Errorf("copying image file: %w", err))
 				}
 			}
@@ -65,11 +72,13 @@ func copyMarkdownAndImages(mdFilePath string, destDir string) error {
 	return nil
 }
 
-// 复制文件
-// src: 源文件路径
+// copyFile 复制文件
+// srcFolder: 源文件路径
 // dst: 目标文件夹路径（注意：不是目标文件路径）
-func copyFile(src string, dstFolder string) error {
-	srcFile, err := os.Open(src)
+// destName: 目标文件名（如果为空，则使用源文件名）
+func copyFile(srcFolder, dstFolder, destName string) error {
+	// 打开源文件
+	srcFile, err := os.Open(srcFolder)
 	if err != nil {
 		return xerrors.Errorf("opening source file: %w", err)
 	}
@@ -80,18 +89,21 @@ func copyFile(src string, dstFolder string) error {
 		return xerrors.Errorf("creating destination directory: %w", err)
 	}
 
-	dst := filepath.Join(dstFolder, filepath.Base(src))
-
+	// 创建目标文件
+	if destName == "" {
+		destName = filepath.Base(srcFolder)
+	}
+	dst := filepath.Join(dstFolder, destName)
 	destFile, err := os.Create(dst)
 	if err != nil {
 		return xerrors.Errorf("creating destination file: %w", err)
 	}
 	defer destFile.Close()
 
+	// 复制文件内容
 	if _, err = io.Copy(destFile, srcFile); err != nil {
 		return xerrors.Errorf("copying file: %w", err)
 	}
-
 	return nil
 }
 

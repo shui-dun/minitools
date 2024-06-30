@@ -47,7 +47,7 @@ func copyMarkdownAndImages(mdFilePath string, destDir string) error {
 	defer mdFile.Close()
 
 	scanner := bufio.NewScanner(mdFile)
-	imagePattern := regexp.MustCompile(`!\[.*?\]\((.*?)\)`) // `表示原生字符串，不需要转义
+	imagePattern := regexp.MustCompile(`!\[.*?\]\(((.*?(\(.*?\))?.*?)*?)\)`) // `表示原生字符串，不需要转义
 
 	for scanner.Scan() {
 		line := scanner.Text()

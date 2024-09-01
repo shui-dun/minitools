@@ -12,6 +12,7 @@
 - [rmMd](./rmMd) 删除markdown文件以及其链接的图片
 - [obsidian-calendar](./obsidian-calendar) obsidian日历插件，支持循环事件
 - [flatFolder](./flatFolder) 递归地读取文件夹下的所有文件，将其转化为一个大文件，以便于与Claude2等LLM通话。
+- [fullcpu](./fullcpu) 用 Go 语言编写的系统资源消耗工具,用来模拟高强度的 CPU、内存和 I/O 使用
 - [handright](./handright) 使用handright库，生成手写笔记
 - [fullScreenCheck](./fullScreenCheck) 当你运行全屏应用，例如全屏播放视频时，每隔一分钟，输入`'shift'+'ctrl'+'alt'+'.'`，使得Stretchly不要误以为你没有使用电脑
 - [mklinks](./mklinks) 如果需要频繁地将某些文件或文件夹创建符号链接到多个不同目录，那么这个工具可能会对你有所帮助。
@@ -20,7 +21,6 @@
 - [checkMDImage](./checkMDImage) 检测某个目录下的markdown文件中所对应的本地图片是否存在，并检测文件夹中的文件是否被markdown文件引用
 - [localizeWebsite](./localizeWebsite) 将一个网站中所有的文件中的所有远程路径改为本地路径，方便复刻网站
 - [dictionaryAttack](./dictionaryAttack) 使用字典攻击破解压缩包密码
-- [fullcpu](./fullcpu) 一键使CPU满载
 - [dockerClear](./dockerClear) 清理docker-desktop占用的内存
 - [randomFile](./randomFile) 生成指定大小的内容完全随机的文件
 - [localizeMD](./localizeMD) 将指定文件夹下的所有markdown文件中引用的图片下载到本地

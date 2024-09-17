@@ -21,8 +21,8 @@ SendUnicode(str) {
 ; +!Down::SendInput +{PgDn}
 
 ; 交换esc和capslock
-Esc::Capslock
-Capslock::Esc
+; Esc::Capslock
+; Capslock::Esc
 
 ; 复制与粘贴控制台的文本
 ; 由于键盘没有insert键，所以将ctrl+pause键映射为ctrl+insert键，将shift+pause键映射为shift+insert键

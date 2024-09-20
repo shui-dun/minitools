@@ -24,13 +24,6 @@ SendUnicode(str) {
 ; Esc::Capslock
 ; Capslock::Esc
 
-; 复制与粘贴控制台的文本
-; 由于键盘没有insert键，所以将ctrl+pause键映射为ctrl+insert键，将shift+pause键映射为shift+insert键
-; 注意ctrl+pause会被转化为ctrlbreak，所以最后是将ctrlbreak映射为ctrl+insert
-^CtrlBreak::^Insert
-+Pause::+Insert
-!Pause::!Insert
-
 ; 将剪切板内容一个个字符输出（而非粘贴）
 ; 应用场景：例如，在vim录制宏时，按下<shift+insert>时，vim会记作这个粘贴操作，而不会记住其内容
 ; 因此，当你的剪切板内容变化后，宏无法正常运行
@@ -211,5 +204,12 @@ Return
 ; 将ctrl+left和ctrl+right映射为alt+left和alt+right进行跳转，因为sumatra的alt+left和alt+right快捷键已经被占用了
 ^Left::SendInput !{Left}
 ^Right::SendInput !{Right}
+
+#If
+
+#If WinActive("ahk_exe Xshell.exe")
+
+; 粘贴
+^v::SendInput +{Insert}
 
 #If

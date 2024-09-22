@@ -5,7 +5,7 @@
 ## 工具列表
 
 - [replaceText](./replaceText) 替换指定文件夹下指定格式的文件中的指定文本
-- [pipenvInstaller](./pipenvInstaller) 指定一个pipenv项目中的的python文件，会自动安装项目所需的python环境，并为该文件创建快捷方式。
+- [pipenvInstaller](./pipenvInstaller) 指定一个pipenv项目中的python文件，会自动安装项目所需的python环境，并为该文件创建快捷方式。
 - [online-text-processor](./online-text-processor) 基于 Vue.js 的纯前端文本处理工具
 - [ahk](./ahk) autohotkey脚本
 - [copyMd](./copyMd) 复制markdown以及其链接的本地图片（使用go实现）
@@ -27,13 +27,13 @@
 - [pipenvRun](./pipenvRun) 在windows上一键使用pipenv运行python文件
 - [headers2dict](./headers2dict) 将http消息头转化为python字典（json）
 - [downloader](./downloader) 多线程下载器（未完成）
+- [marp-theme](./marp-theme) marp主题，修改自 [rnd195/marp-community-themes](https://github.com/rnd195/marp-community-themes)
 - [html2pdf](./html2pdf) 将网页批量转化为pdf文件，方便打印
 - [copyHtml](./copyHtml) 复制网页上的文本，以及latex公式
 - [clash_helper](./clash_helper) 使用clash的restful API，实现代理手动切换，以方便爬虫绕过IP限制
 - [lunarDateCrawling](./lunarDateCrawling) 农历日期爬取
 - [cnkiCrawler](./cnkiCrawler) 爬取知网摘要数据（已废弃）
 - [auto-qq](./auto-qq) 使用pyautogui，打开qq并自动发送消息（已废弃）
-- [colorBlind](./colorBlind) 将图片处理后色盲容易辨认的图片，但效果不好
 - [pan-spider](./pan-spider) 通过bing搜索找到有效的网盘链接（已废弃）
 - [questionnaire-spider](./questionnaire-spider) 自动填写“问卷星”（已废弃）
 - [lockScreen](./lockScreen) 一键锁屏，如果因为某种原因不适合使用 `Win+L`

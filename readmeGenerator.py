@@ -18,7 +18,7 @@ def readIndex():
     with open('README.md', 'r', encoding='utf-8') as f:
         readme = f.read()
     # 转化为列表，格式为：[(subFolder, description), ...]
-    index = re.findall(r'- \[(.*)\]', readme)
+    index = re.findall(r'- \[(.*?)\]', readme)
     return index
 
 def readSubReadme():

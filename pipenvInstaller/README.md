@@ -1,6 +1,6 @@
 # pipenvInstaller
 
-指定一个pipenv项目中的的python文件，会自动安装项目所需的python环境，并为该文件创建快捷方式。
+指定一个pipenv项目中的python文件，会自动安装项目所需的python环境，并为该文件创建快捷方式。
 
 ## 详细介绍
 

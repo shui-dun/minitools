@@ -288,7 +288,8 @@ events.sort((a, b) => {
 
 // 格式化日期和时间
 function formatTime(e) {
-  let time = e.date.toFormat("MM-dd");
+  let currentYear = today.year;
+  let time = e.date.toFormat(currentYear === e.date.year ? "MM-dd" : "yy-MM-dd");
   if (e.startTime || e.endTime) {
     time += ' ';
   }

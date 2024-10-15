@@ -14,8 +14,8 @@ let { DateTime } = dv.luxon;
 // 获取今天的0时
 let today = DateTime.local().startOf("day");
 
-// 获取一周后的日期
-let oneWeekLater = today.plus({ days: 6 });
+// 获取截止日期
+let endDate = today.plus({ days: 6 });
 
 // 初始化一个空的事件数组
 let events = [];
@@ -70,7 +70,7 @@ function handleLoopWeeks(p) {
     while (true) {
       let nextOccurrence = today.plus({ days: dayOffset }); // 计算下一个发生日期
       dayOffset += 7; // 更新偏移量
-      if (nextOccurrence <= oneWeekLater) { // 如果下一个发生日期在一周内
+      if (nextOccurrence <= endDate) { // 如果下一个发生日期在截止日期内
         ans.push(nextOccurrence);
       } else {
         break; // 否则退出循环
@@ -101,7 +101,7 @@ function handleLoopMonths(p) {
       }); // 根据年份、月份和天数生成事件下一次发生日期
       if (!nextOccurrence.isValid || nextOccurrence < today) { // 如果日期无效或早于今天
         [year, month] = nextMonth(year, month); // 获取下一个月
-      } else if (nextOccurrence <= oneWeekLater) { // 如果日期在一周内
+      } else if (nextOccurrence <= endDate) { // 如果日期在截止日期内
         ans.push(nextOccurrence);
         [year, month] = nextMonth(year, month); // 获取下一个月
       } else {
@@ -153,7 +153,7 @@ function handleLoopMonths2(p) {
       }
       if (nextOccurrence < today || nextOccurrence.month !== month) { // 如果日期早于今天或月份不同
         [year, month] = nextMonth(year, month); // 获取下一个月
-      } else if (nextOccurrence <= oneWeekLater) { // 如果日期在一周内
+      } else if (nextOccurrence <= endDate) { // 如果日期在截止日期内
         [year, month] = nextMonth(year, month); // 获取下一个月
         ans.push(nextOccurrence);
       } else {
@@ -178,12 +178,12 @@ function handleLoopYears(p) {
         month: month,
         day: day,
       }); // 根据年份、月份和天数生成日期
-      if (year > oneWeekLater.year) { // 如果年份大于一周后的年份
+      if (year > endDate.year) { // 如果年份大于截止日期后的年份
         break; // 退出循环
       }
       if (!nextOccurrence.isValid || nextOccurrence < today) { // 如果日期无效或早于今天
         year++; // 增加年份
-      } else if (nextOccurrence <= oneWeekLater) { // 如果日期在一周内
+      } else if (nextOccurrence <= endDate) { // 如果日期在截止日期内
         ans.push(nextOccurrence);
         year++; // 增加年份
       } else {
@@ -218,12 +218,12 @@ function handleLoopYears2(p) {
         nextOccurrence = lastDayOfMonth.minus({ days: dayOffset }).minus({ weeks: -week - 1 }); // 计算目标日期
       }
 
-      if (year > oneWeekLater.year) { // 如果年份大于一周后的年份
+      if (year > endDate.year) { // 如果年份大于截止日期后的年份
         break; // 退出循环
       }
       if (!nextOccurrence.isValid || nextOccurrence < today) { // 如果日期无效或早于今天
         year++; // 增加年份
-      } else if (nextOccurrence <= oneWeekLater) { // 如果日期在一周内
+      } else if (nextOccurrence <= endDate) { // 如果日期在截止日期内
         ans.push(nextOccurrence);
         year++; // 增加年份
       } else {
@@ -245,9 +245,7 @@ function handleSpecificDate(p) {
     if (!date.isValid) {
       throw new Error("Invalid specific date");
     }
-    if (date >= today && date <= oneWeekLater) {
-      ans.push(date);
-    }
+    ans.push(date);
   });
   return ans;
 }

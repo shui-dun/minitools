@@ -44,6 +44,7 @@ function nextMonth(year, month) {
 function pushEvent(p, date) {
   events.push({
     title: p.file.link,
+    priority: p.priority,
     date: date,
     startTime: p.startTime,
     endTime: p.endTime,
@@ -52,7 +53,13 @@ function pushEvent(p, date) {
 
 // 将错误信息添加到事件数组的函数
 function pushError(p, msg) {
-  events.push({ title: p.file.link, date: today, startTime: "", endTime: msg });
+  events.push({ 
+    title: p.file.link,
+    priority: p.priority,
+    date: today,
+    startTime: "",
+    endTime: msg,
+  });
 }
 
 // 处理loopWeeks
@@ -268,6 +275,10 @@ dv.pages(`"${dv.current().file.folder}"`).forEach((p) => {
     ans.forEach((date) => {
       pushEvent(p, date); // 将事件添加到事件数组
     });
+    // 如果事件没有发生日期，但优先级>0，则将事件添加到事件数组
+    if (ans.length === 0 && p.priority != null && p.priority > 0) {
+      pushEvent(p, null);
+    }
   } catch (error) {
     pushError(p, error.message); // 如果发生错误，记录错误信息
   }
@@ -278,8 +289,8 @@ events.sort((a, b) => {
   // 获取今天到一周后的日期
   let urgentEndDate = today.plus({ days: 6 });
   // 判断是否是紧急事件
-  let isUrgentA = a.date <= urgentEndDate;
-  let isUrgentB = b.date <= urgentEndDate;
+  let isUrgentA = a.date != null && a.date <= urgentEndDate;
+  let isUrgentB = b.date != null && b.date <= urgentEndDate;
 
   // 如果一个事件紧急另一个不紧急，紧急事件排在前面
   if (isUrgentA && !isUrgentB) return -1;
@@ -306,6 +317,9 @@ events.sort((a, b) => {
 
 // 格式化日期和时间
 function formatTime(e) {
+  if (e.date === null) {
+    return "";
+  }
   let currentYear = today.year;
   let time = e.date.toFormat(currentYear === e.date.year ? "MM-dd" : "yy-MM-dd");
   if (e.startTime || e.endTime) {

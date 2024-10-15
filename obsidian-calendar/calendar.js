@@ -334,11 +334,29 @@ function formatTime(e) {
   return `<code>${time}</code>`;
 }
 
+let highlightMap = {
+  4: (t) => `==${t}==`,
+  3: (t) => `==${t}==`,
+  2: (t) => `**${t}**`,
+  1: (t) => t,
+  0: (t) => t,
+};
+
+function highlightTitle(title, priority) {
+  if (priority == null || typeof priority !== 'number' || priority < 0) {
+    priority = 0;
+  }
+  if (priority > 4) {
+    priority = 4;
+  }
+  return highlightMap[priority](title);
+}
+
 // 使用 dv.table 显示事件数组
 dv.table(
   ["", ""], // 表头为空
   events.map((e) => [
-    e.title, // 事件标题
+    highlightTitle(e.title, e.priority), // 事件标题
     formatTime(e), // 事件时间
   ])
 );

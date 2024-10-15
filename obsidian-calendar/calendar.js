@@ -58,8 +58,9 @@ function pushError(p, msg) {
 // 处理loopWeeks
 function handleLoopWeeks(p) {
   if (!isNotNullOrEmptyArray(p.loopWeeks)) {
-    return;
+    return [];
   }
+  let ans = [];
   p.loopWeeks.forEach((weekDay) => {
     if (weekDay < 1 || weekDay > 7) { // 检查星期几的值是否有效
       throw new Error("Invalid weekday value");
@@ -70,19 +71,21 @@ function handleLoopWeeks(p) {
       let nextOccurrence = today.plus({ days: dayOffset }); // 计算下一个发生日期
       dayOffset += 7; // 更新偏移量
       if (nextOccurrence <= oneWeekLater) { // 如果下一个发生日期在一周内
-        pushEvent(p, nextOccurrence); // 添加事件
+        ans.push(nextOccurrence);
       } else {
         break; // 否则退出循环
       }
     }
   });
+  return ans;
 }
 
 // 处理loopMonths
 function handleLoopMonths(p) {
   if (!isNotNullOrEmptyArray(p.loopMonths)) {
-    return;
+    return [];
   }
+  let ans = [];
   p.loopMonths.forEach((day) => {
     if (day < 1 || day > 31) { // 检查天数的值是否有效
       throw new Error("Invalid day value");
@@ -99,20 +102,22 @@ function handleLoopMonths(p) {
       if (!nextOccurrence.isValid || nextOccurrence < today) { // 如果日期无效或早于今天
         [year, month] = nextMonth(year, month); // 获取下一个月
       } else if (nextOccurrence <= oneWeekLater) { // 如果日期在一周内
-        pushEvent(p, nextOccurrence); // 添加事件
+        ans.push(nextOccurrence);
         [year, month] = nextMonth(year, month); // 获取下一个月
       } else {
         break; // 否则退出循环
       }
     }
   });
+  return ans;
 }
 
 // 处理loopMonths2
 function handleLoopMonths2(p) {
   if (!isNotNullOrEmptyArray(p.loopMonths2)) {
-    return;
+    return [];
   }
+  let ans = [];
   p.loopMonths2.forEach(([week, weekday]) => {
     // 检查 week 和 weekday 的值是否在有效范围内
     if (week < -5 || week > 5 || weekday < 1 || weekday > 7) {
@@ -150,19 +155,21 @@ function handleLoopMonths2(p) {
         [year, month] = nextMonth(year, month); // 获取下一个月
       } else if (nextOccurrence <= oneWeekLater) { // 如果日期在一周内
         [year, month] = nextMonth(year, month); // 获取下一个月
-        pushEvent(p, nextOccurrence); // 添加事件
+        ans.push(nextOccurrence);
       } else {
         break; // 否则退出循环
       }
     }
   });
+  return ans;
 }
 
 // 处理loopYears
 function handleLoopYears(p) {
   if (!isNotNullOrEmptyArray(p.loopYears)) {
-    return;
+    return [];
   }
+  let ans = [];
   p.loopYears.forEach(([month, day]) => {
     let year = today.year; // 获取当前年份
     while (true) {
@@ -177,20 +184,22 @@ function handleLoopYears(p) {
       if (!nextOccurrence.isValid || nextOccurrence < today) { // 如果日期无效或早于今天
         year++; // 增加年份
       } else if (nextOccurrence <= oneWeekLater) { // 如果日期在一周内
-        pushEvent(p, nextOccurrence); // 添加事件
+        ans.push(nextOccurrence);
         year++; // 增加年份
       } else {
         break; // 否则退出循环
       }
     }
   });
+  return ans;
 }
 
 // 处理loopYears2
 function handleLoopYears2(p) {
   if (!isNotNullOrEmptyArray(p.loopYears2)) {
-    return;
+    return [];
   }
+  let ans = [];
   p.loopYears2.forEach(([month, week, weekday]) => {
     let year = today.year; // 获取当前年份
     while (true) {
@@ -215,40 +224,47 @@ function handleLoopYears2(p) {
       if (!nextOccurrence.isValid || nextOccurrence < today) { // 如果日期无效或早于今天
         year++; // 增加年份
       } else if (nextOccurrence <= oneWeekLater) { // 如果日期在一周内
-        pushEvent(p, nextOccurrence); // 添加事件
+        ans.push(nextOccurrence);
         year++; // 增加年份
       } else {
         break; // 否则退出循环
       }
     }
   });
+  return ans;
 }
 
 // 处理特定日期的事件
 function handleSpecificDate(p) {
   if (!isNotNullOrEmptyArray(p.specificDate)) {
-    return;
+    return [];
   }
+  var ans = [];
   p.specificDate.forEach((dateString) => {
     let date = DateTime.fromISO(dateString);
     if (!date.isValid) {
       throw new Error("Invalid specific date");
     }
     if (date >= today && date <= oneWeekLater) {
-      pushEvent(p, date);
+      ans.push(date);
     }
   });
+  return ans;
 }
 
 // 遍历指定路径下的每个页面
 dv.pages(`"${dv.current().file.folder}"`).forEach((p) => {
   try {
-    handleLoopWeeks(p);
-    handleLoopMonths(p);
-    handleLoopMonths2(p);
-    handleLoopYears(p);
-    handleLoopYears2(p);
-    handleSpecificDate(p);
+    var ans = [];
+    ans = ans.concat(handleLoopWeeks(p));
+    ans = ans.concat(handleLoopMonths(p));
+    ans = ans.concat(handleLoopMonths2(p));
+    ans = ans.concat(handleLoopYears(p));
+    ans = ans.concat(handleLoopYears2(p));
+    ans = ans.concat(handleSpecificDate(p));
+    ans.forEach((date) => {
+      pushEvent(p, date); // 将事件添加到事件数组
+    });
   } catch (error) {
     pushError(p, error.message); // 如果发生错误，记录错误信息
   }

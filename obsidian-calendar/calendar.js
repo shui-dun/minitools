@@ -15,7 +15,7 @@ let { DateTime } = dv.luxon;
 let today = DateTime.local().startOf("day");
 
 // 获取截止日期
-let endDate = today.plus({ days: 6 });
+let endDate = today.plus({ days: 13 });
 
 // 初始化一个空的事件数组
 let events = [];
@@ -273,17 +273,35 @@ dv.pages(`"${dv.current().file.folder}"`).forEach((p) => {
   }
 });
 
-// 将事件数组按日期排序
+// 将事件数组排序，日期在一周内的视作紧急事件，排在非紧急事件的前面，对于紧急事件，按照时间先后排序，对于非紧急事件，按照优先级排序
 events.sort((a, b) => {
-  let dateDiff = a.date - b.date;
-  if (dateDiff !== 0) return dateDiff; // 如果日期不同，返回日期差异
-  if (a.startTime != null && b.startTime != null) {
-    let timeDiff = a.startTime.localeCompare(b.startTime);
-    if (timeDiff !== 0) return timeDiff; // 如果开始时间不同，返回时间差异
+  // 获取今天到一周后的日期
+  let urgentEndDate = today.plus({ days: 6 });
+  // 判断是否是紧急事件
+  let isUrgentA = a.date <= urgentEndDate;
+  let isUrgentB = b.date <= urgentEndDate;
+
+  // 如果一个事件紧急另一个不紧急，紧急事件排在前面
+  if (isUrgentA && !isUrgentB) return -1;
+  if (!isUrgentA && isUrgentB) return 1;
+
+  // 对于紧急事件，按照日期和开始时间排序
+  if (isUrgentA && isUrgentB) {
+    let dateDiff = a.date - b.date;
+    if (dateDiff !== 0) return dateDiff; // 日期不同，按日期排序
+    if (a.startTime != null && b.startTime != null) {
+      let timeDiff = a.startTime.localeCompare(b.startTime);
+      if (timeDiff !== 0) return timeDiff; // 开始时间不同，按开始时间排序
+    }
+    let aEndTime = a.endTime || "23:59"; // 如果没有结束时间，设置为 23:59
+    let bEndTime = b.endTime || "23:59";
+    return aEndTime.localeCompare(bEndTime); // 按结束时间排序
   }
-  let aEndTime = a.endTime || "23:59"; // 如果没有结束时间，设置为 23:59
-  let bEndTime = b.endTime || "23:59";
-  return aEndTime.localeCompare(bEndTime); // 比较结束时间
+
+  // 对于非紧急事件，按照优先级排序，优先级高的在前
+  let aPriority = a.priority || 0;
+  let bPriority = b.priority || 0;
+  return bPriority - aPriority; // 优先级大的排在前面
 });
 
 // 格式化日期和时间

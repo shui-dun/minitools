@@ -239,11 +239,16 @@ function handleSpecificDate(p) {
   if (!isNotNullOrEmptyArray(p.specificDate)) {
     return [];
   }
+  // p.specificDate的长度大于阈值则认为是农历节日（由于农历的计算的困难性，使用specificDate来硬编码农历节日）
+  let isLunarFestival = p.specificDate.length > 50;
   var ans = [];
   p.specificDate.forEach((dateString) => {
     let date = DateTime.fromISO(dateString);
     if (!date.isValid) {
       throw new Error("Invalid specific date");
+    }
+    if (isLunarFestival && (date < today || date > endDate)) {
+      return;
     }
     ans.push(date);
   });

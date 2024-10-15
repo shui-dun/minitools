@@ -334,14 +334,6 @@ function formatTime(e) {
   return `<code>${time}</code>`;
 }
 
-let highlightMap = {
-  4: (t) => `==${t}==`,
-  3: (t) => `==${t}==`,
-  2: (t) => `**${t}**`,
-  1: (t) => t,
-  0: (t) => t,
-};
-
 function highlightTitle(title, priority) {
   if (priority == null || typeof priority !== 'number' || priority < 0) {
     priority = 0;
@@ -349,7 +341,10 @@ function highlightTitle(title, priority) {
   if (priority > 4) {
     priority = 4;
   }
-  return highlightMap[priority](title);
+  let val = 230 - priority * 55;
+  let blueVal = 230;
+
+  return `<span style="color: rgb(${val}, ${val}, ${blueVal});">&#11044;</span>` + '  ' + title;
 }
 
 // 使用 dv.table 显示事件数组

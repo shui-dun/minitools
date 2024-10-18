@@ -284,6 +284,17 @@ dv.pages(`"${dv.current().file.folder}"`).forEach((p) => {
   }
 });
 
+// padding时间，将8:00格式化为08:00
+function paddingTime(time) {
+  if (time == null) {
+    return "";
+  }
+  if (time.length === 4) {
+    return "0" + time;
+  }
+  return time;
+}
+
 // 将事件数组排序，日期在一周内的视作紧急事件，排在非紧急事件的前面，对于紧急事件，按照时间先后排序，对于非紧急事件，按照优先级排序
 events.sort((a, b) => {
   // 获取今天到一周后的日期
@@ -301,11 +312,11 @@ events.sort((a, b) => {
     let dateDiff = a.date - b.date;
     if (dateDiff !== 0) return dateDiff; // 日期不同，按日期排序
     if (a.startTime != null && b.startTime != null) {
-      let timeDiff = a.startTime.localeCompare(b.startTime);
+      let timeDiff = paddingTime(a.startTime).localeCompare(paddingTime(b.startTime));
       if (timeDiff !== 0) return timeDiff; // 开始时间不同，按开始时间排序
     }
-    let aEndTime = a.endTime || "23:59"; // 如果没有结束时间，设置为 23:59
-    let bEndTime = b.endTime || "23:59";
+    let aEndTime = paddingTime(a.endTime || "23:59"); // 如果没有结束时间，设置为 23:59
+    let bEndTime = paddingTime(b.endTime || "23:59");
     return aEndTime.localeCompare(bEndTime); // 按结束时间排序
   }
 

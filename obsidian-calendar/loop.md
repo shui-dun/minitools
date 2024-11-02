@@ -9,10 +9,9 @@ startTime:
 endTime:
 priority: 2
 ---
-
 # <% tp.file.title %>
 
-> [!note]- front-matter 示例
+> [!Help]-
 > ![front-matter-template](front-matter-template.md)
 
 <% tp.file.cursor(1) %>

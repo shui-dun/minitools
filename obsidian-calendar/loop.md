@@ -12,6 +12,7 @@ priority: 2
 
 # <% tp.file.title %>
 
-<% tp.file.cursor(1) %>
+> [!note]- front-matter 示例
+> ![front-matter-template](front-matter-template.md)
 
-![front-matter-template](front-matter-template.md)
+<% tp.file.cursor(1) %>

@@ -1,6 +1,6 @@
 # obsidian-template
 
-obsidian模板
+obsidian模板，包含任务清单、间隔复习笔记、习惯打卡等插件
 
 使用步骤：
 

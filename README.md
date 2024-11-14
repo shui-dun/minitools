@@ -4,13 +4,13 @@
 
 ## 工具列表
 
+- [obsidian-template](./obsidian-template) obsidian模板
 - [replaceText](./replaceText) 替换指定文件夹下指定格式的文件中的指定文本
 - [pipenvInstaller](./pipenvInstaller) 指定一个pipenv项目中的python文件，会自动安装项目所需的python环境，并为该文件创建快捷方式。
 - [online-text-processor](./online-text-processor) 基于 Vue.js 的纯前端文本处理工具
 - [ahk](./ahk) autohotkey脚本
 - [copyMd](./copyMd) 复制markdown以及其链接的本地图片（使用go实现）
 - [rmMd](./rmMd) 删除markdown文件以及其链接的图片
-- [obsidian-calendar](./obsidian-calendar) obsidian日历插件，支持循环事件
 - [flatFolder](./flatFolder) 递归地读取文件夹下的所有文件，将其转化为一个大文件，以便于与Claude2等LLM通话。
 - [fullcpu](./fullcpu) 用 Go 语言编写的系统资源消耗工具,用来模拟高强度的 CPU、内存和 I/O 使用
 - [handright](./handright) 使用handright库，生成手写笔记

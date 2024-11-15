@@ -45,12 +45,9 @@ let progressStick = (habit) => {
 } 
 
 function clockButton(habit) {
-    let button = document.createElement('button');
-    button.textContent = Beautify.num2(habit.todayInfo.clockCounts);
-    button.onclick = async () => {
+	return Beautify.button(Beautify.num2(habit.todayInfo.clockCounts), async () => {
 	    await Habit.clock(app.vault.getAbstractFileByPath(habit.habit.file.link.path));
-    };
-    return button;
+    });
 }
 
 dv.table(["习惯", "今日", "进度", "", "积分"], 

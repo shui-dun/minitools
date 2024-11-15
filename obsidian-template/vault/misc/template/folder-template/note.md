@@ -8,7 +8,6 @@ sr: [2.5,1.0,<% tp.date.now("YYYY-MM-DD", 1) %>]
 
 
 # EOF
-
 ```meta-bind-embed
-[review-buttons](review-buttons.md)
+[note-eof](note-eof.md)
 ```

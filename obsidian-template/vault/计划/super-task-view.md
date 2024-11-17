@@ -1,5 +1,19 @@
 ```dataviewjs
-async function waitForVaultLoading(){while(dv.current()===undefined){await new Promise(resolve=>setTimeout(resolve,200))}return dv.current()}await waitForVaultLoading();
+const {WaitLoading, Task, Beautify} = await cJS();
+Task.dv = dv;
+Task.app = app;
+
+await WaitLoading.wait(dv);
+
+// 任务的执行日期
+dv.paragraph(Task.daysOfTask(dv.current()));
+
+// 跳过下一次任务
+dv.paragraph(Beautify.container(
+	Beautify.button('跳过下次', async () => {
+		await Task.skip(dv.current());
+	}),
+));
 
 // 查看父任务
 let superTask = dv.current().superTask;
@@ -12,6 +26,7 @@ let subTasks = dv.pages('"计划"')
 	.filter(p => p.superTask && p.superTask.path == dv.current().file.link.path);
 
 if (subTasks.length != 0) {
-	await dv.view('misc/dataview-scripts/calendar', {"pages": subTasks, "allowZeroPriority": true});
+	// await dv.view('misc/dataview-scripts/calendar', {"pages": subTasks, "allowZeroPriority": true});
+	Task.renderTasks(subTasks, true);
 }
 ```

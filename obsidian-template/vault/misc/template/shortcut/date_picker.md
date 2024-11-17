@@ -11,6 +11,7 @@ async function generateDate() {
 	suggestions.set("不输入日期", NO_DATE);
 	suggestions.set("today", moment());
 	suggestions.set("tomorrow", moment().add(1, 'days'));
+	suggestions.set("day after tomorrow", moment().add(2, 'days'));
 	suggestions.set("manual", MANUAL);
 	suggestions.set("next monday", moment().add(1, 'weeks').day(1));
 	suggestions.set(dayOfWeek >= 2 ? "next tuesday" : "tuesday",

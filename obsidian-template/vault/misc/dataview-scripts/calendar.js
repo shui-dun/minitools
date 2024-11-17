@@ -263,6 +263,9 @@ input["pages"].forEach((p) => {
         ans = ans.concat(handleLoopYears2(p));
         ans = ans.concat(handleSpecificDate(p));
         ans.forEach((date) => {
+			if (date < p.startDate) {
+				return;
+			}
             pushEvent(p, date)
         });
 		// 是否显示优先级为0的元素，即使其时间没有临近

@@ -45,31 +45,21 @@ class Habit {
 	async clock(file) {
 		const modalForm = app.plugins.plugins.modalforms.api;
 		const fileName = file.basename;
-		const habitID = app.metadataCache.getFileCache(file)?.frontmatter.id;
+		const fm = app.metadataCache.getFileCache(file)?.frontmatter;
+		const habitID = fm.id;
 
 		/* 获取当前日期 */
 		let todayDate = moment().format("YYYY-MM-DD");
-		const iswalk = (fileName == '走路');
-		const isSleep = (fileName == '早睡');
-		if (iswalk) {
-			todayDate = moment().subtract(3, 'days').format("YYYY-MM-DD");
-			new Notice(`对于走路，打卡时间被设置为3天前，即${todayDate}`);
+		if (fm.daysOffset != null) {
+			todayDate = moment().add(fm.daysOffset, 'days').format("YYYY-MM-DD");
+			new Notice(`打卡时间被设置为${Math.abs(fm.daysOffset)}天${fm.daysOffset > 0 ? '后' : '前'}，即${todayDate}`);
 		}
 
 		/* 让用户输入打卡次数 */
 		let count = 0;
-		if (isSleep) {
+		if (fileName == '早睡') {
 			const currentTime = moment();
-			let startTime = moment("22:30", "HH:mm");
-			let endTime = moment("23:30", "HH:mm");
-			if (currentTime.isAfter(endTime) || currentTime.isBefore(moment("12:00", "HH:mm"))) {
-				count = 0;
-			} else if (currentTime.isBetween(startTime, endTime)) {
-				const  minutesSinceStartTime = currentTime.diff(startTime, 'minutes');
-				count = 1 - (minutesSinceStartTime / endTime.diff(startTime, 'minutes')); // 从1逐渐降到0
-			} else {
-				count = 1;
-			}
+			count = this.timeToNum(currentTime);
 			count = parseFloat(count.toFixed(2));
 		} else {
 			let countInput = await modalForm.openForm({
@@ -117,18 +107,23 @@ class Habit {
 			/* 更新今日的打卡次数 */
 			if (todayIndex === -1) {
 				// 如果今天没有记录，则添加新记录
-				frontmatter["historyDates"].push(todayDate);
-				frontmatter["historyCounts"].push(count);
 				newCount = count;
+				if (!fm.allowNegtive && newCount < 0) {
+					newCount = 0;
+				}
+				if (newCount != 0) {
+					frontmatter["historyDates"].push(todayDate);
+					frontmatter["historyCounts"].push(count);	
+				}
 			} else {
 				// 如果今天已有记录，则累加或减少打卡次数
-				if (isSleep) {
+				if (fm.once) {
 					frontmatter["historyCounts"][todayIndex] = 0;
 				}
 				frontmatter["historyCounts"][todayIndex] += count;
 				newCount = frontmatter["historyCounts"][todayIndex];
 				// 如果打卡次数为零或负数，删除该日期记录
-				if (frontmatter["historyCounts"][todayIndex] <= 0) {
+				if (!fm.allowNegtive && frontmatter["historyCounts"][todayIndex] <= 0) {
 					newCount = 0;
 					frontmatter["historyDates"].splice(todayIndex, 1);
 					frontmatter["historyCounts"].splice(todayIndex, 1);
@@ -144,4 +139,74 @@ class Habit {
 			app.commands.executeCommandById('dataview:dataview-force-refresh-views')
 		}, 300);
 	}
+
+	timeToNum(timeStr) {
+		let currentTime = timeStr;
+		// 如果是字符串类型
+		if (typeof timeStr == 'string') {
+			currentTime = moment(timeStr, "HH:mm");
+		}
+		
+		// 定义时间点
+		const t0 = moment("12:00", "HH:mm");
+		const t1 = moment("22:30", "HH:mm");
+		const t2 = moment("23:30", "HH:mm");
+		const t3 = moment("01:30", "HH:mm").add(1, 'days'); // 确保跨午夜比较正确
+		
+		// 调整当前时间以处理跨午夜情况
+		let adjustedCurrentTime = currentTime;
+		if (currentTime.isBefore(t0)) {
+				adjustedCurrentTime = currentTime.add(1, 'days');
+		}
+		
+		let score;
+		
+		if (adjustedCurrentTime.isBetween(t0, t1, null, '[]')) {
+				score = 1;
+		} else if (adjustedCurrentTime.isBetween(t1, t2, null, '[]')) {
+				// t1-t2: 1->0
+				const progress = (adjustedCurrentTime - t1) / (t2 - t1);
+				score = 1 - progress;
+		} else if (adjustedCurrentTime.isBetween(t2, t3, null, '[]')) {
+				// t2-t3: 0->-1
+				const progress = (adjustedCurrentTime - t2) / (t3 - t2);
+				score = -progress;
+		} else {
+				score = -1;
+		}
+		
+		return parseFloat(score.toFixed(2));
+	}
+	// timeToNum 的测试用例：
+	// const testCases = [
+	// 	// 12:00~22:30 区间测试
+	// 	["11:59", -1],    // t0 边界值略小
+	// 	["12:00", 1],     // t0 边界值相等
+	// 	["12:01", 1],     // t0 边界值略大
+	// 	["22:29", 1],     // t1 边界值略小
+	// 	["22:30", 1],     // t1 边界值相等
+	// 	
+	// 	// 22:30~23:30 区间测试
+	// 	["22:31", 0.98],  // t1 边界值略大
+	// 	["23:00", 0.5],   // 中间值
+	// 	["23:29", 0.02],  // t2 边界值略小
+	// 	["23:30", 0],     // t2 边界值相等
+	// 	
+	// 	// 23:30~01:30 区间测试
+	// 	["23:31", -0.01], // t2 边界值略大
+	// 	["00:30", -0.5],  // 中间值
+	// 	["01:29", -0.99], // t3 边界值略小
+	// 	["01:30", -1],    // t3 边界值相等
+	// 	
+	// 	// 01:30~12:00 区间测试
+	// 	["01:31", -1],    // t3 边界值略大
+	// 	["02:00", -1],
+	// 	["11:59", -1]
+	// ];
+	// 
+	// // 运行测试
+	// testCases.forEach(([time, expected]) => {
+	// 	const result = timeToNum(time);
+	// 	console.log(`Time: ${time}, Expected: ${expected}, Got: ${result}, ${result === expected ? '✓' : '✗'}`);
+	// });
 }

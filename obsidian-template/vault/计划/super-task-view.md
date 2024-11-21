@@ -6,14 +6,16 @@ Task.app = app;
 await WaitLoading.wait(dv);
 
 // 任务的执行日期
-dv.paragraph(Task.daysOfTask(dv.current()));
-
-// 跳过下一次任务
-dv.paragraph(Beautify.container(
-	Beautify.button('跳过下次', async () => {
-		await Task.skip(dv.current());
-	}),
-));
+let dates = Task.daysOfTask(dv.current());
+if (dates.length > 0) {
+	// 跳过下一次任务
+	dv.paragraph(Beautify.container(
+		Beautify.button('跳过下次', async () => {
+			await Task.skip(dv.current());
+		}),
+	));
+	dv.paragraph(dates);
+}
 
 // 查看父任务
 let superTask = dv.current().superTask;

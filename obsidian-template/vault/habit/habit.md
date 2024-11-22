@@ -33,7 +33,7 @@ let habits = dv.pages('"habit" and -"habit/habit_history"')
 		}
 	})
     // .sort(habit => habit.periodInfo.progress);
-    .sort(habit => [-habit.habit.target * habit.habit.pointsPerClock, habit.habit.name]);
+    .sort(habit => [-habit.habit.target * habit.habit.pointsPerClock, habit.habit.file.name]);
 
 // 计算本周总积分
 let totalPoints = habits.values.reduce((acc, habit) => acc + habit.periodInfo.clockPoints, 0);

@@ -20,7 +20,13 @@ if (dates.length > 0) {
 // 查看父任务
 let superTask = dv.current().superTask;
 if (superTask != null) {
-	dv.paragraph("父任务：" + dv.current().superTask);
+	dv.paragraph("父任务：" + superTask);
+}
+
+// 查看依赖的任务
+let beforeTasks = dv.current().beforeTasks;
+if (beforeTasks != null && beforeTasks.length != 0) {
+	dv.paragraph("依赖于：" + beforeTasks);
 }
 
 // 查看子任务

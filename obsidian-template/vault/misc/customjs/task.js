@@ -454,12 +454,12 @@ class Task {
         
         // 添加依赖关系
         this.getDependencies(startTask).forEach(dep => {
-			let str = `${this.generateNodeCode(startTask)} --> ${this.generateNodeCode(dep)}`;
+			let str = `${this.generateNodeCode(dep)} --> ${this.generateNodeCode(startTask)}`;
 			this.drawnLinesCache.add(str);
         });
 
         this.getDependentOnTasks(startTask).forEach(dep => {
-			let str = `${this.generateNodeCode(dep)} --> ${this.generateNodeCode(startTask)}`;
+			let str = `${this.generateNodeCode(startTask)} --> ${this.generateNodeCode(dep)}`;
 			this.drawnLinesCache.add(str);
         });
         

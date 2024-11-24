@@ -404,7 +404,7 @@ class Task {
 		});
 		this.dv.pages(path).forEach(p => {
 			const superTask = p.superTask;
-			if (superTask) {
+			if (superTask && this.dv.page(superTask)) {
 				this.subTasksCache.get(superTask.path)?.push(p);
 			}
 		});
@@ -417,6 +417,7 @@ class Task {
 			const beforeTasks = p.beforeTasks;
 			if (beforeTasks) {
 				beforeTasks.forEach(t => {
+					if (!this.dv.page(t)) return;
 					this.dependentOnCache.get(t.path)?.push(p);
 				});
 			}
@@ -468,7 +469,7 @@ class Task {
     // 获取任务的根任务
     getRootTask(task) {
         if (!task.superTask) return task;
-        return this.dv.page(task.superTask);
+        return this.dv.page(task.superTask) || task;
     }
 
     // 获取任务的所有子任务
@@ -483,7 +484,7 @@ class Task {
 
     // 获取当前任务依赖的任务
     getDependencies(task) {
-        return task.beforeTasks ? task.beforeTasks.map(t => this.dv.page(t)) : [];
+        return task?.beforeTasks ? task.beforeTasks.map(t => this.dv.page(t)).filter(t => t) : [];
     }
 	
 	// 将任务分为有依赖关系或子任务和无依赖关系两组

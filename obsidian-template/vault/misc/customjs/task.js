@@ -391,20 +391,7 @@ class Task {
 			return '';
 		}
 
-		let mermaidCode = this.dfsGenerateMermaidCode(rootTask) + '\n';
-
-		// 添加漏网之鱼的节点
-		for (let node of this.linkedNodes) {
-			if (!this.generatedNodes.has(node)) {
-				mermaidCode += this.generateNodeCode(this.dv.page(node));
-			}
-		}
-
-		mermaidCode = '```mermaid\nflowchart\n' + mermaidCode + '\n```';
-
-		console.log(mermaidCode);
-
-		return mermaidCode;
+		return '```mermaid\nflowchart\n' + this.dfsGenerateMermaidCode(rootTask) + '\n' + [...this.drawnLinesCache].join("\n") + '\n```';
 	}
 
 	// 重新计算缓存
@@ -417,7 +404,6 @@ class Task {
 		});
 		this.dv.pages(path).forEach(p => {
 			const superTask = p.superTask;
-			console.log(superTask);
 			if (superTask) {
 				this.subTasksCache.get(superTask.path)?.push(p);
 			}
@@ -425,7 +411,6 @@ class Task {
 		// 缓存所有任务的依赖关系
 		this.dependentOnCache = new Map();
 		this.dv.pages(path).forEach(p => {
-			console.log(p.file.path);
 			this.dependentOnCache.set(p.file.path, []);
 		});
 		this.dv.pages(path).forEach(p => {
@@ -438,15 +423,10 @@ class Task {
 		});
 		// 缓存所有依赖的绘制线
 		this.drawnLinesCache = new Set();
-		// 缓存所有生成的节点
-		this.generatedNodes = new Set();
-		// 缓存所有被链接的节点
-		this.linkedNodes = new Set();
 	}
 
     // 生成Mermaid图表代码
     dfsGenerateMermaidCode(startTask) {
-		this.generatedNodes.add(startTask.file.path);
         let code = [];
         let subTasks = this.getSubTasks(startTask);
         
@@ -473,23 +453,13 @@ class Task {
         
         // 添加依赖关系
         this.getDependencies(startTask).forEach(dep => {
-			let str = `${this.sanitizeId(startTask.file.path)} --> ${this.sanitizeId(dep.file.path)}`;
-			if (!this.drawnLinesCache.has(str)) {
-				code.push(str);
-				this.drawnLinesCache.add(str);
-				this.linkedNodes.add(dep.file.path);
-				this.linkedNodes.add(startTask.file.path);
-			}
+			let str = `${this.generateNodeCode(startTask)} --> ${this.generateNodeCode(dep)}`;
+			this.drawnLinesCache.add(str);
         });
 
         this.getDependentOnTasks(startTask).forEach(dep => {
-			let str = `${this.sanitizeId(dep.file.path)} --> ${this.sanitizeId(startTask.file.path)}`;
-			if (!this.drawnLinesCache.has(str)) {
-				code.push(str);
-				this.drawnLinesCache.add(str);
-				this.linkedNodes.add(dep.file.path);
-				this.linkedNodes.add(startTask.file.path);
-			}
+			let str = `${this.generateNodeCode(dep)} --> ${this.generateNodeCode(startTask)}`;
+			this.drawnLinesCache.add(str);
         });
         
         return code.join('\n');
@@ -555,9 +525,22 @@ class Task {
     formatTitle(task) {
         let title = `<a class="internal-link" href="${task.file.path}">${task.file.name}</a>`;
 		let days = this.daysOfTask(task);
+		let date = '';
         if (days.length > 0) {
-            title += ` ${days[0]}`;
+            date += ` ${days[0].toFormat("yy-MM-dd")}`;
         }
+		if (task.startTime || task.endTime) {
+			date += ' '
+		}
+		if (task.startTime) {
+			date += task.startTime
+		}
+		if (task.endTime) {
+			date += '->' + task.endTime
+		}
+		if (date) {
+			title += ` <code>${date}</code>&emsp;`;
+		}
         return title;
     }
 

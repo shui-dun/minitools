@@ -11,6 +11,8 @@ obsidian模板，包含任务清单、间隔复习笔记、习惯打卡等插件
 
 ![image-20241114173905436](assets/image-20241114173905436.png)
 
+![alt text](assets/image-1.png)
+
 ## 间隔复习笔记
 
 ![image-20241114174134001](assets/image-20241114174134001.png)

@@ -366,9 +366,7 @@ class Task {
 	}
 
 	async skip(p) {
-		console.log(p);
 		let days = this.daysOfTask(p);
-		console.log(days);
 		if (days.length == 0) {
 			return;
 		}
@@ -381,4 +379,196 @@ class Task {
 			app.commands.executeCommandById('dataview:dataview-force-refresh-views')
 		}, 300);
 	}
+	
+	// 生成Mermaid图表代码
+	generateMermaidCode(startTask) {
+		// 重新计算缓存
+		this.rebuildCache();
+		const rootTask = this.getRootTask(startTask);
+
+		// 如果任务没有子任务和依赖任务，直接返回空字符串
+		if (!this.hasAnyRelation(rootTask)) {
+			return '';
+		}
+
+		let mermaidCode = this.dfsGenerateMermaidCode(rootTask) + '\n';
+
+		// 添加漏网之鱼的节点
+		for (let node of this.linkedNodes) {
+			if (!this.generatedNodes.has(node)) {
+				mermaidCode += this.generateNodeCode(this.dv.page(node));
+			}
+		}
+
+		mermaidCode = '```mermaid\nflowchart\n' + mermaidCode + '\n```';
+
+		console.log(mermaidCode);
+
+		return mermaidCode;
+	}
+
+	// 重新计算缓存
+	rebuildCache() {
+		let path = '"计划"';
+		// 缓存所有任务的子任务
+		this.subTasksCache = new Map();
+		this.dv.pages(path).forEach(p => {
+			this.subTasksCache.set(p.file.path, []);
+		});
+		this.dv.pages(path).forEach(p => {
+			const superTask = p.superTask;
+			console.log(superTask);
+			if (superTask) {
+				this.subTasksCache.get(superTask.path)?.push(p);
+			}
+		});
+		// 缓存所有任务的依赖关系
+		this.dependentOnCache = new Map();
+		this.dv.pages(path).forEach(p => {
+			console.log(p.file.path);
+			this.dependentOnCache.set(p.file.path, []);
+		});
+		this.dv.pages(path).forEach(p => {
+			const beforeTasks = p.beforeTasks;
+			if (beforeTasks) {
+				beforeTasks.forEach(t => {
+					this.dependentOnCache.get(t.path)?.push(p);
+				});
+			}
+		});
+		// 缓存所有依赖的绘制线
+		this.drawnLinesCache = new Set();
+		// 缓存所有生成的节点
+		this.generatedNodes = new Set();
+		// 缓存所有被链接的节点
+		this.linkedNodes = new Set();
+	}
+
+    // 生成Mermaid图表代码
+    dfsGenerateMermaidCode(startTask) {
+		this.generatedNodes.add(startTask.file.path);
+        let code = [];
+        let subTasks = this.getSubTasks(startTask);
+        
+        if (subTasks.length > 0) {
+            code.push(`subgraph ${this.sanitizeId(startTask.file.path)}[${this.formatTitle(startTask)}]`);
+            
+            // 将子任务分为有依赖关系和无依赖关系两组
+            const [tasksWithRelation, tasksWithoutRelation] = this.separateTasksByRelation(subTasks);
+            
+            // 处理无关系的任务（使用紧凑模式）
+            if (tasksWithoutRelation.length > 0) {
+                code.push(this.generateCompactNode(tasksWithoutRelation));
+            }
+            
+            // 处理有关系的任务（常规模式）
+            tasksWithRelation.forEach(task => {
+                code.push(this.dfsGenerateMermaidCode(task));
+            });
+            
+            code.push('end');
+        } else {
+            code.push(this.generateNodeCode(startTask));
+        }
+        
+        // 添加依赖关系
+        this.getDependencies(startTask).forEach(dep => {
+			let str = `${this.sanitizeId(startTask.file.path)} --> ${this.sanitizeId(dep.file.path)}`;
+			if (!this.drawnLinesCache.has(str)) {
+				code.push(str);
+				this.drawnLinesCache.add(str);
+				this.linkedNodes.add(dep.file.path);
+				this.linkedNodes.add(startTask.file.path);
+			}
+        });
+
+        this.getDependentOnTasks(startTask).forEach(dep => {
+			let str = `${this.sanitizeId(dep.file.path)} --> ${this.sanitizeId(startTask.file.path)}`;
+			if (!this.drawnLinesCache.has(str)) {
+				code.push(str);
+				this.drawnLinesCache.add(str);
+				this.linkedNodes.add(dep.file.path);
+				this.linkedNodes.add(startTask.file.path);
+			}
+        });
+        
+        return code.join('\n');
+    }
+    
+    // 获取任务的根任务
+    getRootTask(task) {
+        if (!task.superTask) return task;
+        return this.dv.page(task.superTask);
+    }
+
+    // 获取任务的所有子任务
+    getSubTasks(task) {
+        return this.subTasksCache.get(task.file.path);
+    }
+
+    // 获取依赖当前任务的任务
+    getDependentOnTasks(task) {
+        return this.dependentOnCache.get(task.file.path);
+    }
+
+    // 获取当前任务依赖的任务
+    getDependencies(task) {
+        return task.beforeTasks ? task.beforeTasks.map(t => this.dv.page(t)) : [];
+    }
+	
+	// 将任务分为有依赖关系或子任务和无依赖关系两组
+    separateTasksByRelation(tasks) {
+		// 含有依赖关系 或 子任务 的任务
+        const tasksWithRelation = [];
+        const tasksWithoutRelation = [];
+        
+        tasks.forEach(task => {
+            if (this.hasAnyRelation(task)) {
+                tasksWithRelation.push(task);
+            } else {
+                tasksWithoutRelation.push(task);
+            }
+        });
+        
+        return [tasksWithRelation, tasksWithoutRelation];
+    }
+	
+	// 检查任务是否有任何依赖关系（包括被依赖和依赖其他）或者子任务
+    hasAnyRelation(task) {
+        return this.getDependentOnTasks(task).length > 0 || this.getDependencies(task).length > 0 || this.getSubTasks(task).length > 0;
+    }
+
+    // 生成紧凑模式的节点
+    generateCompactNode(tasks) {
+        const links = tasks.map(task => 
+            `<a class="internal-link" href="${task.file.path}">${task.file.name}</a>`
+        ).join('<br><br>');
+        return `${this.sanitizeId(tasks[0].file.path)}(${links}<br><br>)`;
+    }
+
+    // 生成单个节点的代码
+    generateNodeCode(task) {
+        return `${this.sanitizeId(task.file.path)}(${this.formatTitle(task)})`;
+    }
+
+    // 格式化标题，包含链接和日期
+    formatTitle(task) {
+        let title = `<a class="internal-link" href="${task.file.path}">${task.file.name}</a>`;
+		let days = this.daysOfTask(task);
+        if (days.length > 0) {
+            title += ` ${days[0]}`;
+        }
+        return title;
+    }
+
+    // 清理ID中的特殊字符
+    sanitizeId(str) {
+		let hash = 0;
+		for (let i = 0; i < str.length; i++) {
+			const char = str.charCodeAt(i);
+			hash = (hash << 5) - hash + char; // hash * 31 + char
+			hash |= 0; // Convert to 32bit integer
+		}
+		return hash;
+    }
 }

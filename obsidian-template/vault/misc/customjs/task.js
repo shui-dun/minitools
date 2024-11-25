@@ -381,17 +381,23 @@ class Task {
 	}
 	
 	// 生成Mermaid图表代码
-	generateMermaidCode(startTask) {
+	generateMermaidCode(curTask) {
+		this.curTask = curTask;
 		// 重新计算缓存
 		this.rebuildCache();
-		const rootTask = this.getRootTask(startTask);
+		const rootTask = this.getRootTask(curTask);
 
 		// 如果任务没有子任务和依赖任务，直接返回空字符串
 		if (!this.hasAnyRelation(rootTask)) {
 			return '';
 		}
 
-		return '```mermaid\nflowchart\n' + this.dfsGenerateMermaidCode(rootTask) + '\n' + [...this.drawnLinesCache].join("\n") + '\n```';
+		let code = this.dfsGenerateMermaidCode(rootTask) + '\n' + [...this.drawnLinesCache].join("\n") + '\n';
+
+		// 高亮curTask
+		code += `style ${this.sanitizeId(curTask.file.path)} fill:#fab27b\n`;
+
+		return '```mermaid\nflowchart\n' + code + '```';
 	}
 
 	// 重新计算缓存
@@ -514,7 +520,15 @@ class Task {
         const links = tasks.map(task => 
             `<a class="internal-link" href="${task.file.path}">${task.file.name}</a>`
         ).join('<br><br>');
-        return `${this.sanitizeId(tasks[0].file.path)}(${links}<br><br>)`;
+		// 如果节点中包含 curTask，则将ID设置为 curTask 的 ID
+		let ind = 0;
+		for (let i = 0; i < tasks.length; i++) {
+			if (tasks[i].file.path === this.curTask.file.path) {
+				ind = i;
+				break;
+			}
+		}
+        return `${this.sanitizeId(tasks[ind].file.path)}(${links}<br><br>)`;
     }
 
     // 生成单个节点的代码

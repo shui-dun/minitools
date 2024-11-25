@@ -46,4 +46,20 @@ class Beautify {
 
 		return container;
 	}
+
+	wrapInCallout(inputText, title) {
+		const lines = inputText.split('\n');
+		const wrappedLines = lines.map(line => `> ${line}`);
+		wrappedLines.unshift('> [!note]- ' + title);
+		return wrappedLines.join('\n');
+	}
+
+	// 大于指定行数，包裹在 callout 中
+	wrapInCalloutIfLarge(inputText, lineCount, title) {
+		const lines = inputText.split('\n');
+		if (lines.length > lineCount) {
+			return this.wrapInCallout(inputText, title);
+		}
+		return inputText;
+	}
 }

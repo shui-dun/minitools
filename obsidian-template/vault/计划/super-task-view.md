@@ -19,6 +19,6 @@ if (dates.length > 0) {
 
 let mermaid = Task.generateMermaidCode(dv.current());
 if (mermaid !== '') {
-	dv.paragraph(mermaid);
+	dv.paragraph(Beautify.wrapInCalloutIfLarge(mermaid, 10, '任务视图'));
 }
 ```

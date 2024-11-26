@@ -5,7 +5,7 @@ class Beautify {
 		}
 		return `\`${parseFloat(num.toFixed(digit))}\``;
 	}
-	
+
 	// 不带代码块的格式化
 	num2(num, digit) {
 		if (digit === undefined) {
@@ -13,21 +13,132 @@ class Beautify {
 		}
 		return parseFloat(num.toFixed(digit));
 	}
-	
+
 	progress(val, width) {
 		if (width === undefined) {
 			width = 100;
 		}
 		return `<progress value=${val} max=1 style="width:${width}px;"></progress>`
 	}
-	
+
 	button(text, onclick) {
 		let button = document.createElement('button');
 		button.textContent = text;
 		button.onclick = onclick;
 		return button;
 	}
-	
+
+	select(page, attribute, query, onchange) {
+		let button = this.button(page[attribute], async () => {
+			const modalForm = app.plugins.plugins.modalforms.api;
+			let ans = await modalForm.openForm({
+				"fields": [
+					{
+						"name": "select",
+						"label": "",
+						"description": `for '${attribute}' of ${page.file.name}`,
+						"input": {
+							"type": "dataview",
+							"allowUnknownValues": true,
+							"query": query,
+						},
+					},
+				],
+			});
+			if (ans.status != 'ok') {
+				return;
+			}
+			let val = this.convertToNumber(ans.select.value);
+			await this.app.fileManager.processFrontMatter(this.app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
+				frontmatter[attribute] = val;
+				button.textContent = val;
+			});
+			if (onchange) {
+				onchange();
+			}
+		});
+		return button;
+	}
+
+	multiselect(page, attribute, query, onchange) {
+		let button = this.button(page[attribute]?.join(', '), async () => {
+			const modalForm = app.plugins.plugins.modalforms.api;
+			let ans = await modalForm.openForm({
+				"fields": [
+					{
+						"name": "select",
+						"label": "",
+						"description": `for '${attribute}' of ${page.file.name}`,
+						"input": {
+							"type": "multiselect",
+							"allowUnknownValues": true,
+							"query": query,
+							"source": "dataview",
+						},
+					},
+				],
+			}, { values: { select: page[attribute].map(x => x.toString())} });
+			if (ans.status != 'ok') {
+				return;
+			}
+			let val = ans.select.value;
+			await this.app.fileManager.processFrontMatter(this.app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
+				frontmatter[attribute] = val;
+				button.textContent = val?.join(', ');
+				page[attribute] = val;
+			});
+			if (onchange) {
+				onchange();
+			}
+		});
+		return button;
+	}
+
+	date(page, attribute, onchange) {
+		let input = document.createElement('input');
+		input.type = 'date';
+		input.value = page[attribute]?.toFormat('yyyy-MM-dd');
+		input.onchange = async () => {
+			await this.app.fileManager.processFrontMatter(this.app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
+				frontmatter[attribute] = input.value;
+			});
+			if (onchange) {
+				onchange();
+			}
+		};
+		return input;
+	}
+
+	time(page, attribute, onchange) {
+		let input = document.createElement('input');
+		input.type = 'time';
+		input.value = page[attribute];
+		input.onchange = async () => {
+			await this.app.fileManager.processFrontMatter(this.app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
+				frontmatter[attribute] = input.value;
+			});
+			if (onchange) {
+				onchange();
+			}
+		};
+		return input;
+	}
+
+	datetime(page, attribute, onchange) {
+		let input = document.createElement('input');
+		input.type = 'datetime-local';
+		input.value = page[attribute]?.toFormat('yyyy-MM-dd\'T\'HH:mm');
+		input.onchange = async () => {
+			await this.app.fileManager.processFrontMatter(this.app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
+				frontmatter[attribute] = input.value;
+			});
+			if (onchange) {
+				onchange();
+			}
+		};
+		return input;
+	}
+
 	container(...elements) {
 		let container = document.createElement('div');
 
@@ -61,5 +172,11 @@ class Beautify {
 			return this.wrapInCallout(inputText, title);
 		}
 		return inputText;
+	}
+
+	// 如果该字符串可以转换为数字，则转换为数字，否则返回原字符串
+	convertToNumber(input) {
+		const num = Number(input);
+		return isNaN(num) ? input : num;
 	}
 }

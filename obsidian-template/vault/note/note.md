@@ -33,7 +33,7 @@ actions:
     evaluate: true
     value: "x > 0 ? x - 1 : 0"
   - type: sleep
-    ms: 200
+    ms: 300
   - type: command
     command: dataview:dataview-force-refresh-views
 
@@ -52,7 +52,7 @@ actions:
     evaluate: true
     value: x + 1
   - type: sleep
-    ms: 200
+    ms: 300
   - type: command
     command: dataview:dataview-force-refresh-views
 

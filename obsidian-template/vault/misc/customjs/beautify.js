@@ -139,6 +139,69 @@ class Beautify {
 		return input;
 	}
 
+	input(page, attribute, onchange) {
+		let input = document.createElement('input');
+		input.type = 'text';
+		input.value = page[attribute] || '';
+		input.onchange = async () => {
+			await this.app.fileManager.processFrontMatter(this.app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
+				frontmatter[attribute] = input.value;
+			});
+			if (onchange) {
+				onchange();
+			}
+		};
+		return input;
+	}
+
+	checkbox(page, attribute, onchange) {
+		let input = document.createElement('input');
+		input.type = 'checkbox';
+		input.checked = page[attribute] || false;
+		input.onchange = async () => {
+			await this.app.fileManager.processFrontMatter(this.app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
+				frontmatter[attribute] = input.checked;
+			});
+			if (onchange) {
+				onchange();
+			}
+		};
+		return input;
+	}
+
+	numInput(page, attribute, onchange) {
+		let input = document.createElement('input');
+		input.type = 'number';
+		input.value = page[attribute] || '';
+		input.onchange = async () => {
+			await this.app.fileManager.processFrontMatter(this.app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
+				frontmatter[attribute] = this.convertToNumber(input.value);
+			});
+			if (onchange) {
+				onchange();
+			}
+		};
+		return input;
+	}
+
+	slider(page, attribute, min, max, step, onchange) {
+		let input = document.createElement('input');
+		input.type = 'range';
+		input.min = min;
+		input.max = max;
+		input.step = step;
+		input.value = page[attribute] || '';
+		input.onchange = async () => {
+			await this.app.fileManager.processFrontMatter(this.app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
+				frontmatter[attribute] = this.convertToNumber(input.value);
+			});
+			if (onchange) {
+				onchange();
+			}
+		}
+		return input;
+	}
+
 	container(...elements) {
 		let container = document.createElement('div');
 

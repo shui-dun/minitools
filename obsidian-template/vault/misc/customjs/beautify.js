@@ -185,6 +185,7 @@ class Beautify {
 		
 		// 基本样式设置
 		textArea.style.width = '100%';
+		textArea.style.minWidth = '150px';
 		textArea.style.resize = 'none';
 		textArea.style.lineHeight = '1.5';
 		textArea.style.overflow = 'hidden'; // 隐藏滚动条

@@ -90,7 +90,14 @@ const summary = `**\`page: ${dv.current().page} / ${nPages - 1}, ${notes.length}
 dv.paragraph(summary);
 dv.table(["名称", "结束时间", "状态", "备注", "创建时间", "地点"], notes
   .slice(itemsPerPage * dv.current().page, itemsPerPage * (dv.current().page + 1))
-  .map(x => [x.file.link, x.endTime, x.status, Beautify.textArea(x, 'note'), x.ctime,  x.locations?.join(',')])
+  .map(x => [
+	  x.file.link,
+	  Beautify.datetime(x, 'endTime'),
+	  Beautify.select(x, 'status', `dv.page('misc/front-matter-template/job.jobList').status`),
+	  Beautify.textArea(x, 'note'),
+	  x.ctime,
+	  x.locations?.join(',')
+	])
 );
 dv.paragraph(summary);
 ```

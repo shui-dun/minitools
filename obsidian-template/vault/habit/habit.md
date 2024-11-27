@@ -1,6 +1,9 @@
 ---
 startDate: ""
 endDate: ""
+habitFilter: "[[水果]]"
+startDate2: 2024-11-27
+endDate2: 2024-11-30
 ---
 ```meta-bind-button
 label: ""
@@ -58,4 +61,19 @@ dv.table(["习惯", "今日", "进度", "", "积分"],
     progressStick(habit),
     Beautify.num(habit.periodInfo.clockPoints)])
 );
+```
+```dataviewjs
+const {WaitLoading, Beautify, Habit} = await cJS();
+Beautify.app = app;
+await WaitLoading.wait(dv);
+
+dv.paragraph(Beautify.container(
+	Beautify.select(dv.current(), 'habitFilter',
+		`dv.pages('"habit" and -"habit/habit_history"').map(p => "[[" + p.file.name + "]]")`, 
+		false),
+	Beautify.date(dv.current(), 'startDate2'),
+	'<code>-></code>',
+	Beautify.date(dv.current(), 'endDate2'),
+	Beautify.button('查询', null, true),
+));
 ```

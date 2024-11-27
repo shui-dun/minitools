@@ -63,7 +63,9 @@ actions:
 ```
 状态 `INPUT[inlineSelect(option(null),option(待测评),option(待笔试),option(待AI面),option(待1面),option(待2面),option(待3面),option(待HR面),option(待offer),option(offer),option(再说),option(不投)):filterStatus]` `INPUT[number:page]` `BUTTON[refresh]` 
 ```dataviewjs
-async function waitForVaultLoading(){while(dv.current()===undefined){await new Promise(resolve=>setTimeout(resolve,200))}return dv.current()}await waitForVaultLoading();
+const {WaitLoading, Beautify, Habit, Task} = await cJS();
+Beautify.app = app;
+await WaitLoading.wait(dv);
 
 let filterStatus = dv.current().filterStatus || "";
 let notes = dv
@@ -88,7 +90,7 @@ const summary = `**\`page: ${dv.current().page} / ${nPages - 1}, ${notes.length}
 dv.paragraph(summary);
 dv.table(["名称", "结束时间", "状态", "备注", "创建时间", "地点"], notes
   .slice(itemsPerPage * dv.current().page, itemsPerPage * (dv.current().page + 1))
-  .map(x => [x.file.link, x.endTime, x.status, x.note, x.ctime,  x.locations?.join(',')])
+  .map(x => [x.file.link, x.endTime, x.status, Beautify.textArea(x, 'note'), x.ctime,  x.locations?.join(',')])
 );
 dv.paragraph(summary);
 ```

@@ -528,7 +528,7 @@ class Task {
 				break;
 			}
 		}
-        return `${this.sanitizeId(tasks[ind].file.path)}(${links}<br><br>)`;
+        return `${this.sanitizeId(tasks[ind].file.path)}(${links}<br><br><br>)`;
     }
 
     // 生成单个节点的代码

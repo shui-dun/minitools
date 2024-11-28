@@ -1,27 +1,22 @@
 ---
 startDate: ""
 endDate: ""
-habitFilter: "[[早睡]]"
-startDate2: 2024-11-27
-endDate2: 2024-11-30
+startDate2: ""
+endDate2: ""
 ---
-```meta-bind-button
-label: ""
-icon: "search"
-hidden: true
-class: ""
-tooltip: ""
-id: "refresh"
-style: primary
-actions:
-  - type: command
-    command: dataview:dataview-force-refresh-views
-```
-`INPUT[date:startDate]` `->` `INPUT[date:endDate]` `BUTTON[refresh]` 
 ```dataviewjs
 const {WaitLoading, Beautify, Habit} = await cJS();
 
 await WaitLoading.wait(dv);
+
+dv.paragraph(
+  Beautify.container(
+    Beautify.date(dv.current(), 'startDate'),
+    `<code>-></code>`,
+    Beautify.date(dv.current(), 'endDate'),
+    Beautify.button('搜', null, true)
+  )
+);
 
 // 获取开始日期和结束日期
 let {startDate, endDate} = Habit.defaultPeriod(dv, dv.current().startDate, dv.current().endDate);

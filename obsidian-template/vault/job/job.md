@@ -1,67 +1,7 @@
 ---
-filterStatus: 
 page: 0
 ---
 ## 西西弗斯
-^p1
-```meta-bind-button
-label: ""
-icon: "search"
-hidden: true
-class: ""
-tooltip: ""
-id: "refresh"
-style: primary
-actions:
-  - type: command
-    command: dataview:dataview-force-refresh-views
-  - type: open
-    link: "[p1](#^p1)"
-    newTab: false
-```
-```meta-bind-button
-label: ""
-icon: "chevron-left"
-hidden: true
-class: ""
-tooltip: ""
-id: prepage
-style: default
-actions:
-  - type: updateMetadata
-    bindTarget: page
-    evaluate: true
-    value: "x > 0 ? x - 1 : 0"
-  - type: sleep
-    ms: 300
-  - type: command
-    command: dataview:dataview-force-refresh-views
-  - type: open
-    link: "[p1](#^p1)"
-    newTab: false
-```
-```meta-bind-button
-label: ""
-icon: "chevron-right"
-hidden: true
-class: ""
-tooltip: ""
-id: nextpage
-style: default
-actions:
-  - type: updateMetadata
-    bindTarget: page
-    evaluate: true
-    value: x + 1
-  - type: sleep
-    ms: 300
-  - type: command
-    command: dataview:dataview-force-refresh-views
-  - type: open
-    link: "[p1](#^p1)"
-    newTab: false
-```
-状态 `INPUT[inlineSelect(option(null),option(待测评),option(待笔试),option(待AI面),option(待1面),option(待2面),option(待3面),option(待HR面),option(待offer),option(offer),option(再说),option(不投)):filterStatus]` `INPUT[number:page]` `BUTTON[refresh]` 
 ```dataviewjs
 const {WaitLoading, Beautify, Habit, Task} = await cJS();
 Beautify.app = app;
@@ -86,8 +26,18 @@ let notes = dv
 
 const itemsPerPage = 50;
 const nPages = Math.ceil(notes.length / itemsPerPage);
-const summary = `**\`page: ${dv.current().page} / ${nPages - 1}, ${notes.length} items\`**`;
-dv.paragraph(summary);
+
+let searchLine = Beautify.container(
+	`状态`,
+	Beautify.select(dv.current(), 'filterStatus', `dv.page('misc/front-matter-template/job.jobList').status`, true),
+    Beautify.numInput(dv.current(), 'page'),
+    `<code> / ${nPages - 1}</code>`,
+    Beautify.button('搜', null, true),
+    `<b><code>${notes.length} items</code></b>`,
+);
+
+dv.paragraph(searchLine);
+
 dv.table(["名称", "结束时间", "状态", "备注", "创建时间", "地点"], notes
   .slice(itemsPerPage * dv.current().page, itemsPerPage * (dv.current().page + 1))
   .map(x => [
@@ -99,10 +49,21 @@ dv.table(["名称", "结束时间", "状态", "备注", "创建时间", "地点"
 	  x.locations?.join(',')
 	])
 );
-dv.paragraph(summary);
-```
-`BUTTON[prepage]` `INPUT[number:page]` `BUTTON[nextpage]` `BUTTON[refresh]` 
 
+let gotoTop = async () => {
+	await app.workspace.openLinkText("job/job#西西弗斯", "", false);
+}
+
+let searchLine2 = Beautify.container(
+    Beautify.incButton('上', dv.current(), 'page', 0, null, -1, true, gotoTop),
+    Beautify.numInput(dv.current(), 'page'),
+    `<code> / ${nPages - 1}</code>`,
+    Beautify.incButton('下', dv.current(), 'page', 0, null, 1, true, gotoTop),
+    Beautify.button('搜', gotoTop, true),
+    `<b><code>${notes.length} items</code></b>`,
+);
+dv.paragraph(searchLine2);
+```
 ## 事项
 
 ```meta-bind-embed

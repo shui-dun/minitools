@@ -35,6 +35,31 @@ class Beautify {
 		return button;
 	}
 
+	incButton(text, page, attribute, minVal, maxVal, offset, refresh, onchange) {
+		let button = document.createElement('button');
+		button.textContent = text;
+		button.onclick = async () => {
+			let val = page[attribute] || 0;
+			val = val + offset;
+			if (maxVal != null && val > maxVal) {
+				val = maxVal;
+			}
+			if (minVal != null && val < minVal) {
+				val = minVal;
+			}
+			await this.app.fileManager.processFrontMatter(this.app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
+				frontmatter[attribute] = val;
+			});
+			if (onchange) {
+				onchange();
+			}
+			if (refresh) {
+				await this.refresh();
+			}
+		}
+		return button;
+	}
+
 	select(page, attribute, query, refresh, onchange) {
 		let button = this.button(this.extractWikiLink(page[attribute]), async () => {
 			const modalForm = app.plugins.plugins.modalforms.api;
@@ -110,7 +135,9 @@ class Beautify {
 	date(page, attribute, refresh, onchange) {
 		let input = document.createElement('input');
 		input.type = 'date';
-		input.value = page[attribute]?.toFormat('yyyy-MM-dd');
+		if (page[attribute]?.toFormat) {
+			input.value = page[attribute].toFormat('yyyy-MM-dd');
+		}
 		input.onchange = async () => {
 			await this.app.fileManager.processFrontMatter(this.app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
 				frontmatter[attribute] = input.value;
@@ -146,7 +173,9 @@ class Beautify {
 	datetime(page, attribute, refresh, onchange) {
 		let input = document.createElement('input');
 		input.type = 'datetime-local';
-		input.value = page[attribute]?.toFormat('yyyy-MM-dd\'T\'HH:mm');
+		if (page[attribute]?.toFormat) {
+			input.value = page[attribute].toFormat('yyyy-MM-dd\'T\'HH:mm');
+		}
 		input.onchange = async () => {
 			await this.app.fileManager.processFrontMatter(this.app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
 				frontmatter[attribute] = input.value;
@@ -303,9 +332,9 @@ class Beautify {
 		elements.forEach(element => {
 			// 如果是字符串，则创建一个 p 元素
 			if (typeof element === 'string') {
-				const p = document.createElement('p');
-				p.innerHTML = element;
-				element = p;
+				const span = document.createElement('span');
+				span.innerHTML = element;
+				element = span;
 			}
 			container.appendChild(element);
 		});
@@ -336,7 +365,9 @@ class Beautify {
 	}
 
 	async refresh() {
-		await app.workspace.activeLeaf.rebuildView();
+		setTimeout(function() {
+			this.app.commands.executeCommandById('dataview:dataview-force-refresh-views')
+		}, 300);
 	}
 
 	compactArray(array) {

@@ -4,77 +4,29 @@ excludedTags:
   - 数学
   - 科学
   - Paper
+  - CS
 page: 0
 ---
-```meta-bind-button
-label: 搜索
-icon: ""
-hidden: true
-class: ""
-tooltip: ""
-id: "refresh"
-style: primary
-actions:
-  - type: command
-    command: dataview:dataview-force-refresh-views
-
-```
-```meta-bind-button
-label: 上
-icon: ""
-hidden: true
-class: ""
-tooltip: ""
-id: prepage
-style: default
-actions:
-  - type: updateMetadata
-    bindTarget: page
-    evaluate: true
-    value: "x > 0 ? x - 1 : 0"
-  - type: sleep
-    ms: 300
-  - type: command
-    command: dataview:dataview-force-refresh-views
-
-```
-```meta-bind-button
-label: 下
-icon: ""
-hidden: true
-class: ""
-tooltip: ""
-id: nextpage
-style: default
-actions:
-  - type: updateMetadata
-    bindTarget: page
-    evaluate: true
-    value: x + 1
-  - type: sleep
-    ms: 300
-  - type: command
-    command: dataview:dataview-force-refresh-views
-
-```
-`INPUT[inlineList:excludedTags]` `INPUT[date:ctimeFilter]` `BUTTON[prepage]` `INPUT[number:page]` `BUTTON[nextpage]` `BUTTON[refresh]` 
 ```dataviewjs
-const {WaitLoading, Note} = await cJS();
+const {WaitLoading, Beautify, Note} = await cJS();
+Note.dv = dv;
+Beautify.app = app;
 
 await WaitLoading.wait(dv);
 
-Note.dv = dv;
 let noteInfo = Note.noteInfo();
 
-let paragraph = dv.paragraph(`**<code>>> ${noteInfo.waitReviewCount} + ${noteInfo.todayReviewedCount} (${noteInfo.todayReviewedSize}KB)</code>**`);
-
-let showSurprise = false;
-paragraph.addEventListener("click", (evt) => {
-    if (!showSurprise) {
-        paragraph.innerHTML += " <b><code>ヽ(´▽`)/</code></b>";
-        showSurprise = true;
-    }
-});
+dv.paragraph(
+  Beautify.container(
+    Beautify.multiselect(dv.current(), 'excludedTags', '[]'),
+    Beautify.date(dv.current(), 'ctimeFilter'),
+    Beautify.incButton('上', dv.current(), 'page', 0, null, -1, true),
+    Beautify.numInput(dv.current(), 'page'),
+    Beautify.incButton('下', dv.current(), 'page', 0, null, 1, true),
+    Beautify.button('搜', null, true),
+    `<b><code>${noteInfo.waitReviewCount}+${noteInfo.todayReviewedCount}(${noteInfo.todayReviewedSize}KB)</code></b>`
+  )
+);
 
 // 待复习笔记的列表
 dv.table(["notes", "size"], noteInfo.toBeReviewedNotes

@@ -14,6 +14,8 @@ dv.paragraph(Utils.container(
 		let file = app.workspace.getActiveFile();
 		await Habit.clock(file);
 	}), 
-	`${Utils.num(todayInfo.clockCounts)} 次，本周打卡 ${Utils.num(periodInfo.clockCounts)} / ${Utils.num(periodInfo.finalTarget)}，获得积分 ${Utils.num(periodInfo.clockPoints)}`
+	`${Utils.num(todayInfo.clockCounts)} 次,`,
+	`本周打卡 ${Utils.num(periodInfo.clockCounts)} / ${Utils.num(periodInfo.finalTarget)},`,
+	`获得积分 ${Utils.num(periodInfo.clockPoints)}`
 ))
 ```

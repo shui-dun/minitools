@@ -12,8 +12,15 @@ def check_docker_desktop_running():
         return False
 
 def run_command():
-    command = 'wsl -d docker-desktop ash -c "echo 3 > /proc/sys/vm/drop_caches; sync"'
-    subprocess.run(command, shell=True)
+    commands = [
+        "sync",
+        "echo 3 | tee /proc/sys/vm/drop_caches",
+        "echo 1 | tee /proc/sys/vm/compact_memory",
+    ]
+    for command in commands:
+        full_command = f'wsl -d docker-desktop ash -c "{command}"'
+        # print(full_command)
+        subprocess.run(full_command, shell=True)
 
 if __name__ == "__main__":
     while True:

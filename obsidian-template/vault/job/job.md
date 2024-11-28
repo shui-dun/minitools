@@ -65,13 +65,10 @@ let searchLine2 = Beautify.container(
 dv.paragraph(searchLine2);
 ```
 ## 事项
-
 ```meta-bind-embed
 [复习事项](复习事项.md)
 ```
-
 ## 统计
-
 ```dataviewjs
 let notes = dv.pages('"job/jobList"');
 

@@ -64,6 +64,7 @@ class Note {
             let newInterval = interval * newEase * 1.3;
             return [newEase, newInterval, this.nextReviewDate(newInterval)];
         });
+        await this.openNextNote();
     }
 	
     async reviewGood() {
@@ -72,6 +73,7 @@ class Note {
             let newInterval = interval * newEase;
             return [newEase, newInterval, this.nextReviewDate(newInterval)];
         });
+        await this.openNextNote();
     }
 	
     async reviewHard() {
@@ -80,12 +82,23 @@ class Note {
             let newInterval = interval * 0.5 < 1.0 ? 1.0 : interval * 0.5;
             return [newEase, newInterval, this.nextReviewDate(newInterval)];
         });
+        await this.openNextNote();
     }
 	
     async reviewDelay() {
         await this.updateReviewInFrontMatterOfCurrentFile((ease, interval, date) => {
             return [ease, interval, this.nextReviewDate(7.0)];
         });
+        await this.openNextNote();
+    }
+
+    async openNextNote() {
+		let page = this.dv.page("note/note.md");
+        if (page.nextRandomNote) {
+            await this.randomNote();
+        } else {
+            await this.nextNote();
+        }
     }
 	
 	async nextNote() {

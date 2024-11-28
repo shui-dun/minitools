@@ -1,5 +1,10 @@
 class Note {
-	noteInfo() {
+    init(dv) {
+		this.dv = dv;
+	}
+    
+	noteInfo(today) {
+        today = today || this.dv.date('today');
 		let page = this.dv.page("note/note.md");
 		let filterNotesByTags = (tags) => {
 			// 定义被排除的标签前缀
@@ -25,12 +30,11 @@ class Note {
 
 		// 待复习的笔记
 		let toBeReviewedNotes = basicNotes
-		  .where(x => x.sr[2] <= this.dv.date('today'));
+		  .where(x => x.sr[2] <= today);
 
 		// 今日复习的笔记
 		let todayReviewedNotes = basicNotes
-		  // .where(x => x.ctime - 0 != this.dv.date('today') || x.sr[2] - 0 != this.dv.date('tomorrow')) // 不是今天创建的笔记
-		  .where(x => x.sr[2] == this.dv.duration(`${Math.ceil(x.sr[1])}day`) + this.dv.date('today'));
+		  .where(x => x.sr[2] == this.dv.duration(`${Math.ceil(x.sr[1])}day`) + today);
 
 		// 待复习笔记的数目
 		let waitReviewCount = toBeReviewedNotes
@@ -109,7 +113,7 @@ class Note {
 			return;
 		}
 		let note = notes[0];
-		await this.app.workspace.openLinkText(note.file.link.path, "", false);
+		await app.workspace.openLinkText(note.file.link.path, "", false);
 	}
 	
 	async randomNote() {
@@ -125,7 +129,7 @@ class Note {
 		}
 		let ind = getRandomInt(0, notes.length - 1);
 		let note = notes[ind];
-		await this.app.workspace.openLinkText(note.file.link.path, "", false);
+		await app.workspace.openLinkText(note.file.link.path, "", false);
 	}
 	
     dateFormat(fmt, date) {
@@ -150,7 +154,7 @@ class Note {
     }
 	
     async updateReviewInFrontMatterOfCurrentFile(foo) {
-        let file = this.app.workspace.getActiveFile();
+        let file = app.workspace.getActiveFile();
         if (!file) {
             console.error("obsidian-review: No active file to update review.");
             return;
@@ -161,9 +165,9 @@ class Note {
     // 更新frontmatter中的review属性
     async updateReviewInFrontMatter(file, foo) {
         // 获得frontmatter
-        let frontmatter = this.app.metadataCache.getFileCache(file).frontmatter;
+        let frontmatter = app.metadataCache.getFileCache(file).frontmatter;
         // 读取文件内容
-        let fileText = await this.app.vault.read(file);
+        let fileText = await app.vault.read(file);
         // 从frontmatter中读取复习的难易度和复习间隔
         let [originEase, originInterval, originDate] = frontmatter["sr"];
         originDate = new Date(originDate);
@@ -177,7 +181,7 @@ class Note {
         // 更新frontmatter
         fileText = fileText.replace(/(\-\-\-[\s\S]+?sr:\s+\[\s*)[\.\d]+\s*,\s*[\.\d]+\s*,\s*\d{4}\-\d{2}\-\d{2}\s*(\][\s\S]+?\-\-\-)/, `$1${destEase},${destInterval},${destDate}$2`);
         // 写入文件
-        this.app.vault.modify(file, fileText);
+        app.vault.modify(file, fileText);
         // 弹出通知
         new Notice(`ease: from ${originEase} to ${destEase}\ninterval: from ${originInterval} to ${destInterval}`);
     }
@@ -195,7 +199,7 @@ class Note {
 	
 	// 该方法已废弃，没有被调用
     async jumpToReviewList() {
-        let previousFilePath = this.app.workspace.getLastOpenFiles()[0];
+        let previousFilePath = app.workspace.getLastOpenFiles()[0];
         // 如果上一个文件名不包含“review.md” 或者 “note.md”，则返回
         if (!previousFilePath.includes("review.md") && !previousFilePath.includes("note.md")) {
             new Notice("Jump Disabled", 500);
@@ -203,13 +207,13 @@ class Note {
         }
         // 等待一段时间使得索引更新，不然跳转回文件复习列表之后文件复习列表还是旧的
         await new Promise(resolve => setTimeout(resolve, 200));
-        let previousFile = this.app.vault.getAbstractFileByPath(previousFilePath);
+        let previousFile = app.vault.getAbstractFileByPath(previousFilePath);
         if (!(previousFile instanceof TFile)) {
             console.error("obsidian-review: The last opened file is not found or not a TFile.");
             return;
         }
         // 获取当前活动的leaf（leaf是指标签页）
-        let activeLeaf = this.app.workspace.activeLeaf;
+        let activeLeaf = app.workspace.activeLeaf;
         if (!activeLeaf) {
             console.error("obsidian-review: No active leaf to open the file in.");
             return;

@@ -6,28 +6,26 @@ excludedTags:
   - Paper
   - CS
 page: 0
-# ['random', 'next', 'no']
 openNextNote: no
 ---
 ```dataviewjs
-const {WaitLoading, Beautify, Note} = await cJS();
-Note.dv = dv;
-Beautify.app = app;
+const {WaitLoading, Utils, Note} = await cJS();
+Note.init(dv);
 
 await WaitLoading.wait(dv);
 
 let noteInfo = Note.noteInfo();
 
 dv.paragraph(
-  Beautify.container(
-    Beautify.multiselect(dv.current(), 'excludedTags', '[]'),
-    Beautify.date(dv.current(), 'ctimeFilter'),
-    Beautify.incButton('上', dv.current(), 'page', 0, null, -1, true),
-    Beautify.numInput(dv.current(), 'page'),
-    Beautify.incButton('下', dv.current(), 'page', 0, null, 1, true),
-    Beautify.button('搜', null, true),
+  Utils.container(
+    Utils.multiselect(dv.current(), 'excludedTags', '[]'),
+    Utils.date(dv.current(), 'ctimeFilter'),
+    Utils.incButton('上', dv.current(), 'page', 0, null, -1, true),
+    Utils.numInput(dv.current(), 'page'),
+    Utils.incButton('下', dv.current(), 'page', 0, null, 1, true),
+    Utils.button('搜', null, true),
     `<b><code>${noteInfo.waitReviewCount}+${noteInfo.todayReviewedCount}(${noteInfo.todayReviewedSize}KB)</code></b>`,
-    Beautify.button('随机', async () => {
+    Utils.button('随机', async () => {
 		await Note.randomNote();
 	}),
   )

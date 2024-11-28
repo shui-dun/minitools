@@ -1,4 +1,8 @@
 class Task {
+	init(dv) {
+		this.dv = dv;
+	}
+
 	daysOfTask(p) {
 		let {DateTime} = this.dv.luxon;
 		let today = DateTime.local().startOf("day");
@@ -370,8 +374,8 @@ class Task {
 		if (days.length == 0) {
 			return;
 		}
-		let file = this.app.vault.getAbstractFileByPath(p.file.link.path);
-		await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
+		let file = app.vault.getAbstractFileByPath(p.file.link.path);
+		await app.fileManager.processFrontMatter(file, (frontmatter) => {
 			frontmatter.startDate = days[0].plus({days: 1}).toFormat("yyyy-MM-dd");
 		});
 		// 刷新界面

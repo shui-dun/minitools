@@ -1,14 +1,18 @@
 class Habit {
-	defaultPeriod(dv, startDate, endDate) {
-		startDate = startDate || dv.date('sow').minus(dv.duration('1 days')); // 默认从周日开始
+	init(dv) {
+		this.dv = dv;
+	}
+
+	defaultPeriod(startDate, endDate) {
+		startDate = startDate || this.dv.date('sow').minus(this.dv.duration('1 days')); // 默认从周日开始
 		endDate = endDate || startDate.plus({ days: 6 }); // 默认是一周
 		return {startDate, endDate};
 	}
 
-	habitInfoBetween(dv, habit, startDate, endDate) {
+	habitInfoBetween(habit, startDate, endDate) {
 		let diff = Math.floor((endDate - startDate) / (24 * 60 * 60 * 1000)) + 1;
 
-		let historyFile = dv.page(`habit/habit_history/${habit.id}`);
+		let historyFile = this.dv.page(`habit/habit_history/${habit.id}`);
 		let clockCounts = 0;
 		if (historyFile && historyFile.historyDates && historyFile.historyCounts) {
 			for (let i = historyFile.historyDates.length - 1; i >= 0; i--) {
@@ -26,9 +30,9 @@ class Habit {
 		return { clockCounts, finalTarget, progress, clockPoints};
 	}
 
-	todayHabitInfo(dv, habit) {
-		let today = dv.date('today');
-		let historyFile = dv.page(`habit/habit_history/${habit.id}`);
+	todayHabitInfo(habit) {
+		let today = this.dv.date('today');
+		let historyFile = this.dv.page(`habit/habit_history/${habit.id}`);
 		let clockCounts = 0;
 		if (historyFile && historyFile.historyDates && historyFile.historyCounts) {
 			let i = historyFile.historyDates.length - 1;
@@ -42,7 +46,23 @@ class Habit {
 		return {clockCounts};
 	}
 	
+	// 习惯打卡
 	async clock(file) {
+		let refreshOffset = 300;
+		if (file.basename == '早睡') {
+			// 为其他自动化习惯打卡
+			let extraHabits = ['笔记'];
+			for (let habit of extraHabits) {
+				await this.clockWithoutRefresh(app.vault.getAbstractFileByPath(`habit/${habit}.md`));
+			}
+			// 我发现如果有多个文件同时打卡，会导致缓存更新不及时，所以这里加了一个延迟
+			refreshOffset = 500;
+		}
+		await this.clockWithoutRefresh(file);
+		this.refresh(refreshOffset);
+	}
+
+	async clockWithoutRefresh(file) {
 		const modalForm = app.plugins.plugins.modalforms.api;
 		const fileName = file.basename;
 		const fm = app.metadataCache.getFileCache(file)?.frontmatter;
@@ -61,6 +81,17 @@ class Habit {
 			const currentTime = moment();
 			count = this.timeToNum(currentTime);
 			count = parseFloat(count.toFixed(2));
+		} else if (fileName == '笔记') {
+			let today = this.dv.date('today');
+			const currentTime = moment();
+			if (currentTime.isBefore(moment("07:00", "HH:mm"))) {
+				// 说明是转钟了，记录昨天的时间
+				today = this.dv.date('yesterday');
+			}
+			const {Note} = await cJS();
+			Note.init(this.dv);
+			let noteInfo = Note.noteInfo(today);
+			count = parseFloat(noteInfo.todayReviewedSize);
 		} else {
 			let countInput = await modalForm.openForm({
 				title: "",
@@ -82,7 +113,8 @@ class Habit {
 				count = 0;
 			}
 		}
-		if (count == 0) {
+		if (count == 0 && !fm.once) {
+			new Notice(`打卡0次`);
 			return;
 		}
 
@@ -133,11 +165,13 @@ class Habit {
 
 		/* 提示打卡完成 */
 		new Notice(`打卡${count}次，今日共打卡${newCount}次`);
+	}
 
+	refresh(time) {
 		// 刷新界面
 		setTimeout(function() {
 			app.commands.executeCommandById('dataview:dataview-force-refresh-views')
-		}, 300);
+		}, time);
 	}
 
 	timeToNum(timeStr) {

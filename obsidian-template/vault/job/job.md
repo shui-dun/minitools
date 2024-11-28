@@ -3,8 +3,7 @@ page: 0
 ---
 ## 西西弗斯
 ```dataviewjs
-const {WaitLoading, Beautify, Habit, Task} = await cJS();
-Beautify.app = app;
+const {WaitLoading, Utils} = await cJS();
 await WaitLoading.wait(dv);
 
 let filterStatus = dv.current().filterStatus || "";
@@ -27,12 +26,12 @@ let notes = dv
 const itemsPerPage = 50;
 const nPages = Math.ceil(notes.length / itemsPerPage);
 
-let searchLine = Beautify.container(
+let searchLine = Utils.container(
 	`状态`,
-	Beautify.select(dv.current(), 'filterStatus', `dv.page('misc/front-matter-template/job.jobList').status`, true),
-    Beautify.numInput(dv.current(), 'page'),
+	Utils.select(dv.current(), 'filterStatus', `dv.page('misc/front-matter-template/job.jobList').status`, true),
+    Utils.numInput(dv.current(), 'page'),
     `<code> / ${nPages - 1}</code>`,
-    Beautify.button('搜', null, true),
+    Utils.button('搜', null, true),
     `<b><code>${notes.length} items</code></b>`,
 );
 
@@ -42,9 +41,9 @@ dv.table(["名称", "结束时间", "状态", "备注", "创建时间", "地点"
   .slice(itemsPerPage * dv.current().page, itemsPerPage * (dv.current().page + 1))
   .map(x => [
 	  x.file.link,
-	  Beautify.datetime(x, 'endTime'),
-	  Beautify.select(x, 'status', `dv.page('misc/front-matter-template/job.jobList').status`),
-	  Beautify.textArea(x, 'note'),
+	  Utils.datetime(x, 'endTime'),
+	  Utils.select(x, 'status', `dv.page('misc/front-matter-template/job.jobList').status`),
+	  Utils.textArea(x, 'note'),
 	  x.ctime,
 	  x.locations?.join(',')
 	])
@@ -54,12 +53,12 @@ let gotoTop = async () => {
 	await app.workspace.openLinkText("job/job#西西弗斯", "", false);
 }
 
-let searchLine2 = Beautify.container(
-    Beautify.incButton('上', dv.current(), 'page', 0, null, -1, true, gotoTop),
-    Beautify.numInput(dv.current(), 'page'),
+let searchLine2 = Utils.container(
+    Utils.incButton('上', dv.current(), 'page', 0, null, -1, true, gotoTop),
+    Utils.numInput(dv.current(), 'page'),
     `<code> / ${nPages - 1}</code>`,
-    Beautify.incButton('下', dv.current(), 'page', 0, null, 1, true, gotoTop),
-    Beautify.button('搜', gotoTop, true),
+    Utils.incButton('下', dv.current(), 'page', 0, null, 1, true, gotoTop),
+    Utils.button('搜', gotoTop, true),
     `<b><code>${notes.length} items</code></b>`,
 );
 dv.paragraph(searchLine2);

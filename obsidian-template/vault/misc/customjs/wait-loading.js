@@ -1,6 +1,6 @@
 class WaitLoading {
 	async wait(dv, ...files) {
-		async function waitForVaultLoading() {
+		let waitForVaultLoading = async() => {
 			while (true) {
 				let flag = true;
 				for (let file of files) {

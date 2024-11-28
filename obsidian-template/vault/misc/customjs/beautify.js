@@ -1,9 +1,9 @@
-class Beautify {
+class Utils {
 	num(num, digit) {
 		if (digit === undefined) {
 			digit = 1;
 		}
-		return `\`${parseFloat(num.toFixed(digit))}\``;
+		return `<code>${parseFloat(num.toFixed(digit))}</code>`;
 	}
 
 	// 不带代码块的格式化
@@ -47,7 +47,7 @@ class Beautify {
 			if (minVal != null && val < minVal) {
 				val = minVal;
 			}
-			await this.app.fileManager.processFrontMatter(this.app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
+			await app.fileManager.processFrontMatter(app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
 				frontmatter[attribute] = val;
 			});
 			if (onchange) {
@@ -81,7 +81,7 @@ class Beautify {
 				return;
 			}
 			let val = this.convertToNumber(ans.select.value);
-			await this.app.fileManager.processFrontMatter(this.app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
+			await app.fileManager.processFrontMatter(app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
 				frontmatter[attribute] = val;
 				button.textContent = this.extractWikiLink(val);
 			});
@@ -117,7 +117,7 @@ class Beautify {
 				return;
 			}
 			let val = ans.select.value;
-			await this.app.fileManager.processFrontMatter(this.app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
+			await app.fileManager.processFrontMatter(app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
 				frontmatter[attribute] = val;
 				button.textContent = this.compactArray(val);
 				page[attribute] = val;
@@ -139,7 +139,7 @@ class Beautify {
 			input.value = page[attribute].toFormat('yyyy-MM-dd');
 		}
 		input.onchange = async () => {
-			await this.app.fileManager.processFrontMatter(this.app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
+			await app.fileManager.processFrontMatter(app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
 				frontmatter[attribute] = input.value;
 			});
 			if (onchange) {
@@ -157,7 +157,7 @@ class Beautify {
 		input.type = 'time';
 		input.value = page[attribute];
 		input.onchange = async () => {
-			await this.app.fileManager.processFrontMatter(this.app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
+			await app.fileManager.processFrontMatter(app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
 				frontmatter[attribute] = input.value;
 			});
 			if (onchange) {
@@ -177,7 +177,7 @@ class Beautify {
 			input.value = page[attribute].toFormat('yyyy-MM-dd\'T\'HH:mm');
 		}
 		input.onchange = async () => {
-			await this.app.fileManager.processFrontMatter(this.app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
+			await app.fileManager.processFrontMatter(app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
 				frontmatter[attribute] = input.value;
 			});
 			if (onchange) {
@@ -195,7 +195,7 @@ class Beautify {
 		input.type = 'text';
 		input.value = page[attribute] || '';
 		input.onchange = async () => {
-			await this.app.fileManager.processFrontMatter(this.app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
+			await app.fileManager.processFrontMatter(app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
 				frontmatter[attribute] = input.value;
 			});
 			if (onchange) {
@@ -243,8 +243,8 @@ class Beautify {
 		});
 		
 		textArea.onchange = async () => {
-			await this.app.fileManager.processFrontMatter(
-				this.app.vault.getAbstractFileByPath(page.file.path), 
+			await app.fileManager.processFrontMatter(
+				app.vault.getAbstractFileByPath(page.file.path), 
 				(frontmatter) => {
 					frontmatter[attribute] = textArea.value;
 				}
@@ -265,7 +265,7 @@ class Beautify {
 		input.type = 'checkbox';
 		input.checked = page[attribute] || false;
 		input.onchange = async () => {
-			await this.app.fileManager.processFrontMatter(this.app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
+			await app.fileManager.processFrontMatter(app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
 				frontmatter[attribute] = input.checked;
 			});
 			if (onchange) {
@@ -283,7 +283,7 @@ class Beautify {
 		input.type = 'number';
 		input.value = page[attribute] || '';
 		input.onchange = async () => {
-			await this.app.fileManager.processFrontMatter(this.app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
+			await app.fileManager.processFrontMatter(app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
 				frontmatter[attribute] = this.convertToNumber(input.value);
 			});
 			if (onchange) {
@@ -304,7 +304,7 @@ class Beautify {
 		input.step = step;
 		input.value = page[attribute] || '';
 		input.onchange = async () => {
-			await this.app.fileManager.processFrontMatter(this.app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
+			await app.fileManager.processFrontMatter(app.vault.getAbstractFileByPath(page.file.path), (frontmatter) => {
 				frontmatter[attribute] = this.convertToNumber(input.value);
 			});
 			if (onchange) {
@@ -366,7 +366,7 @@ class Beautify {
 
 	async refresh() {
 		setTimeout(function() {
-			this.app.commands.executeCommandById('dataview:dataview-force-refresh-views')
+			app.commands.executeCommandById('dataview:dataview-force-refresh-views')
 		}, 300);
 	}
 

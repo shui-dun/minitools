@@ -94,9 +94,9 @@ class Note {
 
     async openNextNote() {
 		let page = this.dv.page("note/note.md");
-        if (page.nextRandomNote) {
+        if (page.openNextNote === 'random') {
             await this.randomNote();
-        } else {
+        } else if (page.openNextNote === 'next') {
             await this.nextNote();
         }
     }

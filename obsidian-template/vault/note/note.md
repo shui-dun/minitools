@@ -6,8 +6,8 @@ excludedTags:
   - Paper
   - CS
 page: 0
-# 跳转到下一篇笔记时是否是随机笔记
-nextRandomNote: true
+# ['random', 'next', 'no']
+openNextNote: no
 ---
 ```dataviewjs
 const {WaitLoading, Beautify, Note} = await cJS();

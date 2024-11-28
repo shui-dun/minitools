@@ -26,7 +26,10 @@ dv.paragraph(
     Beautify.numInput(dv.current(), 'page'),
     Beautify.incButton('下', dv.current(), 'page', 0, null, 1, true),
     Beautify.button('搜', null, true),
-    `<b><code>${noteInfo.waitReviewCount}+${noteInfo.todayReviewedCount}(${noteInfo.todayReviewedSize}KB)</code></b>`
+    `<b><code>${noteInfo.waitReviewCount}+${noteInfo.todayReviewedCount}(${noteInfo.todayReviewedSize}KB)</code></b>`,
+    Beautify.button('随机', async () => {
+		await Note.randomNote();
+	}),
   )
 );
 

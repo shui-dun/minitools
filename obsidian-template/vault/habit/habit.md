@@ -42,19 +42,26 @@ let progressStick = (habit) => {
 	return Utils.progress(habit.periodInfo.progress, width);
 } 
 
-function clockButton(habit) {
-	return Utils.button(Utils.num2(habit.todayInfo.clockCounts), async () => {
+function clockButton(habit, decimalPlaces) {
+	return Utils.button(Utils.num2(habit.todayInfo.clockCounts, decimalPlaces), async () => {
 	    await Habit.clock(app.vault.getAbstractFileByPath(habit.habit.file.link.path));
     });
 }
 
 dv.table(["习惯", "今日", "进度", "", "积分"], 
-    habits.map(habit => [
-	    habit.habit.file.link, 
-	    clockButton(habit),
-	    `\`${Utils.num2(habit.periodInfo.clockCounts, 2)}/${Utils.num2(habit.periodInfo.finalTarget)}\``,
-    progressStick(habit),
-    Utils.num(habit.periodInfo.clockPoints)])
+    habits.map(habit => {
+		let decimalPlaces = habit.habit.decimalPlaces;
+		if (decimalPlaces == null) {
+			decimalPlaces = 2;
+		}
+	    return [
+		    habit.habit.file.link, 
+		    clockButton(habit, decimalPlaces),
+		    `\`${Utils.num2(habit.periodInfo.clockCounts, decimalPlaces)}/${Utils.num2(habit.periodInfo.finalTarget, decimalPlaces)}\``,
+		    progressStick(habit),
+		    Utils.num(habit.periodInfo.clockPoints)
+	    ];
+    })
 );
 ```
 ```dataviewjs

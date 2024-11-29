@@ -1,9 +1,6 @@
 class Utils {
 	num(num, digit) {
-		if (digit === undefined) {
-			digit = 1;
-		}
-		return `<code>${parseFloat(num.toFixed(digit))}</code>`;
+		return `<code>${this.num2(num, digit)}</code>`;
 	}
 
 	// 不带代码块的格式化
@@ -11,7 +8,27 @@ class Utils {
 		if (digit === undefined) {
 			digit = 1;
 		}
-		return parseFloat(num.toFixed(digit));
+		
+		// 先按指定位数处理
+		let result = parseFloat(num.toFixed(digit));
+		
+		// 如果结果为0但原始数不为0，则逐步增加精度直到找到非0值
+		if (result === 0 && num !== 0) {
+			let d = digit;
+			while (result === 0 && d < 10) { // 设置最大精度为10位
+				d++;
+				result = parseFloat(num.toFixed(d));
+			}
+		}
+		
+		let resultStr = result.toString();
+		
+		// 如果是0.xx格式，转换为.xx
+		if (result > 0 && result < 1) {
+			resultStr = '.' + resultStr.split('.')[1];
+		}
+		
+		return resultStr;
 	}
 
 	progress(val, width) {

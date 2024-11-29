@@ -75,8 +75,8 @@ class Habit {
 				return;
 			} else {
 				// 复习了当前笔记
-				// 获得当前笔记的size
-				count = parseFloat((this.dv.current().file.size / 1024).toFixed(1));
+				// 获得当前笔记的size(10KB)
+				count = parseFloat((this.dv.current().file.size / 10240).toFixed(2));
 			}
 		} else {
 			let countInput = await modalForm.openForm({

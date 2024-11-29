@@ -103,6 +103,7 @@ class Habit {
 			new Notice(`打卡0次`);
 			return;
 		}
+		count = parseFloat(count.toFixed(2));
 
 		/* 定义历史记录文件路径 */
 		const historyFilePath = `habit/habit_history/${habitID}.md`;
@@ -138,13 +139,15 @@ class Habit {
 				if (fm.once) {
 					frontmatter["historyCounts"][todayIndex] = 0;
 				}
-				frontmatter["historyCounts"][todayIndex] += count;
-				newCount = frontmatter["historyCounts"][todayIndex];
+				newCount = frontmatter["historyCounts"][todayIndex] + count;
+				newCount = parseFloat(newCount.toFixed(2));
 				// 如果打卡次数为零或负数，删除该日期记录
-				if (!fm.allowNegtive && frontmatter["historyCounts"][todayIndex] <= 0) {
+				if (!fm.allowNegtive && newCount <= 0) {
 					newCount = 0;
 					frontmatter["historyDates"].splice(todayIndex, 1);
 					frontmatter["historyCounts"].splice(todayIndex, 1);
+				} else {
+					frontmatter["historyCounts"][todayIndex] = newCount;
 				}
 			}
 		});

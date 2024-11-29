@@ -47,22 +47,8 @@ class Habit {
 	}
 	
 	// 习惯打卡
-	async clock(file) {
-		let refreshOffset = 300;
-		if (file.basename == '早睡') {
-			// 为其他自动化习惯打卡
-			let extraHabits = ['笔记'];
-			for (let habit of extraHabits) {
-				await this.clockWithoutRefresh(app.vault.getAbstractFileByPath(`habit/${habit}.md`));
-			}
-			// 我发现如果有多个文件同时打卡，会导致缓存更新不及时，所以这里加了一个延迟
-			refreshOffset = 500;
-		}
-		await this.clockWithoutRefresh(file);
-		this.refresh(refreshOffset);
-	}
-
-	async clockWithoutRefresh(file) {
+	// refresh: 是否刷新界面
+	async clock(file, refresh = true) {
 		const modalForm = app.plugins.plugins.modalforms.api;
 		const fileName = file.basename;
 		const fm = app.metadataCache.getFileCache(file)?.frontmatter;
@@ -82,16 +68,16 @@ class Habit {
 			count = this.timeToNum(currentTime);
 			count = parseFloat(count.toFixed(2));
 		} else if (fileName == '笔记') {
-			let today = this.dv.date('today');
-			const currentTime = moment();
-			if (currentTime.isBefore(moment("07:00", "HH:mm"))) {
-				// 说明是转钟了，记录昨天的时间
-				today = this.dv.date('yesterday');
+			// 确保当前笔记含有sr属性
+			if (!this.dv.current().sr) {
+				count = 0;
+				new Notice(`当前笔记没有设置复习属性，无法打卡`);
+				return;
+			} else {
+				// 复习了当前笔记
+				// 获得当前笔记的size
+				count = parseFloat((this.dv.current().file.size / 1024).toFixed(1));
 			}
-			const {Note} = await cJS();
-			Note.init(this.dv);
-			let noteInfo = Note.noteInfo(today);
-			count = parseFloat(noteInfo.todayReviewedSize);
 		} else {
 			let countInput = await modalForm.openForm({
 				title: "",
@@ -165,13 +151,13 @@ class Habit {
 
 		/* 提示打卡完成 */
 		new Notice(`打卡${count}次，今日共打卡${newCount}次`);
-	}
 
-	refresh(time) {
-		// 刷新界面
-		setTimeout(function() {
-			app.commands.executeCommandById('dataview:dataview-force-refresh-views')
-		}, time);
+		if (refresh) {
+			// 刷新界面
+			setTimeout(function() {
+				app.commands.executeCommandById('dataview:dataview-force-refresh-views')
+			}, 400);
+		}
 	}
 
 	timeToNum(timeStr) {

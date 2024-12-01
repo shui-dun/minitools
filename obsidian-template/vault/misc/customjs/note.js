@@ -7,16 +7,13 @@ class Note {
         today = today || this.dv.date('today');
 		let page = this.dv.page("note/note.md");
 		let filterNotesByTags = (tags) => {
-			// 定义被排除的标签前缀
 			const excludedPrefixes = page.excludedTags.map(tag => `#${tag}`);
-			// 检查是否有任何一个标签不是以被排除的前缀开头，如果有则返回true
 			for (let tag of tags) {
-				if (!excludedPrefixes.some(prefix => tag.startsWith(prefix))) {
-					return true;
+				if (excludedPrefixes.some(prefix => tag.startsWith(prefix))) {
+					return false;
 				}
 			}
-			// 如果所有标签都以被排除的前缀开头，则返回false
-			return false;
+			return true;
 		}
 		
 		// 所有笔记
@@ -33,6 +30,8 @@ class Note {
 		  .where(x => x.sr[2] <= today);
 
 		// 今日复习的笔记
+        // 目前有一个bug（feature？）：今日创建的笔记会被当作今日复习的笔记
+        // 由于这可以鼓励写笔记，所以暂时不修复
 		let todayReviewedNotes = basicNotes
 		  .where(x => x.sr[2] == this.dv.duration(`${Math.ceil(x.sr[1])}day`) + today);
 

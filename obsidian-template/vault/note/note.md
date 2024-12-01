@@ -5,6 +5,7 @@ excludedTags:
   - 科学
   - Paper
   - CS
+  - Software
 page: 0
 openNextNote: random
 ---
@@ -18,8 +19,8 @@ let noteInfo = Note.noteInfo();
 
 dv.paragraph(
   Utils.container(
-    Utils.multiselect(dv.current(), 'excludedTags', '[]'),
-    Utils.date(dv.current(), 'ctimeFilter'),
+    Utils.multiselect(dv.current(), 'excludedTags', '[]', true),
+    Utils.date(dv.current(), 'ctimeFilter', true),
     Utils.incButton('上', dv.current(), 'page', 0, null, -1, true),
     Utils.numInput(dv.current(), 'page'),
     Utils.incButton('下', dv.current(), 'page', 0, null, 1, true),

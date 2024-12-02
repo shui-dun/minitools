@@ -25,6 +25,8 @@ obsidian模板，包含任务清单、间隔复习笔记、习惯打卡等插件
 
 ![image-20241114174752476](assets/image-20241114174752476.png)
 
+![alt text](assets/PixPin_2024-12-02_08-34-36.png)
+
 ## 秋招
 
 ![alt text](assets/image-2.png)

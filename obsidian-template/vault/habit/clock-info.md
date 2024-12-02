@@ -1,6 +1,6 @@
 ```dataviewjs
 const {WaitLoading, Utils, Habit} = await cJS();
-Habit.init(dv);
+Habit.init(dv, this.container);
 await WaitLoading.wait(dv);
 
 // 获取开始日期和结束日期

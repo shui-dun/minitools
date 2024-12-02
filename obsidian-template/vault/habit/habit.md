@@ -3,10 +3,11 @@ startDate: ""
 endDate: ""
 startDate2: ""
 endDate2: ""
+habitFilter: "[[早睡]]"
 ---
 ```dataviewjs
 const {WaitLoading, Utils, Habit} = await cJS();
-Habit.init(dv);
+Habit.init(dv, this.container);
 await WaitLoading.wait(dv);
 
 dv.paragraph(
@@ -64,9 +65,13 @@ dv.table(["习惯", "今日", "进度", "", "积分"],
     })
 );
 ```
+### 趋势
 ```dataviewjs
 const {WaitLoading, Utils, Habit} = await cJS();
+Habit.init(dv, this.container);
 await WaitLoading.wait(dv);
+
+let refreshTarget = dv.current().file.name + "#趋势";
 
 dv.paragraph(Utils.container(
 	Utils.select(dv.current(), 'habitFilter',
@@ -75,6 +80,9 @@ dv.paragraph(Utils.container(
 	Utils.date(dv.current(), 'startDate2'),
 	'<code>-></code>',
 	Utils.date(dv.current(), 'endDate2'),
-	Utils.button('查询', null, true),
+	Utils.button('查询', null, refreshTarget),
 ));
+if (dv.current().habitFilter) {
+	Habit.habitTrend(dv.page(dv.current().habitFilter), dv.current().startDate2, dv.current().endDate2);
+}
 ```

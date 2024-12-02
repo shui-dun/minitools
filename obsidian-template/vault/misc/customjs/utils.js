@@ -45,9 +45,7 @@ class Utils {
 			if (onclick) {
 				await onclick();
 			}
-			if (refresh) {
-				await this.refresh();
-			}
+			await this.refresh(refresh, 0);
 		}
 		return button;
 	}
@@ -70,9 +68,7 @@ class Utils {
 			if (onchange) {
 				onchange();
 			}
-			if (refresh) {
-				await this.refresh();
-			}
+			await this.refresh(refresh);
 		}
 		return button;
 	}
@@ -105,9 +101,7 @@ class Utils {
 			if (onchange) {
 				onchange();
 			}
-			if (refresh) {
-				await this.refresh();
-			}
+			await this.refresh(refresh);
 		});
 		return button;
 	}
@@ -142,9 +136,7 @@ class Utils {
 			if (onchange) {
 				onchange();
 			}
-			if (refresh) {
-				await this.refresh();
-			}
+			await this.refresh(refresh);
 		});
 		return button;
 	}
@@ -162,9 +154,7 @@ class Utils {
 			if (onchange) {
 				onchange();
 			}
-			if (refresh) {
-				await this.refresh();
-			}
+			await this.refresh(refresh);
 		};
 		return input;
 	}
@@ -180,9 +170,7 @@ class Utils {
 			if (onchange) {
 				onchange();
 			}
-			if (refresh) {
-				await this.refresh();
-			}
+			await this.refresh(refresh);
 		};
 		return input;
 	}
@@ -200,9 +188,7 @@ class Utils {
 			if (onchange) {
 				onchange();
 			}
-			if (refresh) {
-				await this.refresh();
-			}
+			await this.refresh(refresh);
 		};
 		return input;
 	}
@@ -218,9 +204,7 @@ class Utils {
 			if (onchange) {
 				onchange();
 			}
-			if (refresh) {
-				await this.refresh();
-			}
+			await this.refresh(refresh);
 		};
 		return input;
 	}
@@ -269,9 +253,7 @@ class Utils {
 			if (onchange) {
 				onchange();
 			}
-			if (refresh) {
-				await this.refresh();
-			}
+			await this.refresh(refresh);
 		};
 		
 		return textArea;
@@ -288,9 +270,7 @@ class Utils {
 			if (onchange) {
 				onchange();
 			}
-			if (refresh) {
-				await this.refresh();
-			}
+			await this.refresh(refresh);
 		};
 		return input;
 	}
@@ -306,9 +286,7 @@ class Utils {
 			if (onchange) {
 				onchange();
 			}
-			if (refresh) {
-				await this.refresh();
-			}
+			await this.refresh(refresh);
 		};
 		return input;
 	}
@@ -327,9 +305,7 @@ class Utils {
 			if (onchange) {
 				onchange();
 			}
-			if (refresh) {
-				await this.refresh();
-			}
+			await this.refresh(refresh);
 		}
 		return input;
 	}
@@ -381,10 +357,23 @@ class Utils {
 		return isNaN(num) ? input : num;
 	}
 
-	async refresh() {
-		setTimeout(function() {
+	// target 表示刷新后跳转到的目标
+	// target 为null、undefined、false时不刷新
+	// target 为true、""时只刷新不跳转
+	// target 为其他字符串值时刷新后跳转到指定页面
+	async refresh(target, timeout=300) {
+		if (target === null || target === undefined || target === false) {
+			return;
+		}
+		setTimeout(async () => {
 			app.commands.executeCommandById('dataview:dataview-force-refresh-views')
-		}, 300);
+			setTimeout(async () => {
+				if (target === "" || target === true) { // 刷新后不跳转
+					return;
+				}
+				await app.workspace.openLinkText(target, "", false);
+			}, 100);
+		}, timeout);
 	}
 
 	compactArray(array) {

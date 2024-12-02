@@ -1,24 +1,41 @@
 class Habit {
-	init(dv) {
+	init(dv, container) {
 		this.dv = dv;
+		this.container = container;
 	}
 
+	// 周视图的默认时间段
 	defaultPeriod(startDate, endDate) {
 		startDate = startDate || this.dv.date('sow').minus(this.dv.duration('1 days')); // 默认从周日开始
 		endDate = endDate || startDate.plus({ days: 6 }); // 默认是一周
 		return {startDate, endDate};
 	}
 
-	habitInfoBetween(habit, startDate, endDate) {
+	// 月视图的默认时间段
+	defaultMonthPeriod(startDate, endDate) {
+		// 默认从30天前开始
+		startDate = startDate || this.dv.date('today').minus(this.dv.duration('30 days'));
+		endDate = endDate || startDate.plus({ days: 30 }); // 默认是一个月，但不能超过今天
+		if (endDate > this.dv.date('today')) {
+			endDate = this.dv.date('today');
+		}
+		return {startDate, endDate};
+	}
+
+	habitInfoBetween(habit, startDate, endDate, needClockDetails=false) {
 		let diff = Math.floor((endDate - startDate) / (24 * 60 * 60 * 1000)) + 1;
 
 		let historyFile = this.dv.page(`habit/habit_history/${habit.id}`);
 		let clockCounts = 0;
+		let clockDetails = new Map();
 		if (historyFile && historyFile.historyDates && historyFile.historyCounts) {
 			for (let i = historyFile.historyDates.length - 1; i >= 0; i--) {
 				let date = historyFile.historyDates[i];
 				if (date >= startDate && date <= endDate) {
 					clockCounts += historyFile.historyCounts[i];
+					if (needClockDetails) {
+						clockDetails.set(date.toFormat('yyyy-MM-dd'), historyFile.historyCounts[i]);
+					}
 				} else if (date < startDate) {
 					break;
 				}
@@ -27,7 +44,7 @@ class Habit {
 		let finalTarget = habit.target * diff / 7;
 		let progress = clockCounts / finalTarget;
 		let clockPoints = clockCounts * habit.pointsPerClock;
-		return { clockCounts, finalTarget, progress, clockPoints};
+		return { clockCounts, finalTarget, progress, clockPoints, clockDetails };
 	}
 
 	todayHabitInfo(habit) {
@@ -44,6 +61,53 @@ class Habit {
 			}
 		}
 		return {clockCounts};
+	}
+
+	// 时间趋势展示
+	// 随着时间变化，打卡情况的变化折线图（横坐标是日期，纵坐标是打卡次数）
+	habitTrend(habit, startDate, endDate) {
+		if (habit == null) {
+			return;
+		}
+		({startDate, endDate} = this.defaultMonthPeriod(startDate, endDate));
+		let {clockCounts, finalTarget, progress, clockPoints, clockDetails} = this.habitInfoBetween(habit, startDate, endDate, true);
+		// 生成折线图数据
+		let labels = [];
+		let data = [];
+		let targets = [];
+		let target = finalTarget / ((endDate - startDate) / (24 * 60 * 60 * 1000) + 1);
+
+		let currentDate = startDate;
+		while (currentDate <= endDate) {
+			labels.push(currentDate.toFormat('yyyy-MM-dd'));
+			if (clockDetails.has(currentDate.toFormat('yyyy-MM-dd'))) {
+				data.push(clockDetails.get(currentDate.toFormat('yyyy-MM-dd')));
+			} else {
+				data.push(0);
+			}
+			targets.push(target);
+			currentDate = currentDate.plus({ days: 1 });
+		}
+		const chartData = {
+			type: 'line',
+			data: {
+				labels: labels,
+				datasets: [{
+					label: '打卡次数',
+					data: data,
+					fill: false,
+					borderColor: 'rgb(68,138,242)',
+					tension: 0.1
+				}, {
+					label: '目标次数',
+					data: targets,
+					fill: false,
+					borderColor: 'rgb(192, 75, 192)',
+					tension: 0.1
+				}]
+			},
+		};
+		window.renderChart(chartData, this.container);
 	}
 	
 	// 习惯打卡
@@ -232,4 +296,5 @@ class Habit {
 	// 	const result = timeToNum(time);
 	// 	console.log(`Time: ${time}, Expected: ${expected}, Got: ${result}, ${result === expected ? '✓' : '✗'}`);
 	// });
+
 }

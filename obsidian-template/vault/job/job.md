@@ -49,16 +49,14 @@ dv.table(["名称", "结束时间", "状态", "备注", "创建时间", "地点"
 	])
 );
 
-let gotoTop = async () => {
-	await app.workspace.openLinkText("job/job#西西弗斯", "", false);
-}
+let refresh = dv.current().file.path + "#西西弗斯";
 
 let searchLine2 = Utils.container(
-    Utils.incButton('上', dv.current(), 'page', 0, null, -1, true, gotoTop),
+    Utils.incButton('上', dv.current(), 'page', 0, null, -1, refresh),
     Utils.numInput(dv.current(), 'page'),
     `<code> / ${nPages - 1}</code>`,
-    Utils.incButton('下', dv.current(), 'page', 0, null, 1, true, gotoTop),
-    Utils.button('搜', gotoTop, true),
+    Utils.incButton('下', dv.current(), 'page', 0, null, 1, refresh),
+    Utils.button('搜', null, refresh),
     `<b><code>${notes.length} items</code></b>`,
 );
 dv.paragraph(searchLine2);

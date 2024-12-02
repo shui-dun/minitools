@@ -338,7 +338,7 @@ class Utils {
 	wrapInCallout(inputText, title) {
 		const lines = inputText.split('\n');
 		const wrappedLines = lines.map(line => `> ${line}`);
-		wrappedLines.unshift('> [!note]- ' + title);
+		wrappedLines.unshift('> [!note]- ' + (title || ""));
 		return wrappedLines.join('\n');
 	}
 

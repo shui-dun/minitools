@@ -1,11 +1,9 @@
 ---
 ctimeFilter: ""
 excludedTags:
-  - 数学
   - 科学
   - Paper
   - CS
-  - Software
 page: 0
 openNextNote: random
 ---

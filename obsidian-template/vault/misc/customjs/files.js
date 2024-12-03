@@ -34,9 +34,15 @@ class Files {
             frontMatter = frontMatterMatch[0];
             content = fileText.slice(frontMatter.length);
         }
-        
+
         // 在正文部分查找并替换第一个一级标题
-        if (titleRegex.test(content)) {
+        let oldTitle = "";
+        let titleMatch = content.match(titleRegex);
+        if (titleMatch) {
+            oldTitle = titleMatch[0].substring(2); // 移除 "# " 前缀
+        }
+        
+        if (titleMatch) {
             content = content.replace(titleRegex, `# ${fileNameWithoutExtension}`);
         } else {
             // 如果没有一级标题
@@ -56,6 +62,6 @@ class Files {
         await app.vault.modify(file, updatedFileText);
         
         // 通知替换成功
-        new Notice(`Title replaced with: ${fileNameWithoutExtension}`);
+        new Notice(`Title replaced: ${oldTitle} -> ${fileNameWithoutExtension}`);
     }
 }

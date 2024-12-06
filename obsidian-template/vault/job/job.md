@@ -4,7 +4,7 @@ page: 0
 ## 西西弗斯
 ```dataviewjs
 const {WaitLoading, Utils} = await cJS();
-await WaitLoading.wait(dv);
+await WaitLoading.wait();
 
 let filterStatus = dv.current().filterStatus || "";
 let notes = dv
@@ -23,7 +23,7 @@ let notes = dv
     return [deliverySortValue, endTimeSortValue, statusSortValue, ctimeSortValue];
   });
 
-const itemsPerPage = 50;
+const itemsPerPage = 20;
 const nPages = Math.ceil(notes.length / itemsPerPage);
 
 let searchLine = Utils.container(

@@ -1,17 +1,17 @@
 ---
 ctimeFilter: ""
 excludedTags:
-  - 科学
   - Paper
   - CS
+  - 理
 page: 0
 openNextNote: random
 ---
 ```dataviewjs
 const {WaitLoading, Utils, Note} = await cJS();
 Note.init(dv);
-
-await WaitLoading.wait(dv);
+console.log(dv.initialized);
+await WaitLoading.wait();
 
 let noteInfo = Note.noteInfo();
 

@@ -1,4 +1,5 @@
 <%*
 const {Files} = await cJS();
-await Files.createFolderNote(app.workspace.getActiveFile());
+await Files.convertToFolderNote(app.workspace.getActiveFile());
+tR = tp.file.selection(); // 避免选中的文本被删除
 %>

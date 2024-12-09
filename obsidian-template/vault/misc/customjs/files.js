@@ -10,6 +10,11 @@ class Files {
         if (file.extension !== 'md') {
             return;
         }
+
+        // 如果以.excalidraw.md结尾，不处理
+        if (file.basename.endsWith('.excalidraw')) {
+            return;
+        }
         
         // 读取文件内容
         let fileText = await app.vault.read(file);
@@ -64,52 +69,82 @@ class Files {
         new Notice(`Title replaced: ${oldTitle} -> ${fileNameWithoutExtension}`);
     }
 
-    // 在指定文件所在目录创建folder note
-    async createFolderNote(parent) {
-        if (!parent) {
+    // 判断一个文件是否是folder note
+    isFolderNote(file) {
+        if (!file) {
             console.error("No active file.");
             return;
         }
 
-        // 获取文件所在目录
-        let parentDir = parent.parent.path;
+        let fileName = file.basename.split('.').shift();
+        let parentDir = file.parent.path;
+        let parentDirName = parentDir.split('/').pop();
 
-        // 弹出对话框，输入 folder note 的名称
-		const modalForm = app.plugins.plugins.modalforms.api;
-        let folderNoteName = await modalForm.openForm({
-            title: "Create Folder Note",
-            fields: [
-                {
-                    name: "folderNoteName",
-                    label: "Folder Note Name",
-                    description: "The name of the folder note.",
-                    input: { type: "text" },
-                },
-            ],
+        return fileName == parentDirName;
+    }
+
+    // 把一个文件转化为folder note
+    async convertToFolderNote(file) {
+        if (!file) {
+            console.error("No active file.");
+            return;
+        }
+
+        let fileName = file.basename.split('.').shift();
+        let parentDir = file.parent.path;
+        let parentDirName = parentDir.split('/').pop();
+
+        // 如果文件名和文件夹名相同，直接返回
+        if (fileName == parentDirName) {
+            return;
+        }
+
+        // 创建文件夹
+        let folderPath = parentDir + '/' + fileName;
+        await app.vault.createFolder(folderPath);
+
+        // 移动文件
+        let newFilePath = folderPath + '/' + fileName + '.md';
+        await app.vault.rename(file, newFilePath);
+
+        // 将链接的附件全部移动到新的文件夹的assets目录下
+        let cache = app.metadataCache.getFileCache(file);
+        let attachmentsLinks = [];
+        if (cache) {
+            // 添加 embeds，links，frontmatterLinks
+            attachmentsLinks = cache.embeds.concat(cache.links).concat(cache.frontmatterLinks);
+            attachmentsLinks = attachmentsLinks.map(attachment => attachment.link);
+        }
+
+        // 获得这些文件
+        let attachments = attachmentsLinks.map(link => {
+            return app.metadataCache.getFirstLinkpathDest(link, '');
         });
 
-        if (folderNoteName.status == 'ok') {
-            folderNoteName = folderNoteName.folderNoteName.value;
-        } else {
-            return;
+        // 去掉.md文件，但保留.excalidraw.md文件
+        attachments = attachments.filter(attachment => {
+            if (!attachment) {
+                return false;
+            }
+            if (attachment.path.endsWith('.md') && !attachment.path.endsWith('.excalidraw.md')) {
+                return false;
+            }
+            return true;
+        });
+
+        // 只保留只被当前文件引用的附件，如果被多个文件引用，不移动
+        let attachmentsToMove = attachments.filter(attachment => {
+            let backlinks = app.metadataCache.getBacklinksForFile(attachment);
+            return backlinks.data.size == 1;
+        });
+
+        let assetsPath = folderPath + '/assets';
+        await app.vault.createFolder(assetsPath);
+
+        for (let attachment of attachmentsToMove) {
+            let attachmentPath = attachment.path;
+            let newAttachmentPath = assetsPath + '/' + attachmentPath.split('/').pop();
+            await app.vault.rename(attachment, newAttachmentPath);
         }
-
-        // 创建 folder note 文件夹
-        let folderNotePath = parentDir + '/' + folderNoteName;
-
-        // 如果文件夹已存在，直接返回
-        if (await app.vault.adapter.exists(folderNotePath)) {
-            new Notice(`Folder note already exists: ${folderNoteName}`);
-            return;
-        }
-
-        await app.vault.createFolder(folderNotePath);
-
-        // 创建 folder note 文件
-        let folderNoteFilePath = folderNotePath + '/' + folderNoteName + '.md';
-        let folderNoteFile = await app.vault.create(folderNoteFilePath, '');
-
-        // 打开 folder note 文件
-        app.workspace.activeLeaf.openFile(folderNoteFile);
     }
 }

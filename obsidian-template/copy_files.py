@@ -14,6 +14,7 @@ include_folders = [
     r"habit\habit.md",
     r"habit\clock-info.md",
     r"misc\customjs",
+    r"misc\blocks",
     r"misc\dataview-scripts",
     r"misc\front-matter-template",
     r"misc\template",

@@ -186,4 +186,43 @@ class Files {
         // 打开新创建的文件
         await app.workspace.activeLeaf.openFile(app.vault.getAbstractFileByPath(pathOfSubNote));
     }
+
+    // archive a note
+    async archiveNote(file) {
+        if (!file) {
+            console.error("No active file.");
+            return;
+        }
+
+        let folderPath = await this.convertToFolderNote(file);
+        let parentDir = folderPath.split('/').slice(0, -1).join('/');
+
+        let archivePath = parentDir + '/archive';
+        if (!app.vault.getAbstractFileByPath(archivePath)) {
+            await app.vault.createFolder(archivePath);
+            // 创建archive文件
+            await app.vault.create(archivePath + '/archive.md', '\n```meta-bind-embed\n[[archive_view]]\n```');
+        }
+
+        let fileName = file.basename;
+        // 今日日期
+        let today = this.formatDate(new Date());
+        let newFolderPath = `${archivePath}/${today}-${fileName}`;
+
+        // 移动文件夹
+        await app.vault.rename(app.vault.getAbstractFileByPath(folderPath), newFolderPath);
+    }
+
+    formatDate(date) {
+        const year = date.getFullYear().toString().slice(-2); // 获取年份后两位
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份需要加1，补0
+        const day = String(date.getDate()).padStart(2, '0'); // 补0
+        return `${year}-${month}-${day}`;
+    }
+
+    // 得到文件夹路径，例如输入 a/b/c.md 得到 a/b
+    getFolderPath(filePath) {
+        return filePath.split('/').slice(0, -1).join('/');
+    }
+
 }

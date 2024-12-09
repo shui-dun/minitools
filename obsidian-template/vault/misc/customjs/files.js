@@ -45,8 +45,12 @@ class Files {
         if (titleMatch) {
             oldTitle = titleMatch[0].substring(2); // 移除 "# " 前缀
         }
-        
+
         if (titleMatch) {
+            // 如果相同，直接返回
+            if (oldTitle == fileNameWithoutExtension) {
+                return;
+            }
             content = content.replace(titleRegex, `# ${fileNameWithoutExtension}`);
         } else {
             // 如果没有一级标题
@@ -69,20 +73,6 @@ class Files {
         new Notice(`Title replaced: ${oldTitle} -> ${fileNameWithoutExtension}`);
     }
 
-    // 判断一个文件是否是folder note
-    isFolderNote(file) {
-        if (!file) {
-            console.error("No active file.");
-            return;
-        }
-
-        let fileName = file.basename.split('.').shift();
-        let parentDir = file.parent.path;
-        let parentDirName = parentDir.split('/').pop();
-
-        return fileName == parentDirName;
-    }
-
     // 把一个文件转化为folder note
     async convertToFolderNote(file) {
         if (!file) {
@@ -90,13 +80,13 @@ class Files {
             return;
         }
 
-        let fileName = file.basename.split('.').shift();
+        let fileName = file.basename;
         let parentDir = file.parent.path;
         let parentDirName = parentDir.split('/').pop();
 
         // 如果文件名和文件夹名相同，直接返回
         if (fileName == parentDirName) {
-            return;
+            return parentDir;
         }
 
         // 创建文件夹
@@ -109,12 +99,13 @@ class Files {
 
         // 将链接的附件全部移动到新的文件夹的assets目录下
         let cache = app.metadataCache.getFileCache(file);
-        let attachmentsLinks = [];
-        if (cache) {
-            // 添加 embeds，links，frontmatterLinks
-            attachmentsLinks = cache.embeds.concat(cache.links).concat(cache.frontmatterLinks);
-            attachmentsLinks = attachmentsLinks.map(attachment => attachment.link);
-        }
+        // 添加 embeds，links，frontmatterLinks
+        let attachmentsLinks = [
+            ...(cache?.embeds || []),
+            ...(cache?.links || []),
+            ...(cache?.frontmatterLinks || []),
+          ];
+        attachmentsLinks = attachmentsLinks.map(attachment => attachment.link);
 
         // 获得这些文件
         let attachments = attachmentsLinks.map(link => {
@@ -138,6 +129,10 @@ class Files {
             return backlinks.data.size == 1;
         });
 
+        if (attachmentsToMove.length == 0) {
+            return folderPath;
+        }
+
         let assetsPath = folderPath + '/assets';
         await app.vault.createFolder(assetsPath);
 
@@ -146,5 +141,49 @@ class Files {
             let newAttachmentPath = assetsPath + '/' + attachmentPath.split('/').pop();
             await app.vault.rename(attachment, newAttachmentPath);
         }
+
+        return folderPath;
+    }
+
+    // 为一个页面添加子页面
+    async addSubNote(file) {
+        if (!file) {
+            console.error("No active file.");
+            return;
+        }
+
+        let folderPath = await this.convertToFolderNote(file);
+
+        const modalForm = app.plugins.plugins.modalforms.api;
+        let subNoteName = await modalForm.openForm({
+            title: "Create SubNote",
+            fields: [
+                {
+                    name: "subNoteName",
+                    label: "subNoteName",
+                    description: "The name of the sub note.",
+                    input: { type: "text" },
+                },
+            ],
+        });
+
+        if (subNoteName.status == 'ok') {
+            subNoteName = subNoteName.subNoteName.value;
+        } else {
+            return;
+        }
+        
+        let pathOfSubNote = folderPath + '/' + subNoteName + '.md';
+
+        // 如果文件已经存在，不创建
+        if (app.vault.getAbstractFileByPath(pathOfSubNote)) {
+            new Notice(`SubNote ${subNoteName} already exists.`);
+            return;
+        }
+
+        await app.vault.create(pathOfSubNote, '');
+
+        // 打开新创建的文件
+        await app.workspace.activeLeaf.openFile(app.vault.getAbstractFileByPath(pathOfSubNote));
     }
 }

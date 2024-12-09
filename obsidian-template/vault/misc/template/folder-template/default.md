@@ -1,3 +1,3 @@
 # <% tp.file.title %>
 
-<% tp.file.cursor(1) %>
+<% tp.user.cursor(1) %>

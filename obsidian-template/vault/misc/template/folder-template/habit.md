@@ -1,6 +1,6 @@
 ---
 id: <% tp.user.random_string(16) %>
-target: <% tp.file.cursor(1) %>
+target: <% tp.user.cursor(1) %>
 pointsPerClock: 
 ---
 # <% tp.file.title %>

@@ -8,7 +8,6 @@ class Files {
         }
 
         if (file.extension !== 'md') {
-            new Notice("Only markdown files are supported.");
             return;
         }
         
@@ -63,5 +62,54 @@ class Files {
         
         // 通知替换成功
         new Notice(`Title replaced: ${oldTitle} -> ${fileNameWithoutExtension}`);
+    }
+
+    // 在指定文件所在目录创建folder note
+    async createFolderNote(parent) {
+        if (!parent) {
+            console.error("No active file.");
+            return;
+        }
+
+        // 获取文件所在目录
+        let parentDir = parent.parent.path;
+
+        // 弹出对话框，输入 folder note 的名称
+		const modalForm = app.plugins.plugins.modalforms.api;
+        let folderNoteName = await modalForm.openForm({
+            title: "Create Folder Note",
+            fields: [
+                {
+                    name: "folderNoteName",
+                    label: "Folder Note Name",
+                    description: "The name of the folder note.",
+                    input: { type: "text" },
+                },
+            ],
+        });
+
+        if (folderNoteName.status == 'ok') {
+            folderNoteName = folderNoteName.folderNoteName.value;
+        } else {
+            return;
+        }
+
+        // 创建 folder note 文件夹
+        let folderNotePath = parentDir + '/' + folderNoteName;
+
+        // 如果文件夹已存在，直接返回
+        if (await app.vault.adapter.exists(folderNotePath)) {
+            new Notice(`Folder note already exists: ${folderNoteName}`);
+            return;
+        }
+
+        await app.vault.createFolder(folderNotePath);
+
+        // 创建 folder note 文件
+        let folderNoteFilePath = folderNotePath + '/' + folderNoteName + '.md';
+        let folderNoteFile = await app.vault.create(folderNoteFilePath, '');
+
+        // 打开 folder note 文件
+        app.workspace.activeLeaf.openFile(folderNoteFile);
     }
 }

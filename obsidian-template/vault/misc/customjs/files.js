@@ -220,8 +220,8 @@ class Files {
         return `${year}-${month}-${day}`;
     }
 
-    // 得到文件夹路径，例如输入 a/b/c.md 得到 a/b
-    getFolderPath(filePath) {
+    // 得到文件夹路径，例如输入 a/b/c.md 得到 a/b ，输入 a/b 得到 a
+    getParentPath(filePath) {
         return filePath.split('/').slice(0, -1).join('/');
     }
 
@@ -257,5 +257,21 @@ class Files {
             }
         }
         return folderNotes.sort((a,b) => a.localeCompare(b));
+    }
+
+    // 转化外部文件链接
+    // 将 '"D:\a\b c\d e.txt"' 转化为 '[d e.txt](D:\a\b%20c\d%20e.txt)'
+    convertExternalLink(link) {
+        let path = link[0] == '"' ? link.slice(1, -1) : link;
+        let fileName = path.split('\\').pop();
+        // let encodedPath = encodeURI(path);
+        let encodedPath = path.replace(/ /g, '%20');
+        return `[${fileName}](${encodedPath})`;
+    }
+
+    async convertExternalLinkFromClipboard() {
+        let link = await navigator.clipboard.readText();
+        let convertedLink = this.convertExternalLink(link);
+        return convertedLink;
     }
 }

@@ -256,6 +256,6 @@ class Files {
                 }
             }
         }
-        return folderNotes;
+        return folderNotes.sort((a,b) => a.localeCompare(b));
     }
 }

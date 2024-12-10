@@ -232,6 +232,30 @@ class Files {
     // b.md
     // 返回a/a.md和b.md
     getFolderNotes(folderPath) {
+        // 获取指定文件夹
+        const folder = app.vault.getAbstractFileByPath(folderPath);
+        if (!folder) {
+            return [];
+        }
         
+        const folderNotes = [];
+        
+        // 只遍历文件夹下一层的文件
+        for (const file of folder.children) {
+            if (file.extension === 'md') {
+                if (file.name == `${file.parent.name}.${file.extension}`) {
+                    continue;
+                }
+                folderNotes.push(file.path);
+            } else if (!file.extension) {
+                // 寻找文件夹下的同名的文件
+                let path2 = `${file.path}/${file.name}.md`;
+                let file2 = app.vault.getAbstractFileByPath(path2);
+                if (file2) {
+                    folderNotes.push(file2.path);
+                }
+            }
+        }
+        return folderNotes;
     }
 }

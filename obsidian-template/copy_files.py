@@ -10,7 +10,7 @@ include_folders = [
     r"计划\super-task-view.md",
     r"note\note.md",
     r"note\note-eof.md",
-    r"job\job.md",
+    r"领域\job\job.md",
     r"habit\habit.md",
     r"habit\clock-info.md",
     r"misc\customjs",

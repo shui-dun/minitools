@@ -8,7 +8,7 @@ await WaitLoading.wait();
 
 let filterStatus = dv.current().filterStatus || "";
 let notes = dv
-  .pages('"job/jobList"')
+  .pages('"领域/job/jobList"')
   .where(x => 
     (!filterStatus || x.status === filterStatus))
   .sort(x => {
@@ -67,7 +67,7 @@ dv.paragraph(searchLine2);
 ```
 ## 统计
 ```dataviewjs
-let notes = dv.pages('"job/jobList"');
+let notes = dv.pages('"领域/job/jobList"');
 
 let statusCounts = notes
   .groupBy(x => x.status)

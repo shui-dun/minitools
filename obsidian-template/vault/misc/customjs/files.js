@@ -225,4 +225,13 @@ class Files {
         return filePath.split('/').slice(0, -1).join('/');
     }
 
+    // 找到某个文件夹一层的笔记以及folder note，我将folder note定义为文件夹名和文件名相同的文件，例如，对于：
+    // a/a.md
+    // a/b.md
+    // a/c/c.md
+    // b.md
+    // 返回a/a.md和b.md
+    getFolderNotes(folderPath) {
+        
+    }
 }

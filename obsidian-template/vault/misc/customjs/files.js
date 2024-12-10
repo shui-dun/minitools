@@ -81,21 +81,19 @@ class Files {
         }
 
         let fileName = file.basename;
-        let parentDir = file.parent.path;
-        let parentDirName = parentDir.split('/').pop();
+        let folderPath = file.parent.path;
+        let parentDirName = folderPath.split('/').pop();
 
-        // 如果文件名和文件夹名相同，直接返回
-        if (fileName == parentDirName) {
-            return parentDir;
+        // 如果文件名和文件夹名不相同，创建文件夹
+        if (fileName != parentDirName) {
+            // 创建文件夹
+            folderPath = folderPath + '/' + fileName;
+            await app.vault.createFolder(folderPath);
+
+            // 移动文件
+            let newFilePath = folderPath + '/' + fileName + '.md';
+            await app.vault.rename(file, newFilePath);
         }
-
-        // 创建文件夹
-        let folderPath = parentDir + '/' + fileName;
-        await app.vault.createFolder(folderPath);
-
-        // 移动文件
-        let newFilePath = folderPath + '/' + fileName + '.md';
-        await app.vault.rename(file, newFilePath);
 
         // 将链接的附件全部移动到新的文件夹的assets目录下
         let cache = app.metadataCache.getFileCache(file);
@@ -134,7 +132,9 @@ class Files {
         }
 
         let assetsPath = folderPath + '/assets';
-        await app.vault.createFolder(assetsPath);
+        if (!app.vault.getAbstractFileByPath(assetsPath)) {
+            await app.vault.createFolder(assetsPath);
+        }
 
         for (let attachment of attachmentsToMove) {
             let attachmentPath = attachment.path;

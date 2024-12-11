@@ -225,6 +225,11 @@ class Files {
         return filePath.split('/').slice(0, -1).join('/');
     }
 
+    // 得到文件(夹)名称，例如输入 a/b/c.md 得到 c.md ，输入 a/b 得到 b
+    getFileName(filePath) {
+        return filePath.split('/').pop();
+    }
+
     // 找到某个文件夹一层的笔记以及folder note，我将folder note定义为文件夹名和文件名相同的文件，例如，对于：
     // a/a.md
     // a/b.md

@@ -24,5 +24,5 @@ let grandFather = (p) => {
 	return `[[${path}|${name}]]`;
 };
 
-dv.table(["子目录归档文件"], pages2.map(p => [p.file.link, grandFather(p)]));
+dv.table(["子目录归档文件", "目录名"], pages2.map(p => [p.file.link, grandFather(p)]));
 ```

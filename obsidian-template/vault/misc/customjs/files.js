@@ -279,4 +279,39 @@ class Files {
         let convertedLink = this.convertExternalLink(link);
         return convertedLink;
     }
+
+    // 打开光标处的外部链接所在的位置
+    openLinkFolderUnderCursor() {
+        // Obsidian 的工作区（workspace）是一个树状结构，可以水平或垂直分割成多个子容器，每个子容器最终分割为叶子（leaf），每个 leaf 会被赋予一个 view 用于实际显示内容
+        const editor = app.workspace.activeLeaf.view.editor;
+        const cursor = editor.getCursor();
+        const lineText = editor.getLine(cursor.line);
+
+        const linkRegex = /\[[^\]]*\]\([^)]+\)/g;
+        let match;
+        while ((match = linkRegex.exec(lineText)) !== null) {
+            const startIndex = match.index;
+            const endIndex = match.index + match[0].length;
+    
+            // cursor.ch 表示光标在当前行的位置，我们要找到一个链接，使得光标在链接内部
+            if (cursor.ch >= startIndex && cursor.ch <= endIndex) {
+                // 从匹配的 [text](url) 中提取 url
+                const urlMatch = /\(([^)]+)\)/.exec(match[0]); 
+                const url = urlMatch[1];
+                this.openFolderForURL(url);
+                return;
+            }
+        }
+    
+        console.warn("Cursor not inside a markdown link");
+    }
+    
+    openFolderForURL(url) {
+        try {
+            const { shell } = window.require("electron");
+            shell.showItemInFolder(url);
+        } catch (error) {
+            console.error("Failed to open folder:", error);
+        }
+    }
 }

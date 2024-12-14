@@ -34,3 +34,16 @@ obsidian模板，包含任务清单、间隔复习笔记、习惯打卡等插件
 ![alt text](assets/image-3.png)
 
 ![alt text](assets/image-4.png)
+
+## 其他功能
+
+包括但不限于：
+
+- 插入外部链接
+- 打开外部链接所在的文件夹
+- 文件归档
+- 文件漫游
+- front-matter模板
+- 日期时间选择器
+- 创建子页面
+

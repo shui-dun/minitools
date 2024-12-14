@@ -146,13 +146,11 @@ class Files {
     }
 
     // 为一个页面添加子页面
-    async addSubNote(file) {
+    async addSubNote(file, defaultSubNoteName) {
         if (!file) {
             console.error("No active file.");
             return;
         }
-
-        let folderPath = await this.convertToFolderNote(file);
 
         const modalForm = app.plugins.plugins.modalforms.api;
         let subNoteName = await modalForm.openForm({
@@ -165,19 +163,21 @@ class Files {
                     input: { type: "text" },
                 },
             ],
-        });
+        }, { values: { subNoteName: defaultSubNoteName || "" } });
 
         if (subNoteName.status == 'ok') {
             subNoteName = subNoteName.subNoteName.value;
         } else {
             return;
         }
-        
+
+        let folderPath = await this.convertToFolderNote(file);        
         let pathOfSubNote = folderPath + '/' + subNoteName + '.md';
 
         // 如果文件已经存在，不创建
         if (app.vault.getAbstractFileByPath(pathOfSubNote)) {
             new Notice(`SubNote ${subNoteName} already exists.`);
+            await this.addSubNote(file, subNoteName);
             return;
         }
 

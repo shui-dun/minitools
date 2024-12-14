@@ -214,7 +214,7 @@ class Files {
         }
 
         let folderPath = await this.convertToFolderNote(file);
-        let parentDir = folderPath.split('/').slice(0, -1).join('/');
+        let parentDir = this.getParentPath(folderPath);
 
         let archivePath = parentDir + '/archive';
         if (!app.vault.getAbstractFileByPath(archivePath)) {
@@ -226,10 +226,17 @@ class Files {
         let fileName = file.basename;
         // 今日日期
         let today = this.formatDate(new Date());
-        let newFolderPath = `${archivePath}/${today}-${fileName}`;
+        let newFileName = `${today}-${fileName}`;
+        let newFolderPath = `${archivePath}/${newFileName}`;
 
         // 移动文件夹
         await app.vault.rename(app.vault.getAbstractFileByPath(folderPath), newFolderPath);
+
+        // 按理来说，folder notes 插件会自动重命名文件夹的folder note，但有时候没有成功，所以这里为保险起见，手动重命名folder note
+        let folderNote = app.vault.getAbstractFileByPath(`${newFolderPath}/${fileName}.md`);
+        if (folderNote) {
+            await app.vault.rename(folderNote, `${newFolderPath}/${newFileName}.md`);
+        }
     }
 
     formatDate(date) {

@@ -146,8 +146,8 @@ class Files {
     }
 
     // 为一个页面添加子页面
-    async addSubNote(file, defaultSubNoteName) {
-        if (!file) {
+    async addSubNote(parentFile, defaultSubNoteName) {
+        if (!parentFile) {
             console.error("No active file.");
             return;
         }
@@ -171,20 +171,39 @@ class Files {
             return;
         }
 
-        let folderPath = await this.convertToFolderNote(file);        
+        // 如果是扁平化目录，则创建同级页面，否则是创建子页面
+        let flatFolders = [
+            "note",
+            "habit",
+        ];
+        let folderPath = this.getParentPath(parentFile.path);
+        if (!flatFolders.includes(this.getParentPath(parentFile.path))) {
+            folderPath = await this.convertToFolderNote(parentFile);
+        }
         let pathOfSubNote = folderPath + '/' + subNoteName + '.md';
 
         // 如果文件已经存在，不创建
         if (app.vault.getAbstractFileByPath(pathOfSubNote)) {
             new Notice(`SubNote ${subNoteName} already exists.`);
-            await this.addSubNote(file, subNoteName);
+            await this.addSubNote(parentFile, subNoteName);
             return;
         }
 
         await app.vault.create(pathOfSubNote, '');
 
-        // 打开新创建的文件
-        await app.workspace.activeLeaf.openFile(app.vault.getAbstractFileByPath(pathOfSubNote));
+        // 如果目录被指定不用插入链接，或者是扁平化目录，则不插入链接，否则插入链接
+        let foldersWithoutLinks = [
+            "计划",
+            "领域",
+        ];
+        if (!flatFolders.includes(folderPath) && !foldersWithoutLinks.includes(folderPath)) {
+            // 插入链接
+            let link = `[[${subNoteName}]]`;
+            await this.insertText(link);
+        } else {
+            // 打开新创建的文件
+            await app.workspace.activeLeaf.openFile(app.vault.getAbstractFileByPath(pathOfSubNote));
+        }
     }
 
     // archive a note
@@ -313,5 +332,12 @@ class Files {
         } catch (error) {
             console.error("Failed to open folder:", error);
         }
+    }
+
+    // 在当前坐标处插入文本
+    async insertText(text) {
+        const editor = app.workspace.activeLeaf.view.editor;
+        const cursor = editor.getCursor();
+        editor.replaceRange(text, cursor);
     }
 }

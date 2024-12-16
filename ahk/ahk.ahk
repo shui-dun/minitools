@@ -52,13 +52,13 @@ Return
 	ClipWait  1 
 	if (InStr(Clipboard, "- ") != 0)
 	{
-		Clipboard := StrReplace(Clipboard, "- ", "- **") . ".** "
+		Clipboard := StrReplace(Clipboard, "- ", "- **") . "** "
 	} else if (InStr(Clipboard, "* ") != 0)
 	{
-		Clipboard := StrReplace(Clipboard, "* ", "* **") . ".** "
+		Clipboard := StrReplace(Clipboard, "* ", "* **") . "** "
 	} else
 	{
-		Clipboard := "**" . Clipboard  . ".** "
+		Clipboard := "**" . Clipboard  . "** "
 	}
 	SendInput ^v
 	; 等待100ms，再恢复剪切板，防止还没粘贴完，剪切板就被替换为了backup
@@ -75,7 +75,7 @@ Return
 	sleep 100 ; 使得a显示为**a**，这样才能复制
 	SendInput ^c
 	ClipWait 1 
-	Clipboard := RegExReplace(Clipboard, "\*\*(.+)\.\*\*\s*", "$1")
+	Clipboard := RegExReplace(Clipboard, "\*\*(.+)\*\*\s*", "$1")
 	SendInput ^v 
 	sleep 100
 	Clipboard := backup

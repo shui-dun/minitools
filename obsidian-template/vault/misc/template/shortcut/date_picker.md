@@ -3,39 +3,24 @@
 async function generateDate() {
     const dayOfWeek = moment().day();
 	const dateFormat = "YYYY-MM-DD";
+	const dayFormat = "dddd"; // 显示星期几的格式
 
 	const NO_DATE = "NO_DATE";
 	const MANUAL = "MANUAL";
 	
-	const suggestions = new Map();
-	suggestions.set("不输入日期", NO_DATE);
-	suggestions.set("today", moment());
-	suggestions.set("tomorrow", moment().add(1, 'days'));
-	suggestions.set("day after tomorrow", moment().add(2, 'days'));
-	suggestions.set("manual", MANUAL);
-	suggestions.set("next monday", moment().add(1, 'weeks').day(1));
-	suggestions.set(dayOfWeek >= 2 ? "next tuesday" : "tuesday",
-	                dayOfWeek >= 2 ? moment().add(1, 'weeks').day(2) : moment().day(2)
-	);
-	suggestions.set(dayOfWeek >= 3 ? "next wednesday" : "wednesday",
-	                dayOfWeek >= 3 ? moment().add(1, 'weeks').day(3) : moment().day(3)
-	);
-	suggestions.set(dayOfWeek >= 4 ? "next thursday" : "thursday",
-	                dayOfWeek >= 4 ? moment().add(1, 'weeks').day(4) : moment().day(4)
-	);
-	suggestions.set(dayOfWeek >= 5 ? "next friday" : "friday",
-	                dayOfWeek >= 5 ? moment().add(1, 'weeks').day(5) : moment().day(5)
-	);
-	suggestions.set(dayOfWeek >= 6 ? "next saturday" : "saturday",
-	                dayOfWeek >= 6 ? moment().add(1, 'weeks').day(6) : moment().day(6)
-	);
-	suggestions.set(dayOfWeek == 0 ? "next sunday" : "sunday",
-	                dayOfWeek >= 0 ? moment().add(1, 'weeks').day(0) : moment().day(0)
-	);
+	let suggestions = [
+		{label: "不输入日期", value: NO_DATE},
+		{label: "Manual", value: MANUAL},
+	];
+    for (let i = 0; i <= 7; i++) {
+        const d = moment().add(i, 'days');
+        let label = `+${i} (${d.format(dateFormat)}) ${d.format(dayFormat)}`;
+        suggestions.push({ label: label, value: d });
+    }
 	
 	const selection = await tp.system.suggester(
-	    [...suggestions].map(([k, v]) => (v !== NO_DATE && v !== MANUAL) ? k + " (" + v.format(dateFormat) + ")" : k),
-	    Array.from(suggestions.values())
+	    suggestions.map(d => d.label),
+        suggestions.map(d => d.value),
 	);
 
 	if (selection === NO_DATE) {
@@ -95,13 +80,17 @@ async function generateTime() {
 	
 	// 创建分钟选择建议，从当前分钟开始
 	let selectedTime;
-	const minuteSuggestions = Array.from({ length: 60 }, (_, i) => {
-		const minute = (currentMinute + i) % 60; // 从当前分钟开始
-		return {
-			label: `${minute.toString().padStart(2, '0')}分`,
-			value: minute,
-		};
-	});
+	const minuteSuggestions = [
+		{ label: "00分", value: 0 },
+		{ label: "30分", value: 30 },
+		...Array.from({ length: 60 }, (_, i) => {
+			const minute = (currentMinute + i) % 60; // 从当前分钟开始
+			return {
+				label: `${minute.toString().padStart(2, '0')}分`,
+				value: minute,
+			};
+		})
+	];
 
 	const selectedMinute = await tp.system.suggester(
 		minuteSuggestions.map(m => m.label),

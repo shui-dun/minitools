@@ -92,7 +92,7 @@ class Files {
 
             // 移动文件
             let newFilePath = folderPath + '/' + fileName + '.md';
-            await app.vault.rename(file, newFilePath);
+            await app.fileManager.renameFile(file, newFilePath);
         }
 
         // 将链接的附件全部移动到新的文件夹的assets目录下
@@ -139,7 +139,7 @@ class Files {
         for (let attachment of attachmentsToMove) {
             let attachmentPath = attachment.path;
             let newAttachmentPath = assetsPath + '/' + attachmentPath.split('/').pop();
-            await app.vault.rename(attachment, newAttachmentPath);
+            await app.fileManager.renameFile(attachment, newAttachmentPath);
         }
 
         return folderPath;
@@ -230,12 +230,12 @@ class Files {
         let newFolderPath = `${archivePath}/${newFileName}`;
 
         // 移动文件夹
-        await app.vault.rename(app.vault.getAbstractFileByPath(folderPath), newFolderPath);
+        await app.fileManager.renameFile(app.vault.getAbstractFileByPath(folderPath), newFolderPath);
 
         // 按理来说，folder notes 插件会自动重命名文件夹的folder note，但有时候没有成功，所以这里为保险起见，手动重命名folder note
         let folderNote = app.vault.getAbstractFileByPath(`${newFolderPath}/${fileName}.md`);
         if (folderNote) {
-            await app.vault.rename(folderNote, `${newFolderPath}/${newFileName}.md`);
+            await app.fileManager.renameFile(folderNote, `${newFolderPath}/${newFileName}.md`);
         }
     }
 

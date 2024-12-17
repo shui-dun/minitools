@@ -198,7 +198,7 @@ class Files {
         ];
         if (!flatFolders.includes(folderPath) && !foldersWithoutLinks.includes(folderPath)) {
             // 插入链接
-            let link = `[[${subNoteName}]]`;
+            let link = `[${subNoteName}](${subNoteName}.md)`;
             await this.insertText(link);
         } else {
             // 打开新创建的文件

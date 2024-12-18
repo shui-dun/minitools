@@ -198,7 +198,7 @@ class Files {
         ];
         if (!flatFolders.includes(folderPath) && !foldersWithoutLinks.includes(folderPath)) {
             // 插入链接
-            let link = `[${subNoteName}](${subNoteName}.md)`;
+            let link = `[${subNoteName}](${this.encodeLink(subNoteName)}.md)`;
             await this.insertText(link);
         } else {
             // 打开新创建的文件
@@ -290,13 +290,19 @@ class Files {
         return folderNotes.sort((a,b) => a.localeCompare(b));
     }
 
+    // 编码链接
+    // 将 'd e.md' 转化为 'd%20e.md'
+    encodeLink(link) {
+        return link.replace(/ /g, '%20');
+    }
+
     // 转化外部文件链接
     // 将 '"D:\a\b c\d e.txt"' 转化为 '[d e.txt](D:\a\b%20c\d%20e.txt)'
     convertExternalLink(link) {
         let path = link[0] == '"' ? link.slice(1, -1) : link;
         let fileName = path.split('\\').pop();
         // let encodedPath = encodeURI(path);
-        let encodedPath = path.replace(/ /g, '%20');
+        let encodedPath = this.encodeLink(path);
         return `[${fileName}](${encodedPath})`;
     }
 

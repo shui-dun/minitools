@@ -10,7 +10,7 @@ openNextNote: random
 ```dataviewjs
 const {WaitLoading, Utils, Note} = await cJS();
 Note.init(dv);
-await WaitLoading.wait(dv, ['note']);
+await WaitLoading.wait();
 
 let noteInfo = Note.noteInfo();
 

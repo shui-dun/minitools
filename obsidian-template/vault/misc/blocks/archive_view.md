@@ -1,6 +1,6 @@
 ```dataviewjs
 const {WaitLoading, Files} = await cJS();
-await WaitLoading.wait(dv);
+await WaitLoading.wait();
 
 let isArchive = (f) => {
 	let path = f.file.path.split('/');

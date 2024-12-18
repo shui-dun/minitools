@@ -4,7 +4,7 @@ page: 0
 ## 西西弗斯
 ```dataviewjs
 const {WaitLoading, Utils} = await cJS();
-await WaitLoading.wait(dv, ['领域/job']);
+await WaitLoading.wait();
 
 let filterStatus = dv.current().filterStatus || "";
 let notes = dv

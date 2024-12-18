@@ -2,7 +2,7 @@
 const {WaitLoading, Task, Utils} = await cJS();
 Task.init(dv);
 
-await WaitLoading.wait(dv, ['计划']);
+await WaitLoading.wait();
 
 // 任务的执行日期
 let dates = Task.daysOfTask(dv.current());

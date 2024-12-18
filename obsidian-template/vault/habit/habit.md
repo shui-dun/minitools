@@ -8,7 +8,7 @@ habitFilter: "[[早睡]]"
 ```dataviewjs
 const {WaitLoading, Utils, Habit} = await cJS();
 Habit.init(dv, this.container);
-await WaitLoading.wait();
+await WaitLoading.wait(dv, ['habit']);
 
 dv.paragraph(
   Utils.container(
@@ -69,7 +69,7 @@ dv.table(["习惯", "今日", "进度", "", "积分"],
 ```dataviewjs
 const {WaitLoading, Utils, Habit} = await cJS();
 Habit.init(dv, this.container);
-await WaitLoading.wait();
+await WaitLoading.wait(dv, ['habit']);
 
 let refreshTarget = dv.current().file.name + "#趋势";
 

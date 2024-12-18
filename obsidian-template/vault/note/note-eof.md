@@ -1,7 +1,5 @@
 ```dataviewjs
-const {WaitLoading, Note, Utils} = await cJS();
-Note.init(dv);
-await WaitLoading.wait();
+const {Note, Utils} = await cJS();
 
 dv.paragraph(Utils.container(
 	Utils.button('简单', async () => {

@@ -165,20 +165,6 @@ Return
 	Clipboard := backup
 Return
 
-; 添加注释
-
-+!c::
-  SendUnicode(" ``<comment>``  ``</comment>`` ")
-  SendInput {Left 14}
-Return
-
-; 添加todo
-
-!t::
-  SendUnicode(" ``<todo>``  ``</todo>`` ")
-  SendInput {Left 11}
-Return
-
 #If
 
 #If WinActive("ahk_exe SumatraPDF.exe") || WinActive("ahk_exe CAJVieweru.exe")

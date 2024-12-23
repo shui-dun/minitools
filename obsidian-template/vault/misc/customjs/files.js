@@ -227,10 +227,15 @@ class Files {
         // 今日日期
         let today = this.formatDate(new Date());
         let newFileName = `${today}-${fileName}`;
+        let tmpFolder = `${archivePath}/${fileName}`;
         let newFolderPath = `${archivePath}/${newFileName}`;
 
         // 移动文件夹
-        await app.fileManager.renameFile(app.vault.getAbstractFileByPath(folderPath), newFolderPath);
+        // ob存在bug，ob的app.fileManager.renameFile只有在移动前后文件(夹)名称相同时才会触发链接的更新
+        // 因此这里进行2次移动，第一次移动到临时文件夹，第二次移动到新文件夹，而不一次到位
+        // 这样才能触发链接的更新
+        await app.fileManager.renameFile(app.vault.getAbstractFileByPath(folderPath), tmpFolder);
+        await app.fileManager.renameFile(app.vault.getAbstractFileByPath(tmpFolder), newFolderPath);
 
         // 按理来说，folder notes 插件会自动重命名文件夹的folder note，但有时候没有成功，所以这里为保险起见，手动重命名folder note
         let folderNote = app.vault.getAbstractFileByPath(`${newFolderPath}/${fileName}.md`);

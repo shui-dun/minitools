@@ -40,7 +40,7 @@ Return
 	SendInput {Space}
 Return
 
-#If WinActive("ahk_exe Obsidian.exe") || WinActive("ahk_exe Typora.exe") || WinActive("ahk_exe Notion.exe")
+#If WinActive("ahk_exe Obsidian.exe") || WinActive("ahk_exe Typora.exe") || WinActive("ahk_exe Notion.exe") || WinActive("ahk_exe Code.exe")
 
 ; 段落
 

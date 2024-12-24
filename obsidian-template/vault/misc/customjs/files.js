@@ -73,29 +73,13 @@ class Files {
         new Notice(`Title replaced: ${oldTitle} -> ${fileNameWithoutExtension}`);
     }
 
-    // 把一个文件转化为folder note
-    async convertToFolderNote(file) {
-        if (!file) {
-            console.error("No active file.");
-            return;
-        }
+    // 判断一个文件是否是folder note
+    isFolderNote(file) {
+        return file.basename === file.parent.name;
+    }
 
-        let fileName = file.basename;
-        let folderPath = file.parent.path;
-        let parentDirName = folderPath.split('/').pop();
-
-        // 如果文件名和文件夹名不相同，创建文件夹
-        if (fileName != parentDirName) {
-            // 创建文件夹
-            folderPath = folderPath + '/' + fileName;
-            await app.vault.createFolder(folderPath);
-
-            // 移动文件
-            let newFilePath = folderPath + '/' + fileName + '.md';
-            await app.fileManager.renameFile(file, newFilePath);
-        }
-
-        // 将链接的附件全部移动到新的文件夹的assets目录下
+    // 找到仅仅被指定文件引用的附件列表
+    findAttachmentsOnlyUsedByFile(file) {
         let cache = app.metadataCache.getFileCache(file);
         // 添加 embeds，links，frontmatterLinks
         let attachmentsLinks = [
@@ -122,10 +106,35 @@ class Files {
         });
 
         // 只保留只被当前文件引用的附件，如果被多个文件引用，不移动
-        let attachmentsToMove = attachments.filter(attachment => {
+        return attachments.filter(attachment => {
             let backlinks = app.metadataCache.getBacklinksForFile(attachment);
             return backlinks.data.size == 1;
         });
+    }
+
+    // 把一个文件转化为folder note
+    async convertToFolderNote(file) {
+        if (!file) {
+            console.error("No active file.");
+            return;
+        }
+
+        let fileName = file.basename;
+        let folderPath = file.parent.path;
+
+        // 如果文件名和文件夹名不相同，创建文件夹
+        if (!this.isFolderNote(file)) {
+            // 创建文件夹
+            folderPath = folderPath + '/' + fileName;
+            await app.vault.createFolder(folderPath);
+
+            // 移动文件
+            let newFilePath = folderPath + '/' + fileName + '.md';
+            await app.fileManager.renameFile(file, newFilePath);
+        }
+
+        // 将链接的附件全部移动到新的文件夹的assets目录下
+        let attachmentsToMove = this.findAttachmentsOnlyUsedByFile(file);
 
         if (attachmentsToMove.length == 0) {
             return folderPath;
@@ -175,6 +184,7 @@ class Files {
         let flatFolders = [
             "note",
             "habit",
+            "领域/job/jobList",
         ];
         let folderPath = this.getParentPath(parentFile.path);
         if (!flatFolders.includes(this.getParentPath(parentFile.path))) {
@@ -244,6 +254,158 @@ class Files {
         }
     }
 
+    async moveNote() {
+        const modalForm = app.plugins.plugins.modalforms.api;
+
+        let currentFile = app.workspace.getActiveFile();
+        let defaultSourceNotes = currentFile ? [currentFile.path] : []; // 多选 => 数组
+        let defaultTargetFolder = currentFile ? currentFile.parent.path : "/";
+    
+        const formDefinition = {
+            "fields": [
+                {
+                    "name": "sourceNotes",
+                    "label": "Select notes to move",
+                    "description": "Choose one or multiple notes to move",
+                    "input": {
+                        "type": "multiselect",
+                        "source": "notes",
+                        "folder": "/"
+                    },
+                    "isRequired": true
+                },
+                {
+                    "name": "targetFolder",
+                    "label": "Select the target folder",
+                    "description": "Where do you want to move these notes to?",
+                    "input": {
+                        "type": "folder",
+                        "source": "notes"
+                    },
+                    "isRequired": true
+                }
+            ]
+        };
+    
+        let result = await modalForm.openForm(formDefinition, {
+            values: {
+                sourceNotes: defaultSourceNotes,
+                targetFolder: defaultTargetFolder
+            }
+        });
+    
+        if (result.status !== 'ok') {
+            return;
+        }
+    
+        let notesToMove = result.sourceNotes.value;
+        let targetFolderPath = result.targetFolder.value;
+    
+        await this.ensureFolderExists(targetFolderPath);
+    
+        for (let notePath of notesToMove) {
+            let fileToMove = app.metadataCache.getFirstLinkpathDest(notePath, '');
+    
+            if (this.isFolderNote(fileToMove)) {
+                const folderOfNote = fileToMove.parent;
+    
+                // 如果目标目录恰好是同一个文件夹，则不用移动
+                if (folderOfNote.path === targetFolderPath) {
+                    new Notice(`"${fileToMove.basename}" 已经在目标文件夹中，无需移动。`);
+                    continue;
+                }
+    
+                let newFolderPath = targetFolderPath + '/' + folderOfNote.name;
+    
+                // 如果这个子文件夹已经存在，则跳过
+                let existingFolder = app.vault.getAbstractFileByPath(newFolderPath);
+                if (existingFolder) {
+                    new Notice(`目标文件夹中已存在名为 "${folderOfNote.name}" 的文件夹，跳过移动。`);
+                    continue;
+                }
+    
+                // 执行移动
+                await app.fileManager.renameFile(folderOfNote, newFolderPath);
+                new Notice(`Folder "${fileToMove.basename}" 已移动到 "${targetFolderPath}"`);
+            }
+            // 如果不是 folder note，则移动笔记及其附件
+            else {
+                // 如果目标目录与当前所在目录相同，不跳过，因为这可以当作整理图片的功能（将图片移动到assets文件夹）
+                // 移动笔记本身
+                let newNotePath = targetFolderPath + '/' + fileToMove.name;
+                await app.fileManager.renameFile(fileToMove, newNotePath);
+                // 先移动附件
+                let attachmentsToMove = this.findAttachmentsOnlyUsedByFile(fileToMove);
+                // 目标目录下的子目录 assets，用于存放附件
+                let newAssetsPath = targetFolderPath + '/assets';
+                await this.ensureFolderExists(newAssetsPath);
+    
+                for (let attachment of attachmentsToMove) {
+                    let newAttachmentPath = newAssetsPath + '/' + attachment.name;
+                    await app.fileManager.renameFile(attachment, newAttachmentPath);
+                }
+                new Notice(`File "${fileToMove.basename}" 已移动到 "${targetFolderPath}"`);
+            }
+        }
+    }
+
+    /**
+     * 如果指定路径不存在，则递归创建路径对应的文件夹
+     */
+    async ensureFolderExists(folderPath) {
+        let existingFolder = app.vault.getAbstractFileByPath(folderPath);
+        if (existingFolder) {
+            return;
+        }
+
+        // 递归创建
+        let parts = folderPath.split('/');
+        for (let i = 1; i <= parts.length; i++) {
+            let subPath = parts.slice(0, i).join('/');
+            if (!subPath) continue;
+            let f = app.vault.getAbstractFileByPath(subPath);
+            if (!f) {
+                await app.vault.createFolder(subPath);
+            }
+        }
+    }
+
+    async deleteNote(file) {   
+        // 如果是 folder note，删除整个文件夹
+        if (this.isFolderNote(file)) {
+            // 获取对应的文件夹
+            const folder = app.vault.getAbstractFileByPath(file.parent.path);
+            await this.removeFileOrFolder(folder);
+            new Notice(`Folder "${file.basename}" has been deleted.`);
+        } else {
+            // 如果不是 folder note，则删除笔记文件及只被此笔记引用的附件
+            const attachmentsToDelete = this.findAttachmentsOnlyUsedByFile(file);
+            for (const attachment of attachmentsToDelete) {
+                await this.removeFileOrFolder(attachment);
+            }
+            await this.removeFileOrFolder(file);
+            new Notice(`File "${file.basename}" and its exclusive attachments have been deleted.`);
+        }
+    }
+    
+    /**
+     * 移除文件或文件夹如果是移动(通过app.isMobile判断），彻底删除，如果是电脑，移动到系统回收站
+     */
+    async removeFileOrFolder(abstractFile) {
+        if (!abstractFile) return;
+    
+        try {
+            if (app.isMobile) {
+                await app.vault.delete(abstractFile, true);
+            } else {
+                await app.vault.trash(abstractFile, true);
+            }
+        } catch (error) {
+            console.error(`Failed to remove file/folder: ${abstractFile.path}`, error);
+        }
+    }
+    
+
     formatDate(date) {
         const year = date.getFullYear().toString().slice(-2); // 获取年份后两位
         const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份需要加1，补0
@@ -279,7 +441,7 @@ class Files {
         // 只遍历文件夹下一层的文件
         for (const file of folder.children) {
             if (file.extension === 'md') {
-                if (file.name == `${file.parent.name}.${file.extension}`) {
+                if (this.isFolderNote(file)) {
                     continue;
                 }
                 folderNotes.push(file.path);

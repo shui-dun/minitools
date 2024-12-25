@@ -127,5 +127,13 @@ class StartUp {
                 await Files.deleteNote(app.workspace.getActiveFile());
             }
         });
+        app.commands.addCommand({
+            id: 'shuidun:openParent',
+            name: 'shuidun:openParent',
+            callback: async () => {
+                const { Files } = await cJS();
+                await Files.openParent();
+            }
+        });
     }
 }

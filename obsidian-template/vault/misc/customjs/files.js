@@ -387,6 +387,21 @@ class Files {
             new Notice(`File "${file.basename}" and its exclusive attachments have been deleted.`);
         }
     }
+
+    async openParent() {
+        let currentFile = app.workspace.getActiveFile();
+        if (!currentFile) {
+            new Notice("No active file.");
+            return;
+        }
+        let parentFile = this.getParentFolderNote(currentFile.path);
+        // 如果不存在，就返回
+        if (!app.vault.getAbstractFileByPath(parentFile)) {
+            new Notice("Parent note does not exist.");
+            return;
+        }
+        await app.workspace.openLinkText(parentFile, "", false);
+    }
     
     /**
      * 移除文件或文件夹如果是移动(通过app.isMobile判断），彻底删除，如果是电脑，移动到系统回收站
@@ -416,6 +431,17 @@ class Files {
     // 得到文件夹路径，例如输入 a/b/c.md 得到 a/b ，输入 a/b 得到 a
     getParentPath(filePath) {
         return filePath.split('/').slice(0, -1).join('/');
+    }
+
+    getParentFolderNote(filePath) {
+        let file = app.vault.getAbstractFileByPath(filePath);
+        if (this.isFolderNote(file)) {
+            let parentFolder = this.getParentPath(this.getParentPath(filePath));
+            return parentFolder + '/' + this.getFileName(parentFolder) + '.md';
+        } else {
+            let parentFolder = this.getParentPath(filePath);
+            return parentFolder + '/' + this.getFileName(parentFolder) + '.md';
+        }
     }
 
     // 得到文件(夹)名称，例如输入 a/b/c.md 得到 c.md ，输入 a/b 得到 b

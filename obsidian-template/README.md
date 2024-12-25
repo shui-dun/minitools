@@ -35,15 +35,21 @@ obsidian模板，包含任务清单、间隔复习笔记、习惯打卡等插件
 
 ![alt text](assets/image-4.png)
 
-## 其他功能
+## 其他插件
 
 包括但不限于：
 
-- 插入外部链接
-- 打开外部链接所在的文件夹
-- 文件归档
-- 文件漫游
+- 外部链接
+  - 插入外部链接
+  - 打开外部链接所在的文件夹
+- folder note 增强
+  - 创建 子 folder note
+  - 归档 folder note
+  - 移动 folder note
+  - 删除 folder note
+  - 跳转到 父 folder note
+- 笔记漫游
 - front-matter模板
 - 日期时间选择器
-- 创建子页面
-
+- 标题同步
+- 刷新页面

@@ -75,6 +75,15 @@ class Files {
 
     // 判断一个文件是否是folder note
     isFolderNote(file) {
+        // 如果file是字符串
+        if (typeof file === 'string') {
+            let pathArr = file.split('/');
+            let fileName = pathArr.pop();
+            // 去掉后缀（注意可能有多个.）
+            fileName = fileName.split('.').slice(0, -1).join('.');
+            let folderName = pathArr.pop();
+            return fileName === folderName;
+        }
         return file.basename === file.parent.name;
     }
 

@@ -433,6 +433,9 @@ class Files {
         return filePath.split('/').slice(0, -1).join('/');
     }
 
+    // 打开父folder note
+    // 例如对于 a/b/c.md，返回 a/b/b.md
+    // 对于 a/b/b.md，返回 a/a.md
     getParentFolderNote(filePath) {
         let file = app.vault.getAbstractFileByPath(filePath);
         if (this.isFolderNote(file)) {

@@ -204,18 +204,18 @@ Return
 #IfWinActive, ahk_exe WeChatAppEx.exe
 
 ; 微信小程序中使用拖动效果
-^Up::MoveMouse(0, -100)  ; Ctrl+上，向上移动100像素
-^Down::MoveMouse(0, 100)  ; Ctrl+下，向下移动100像素
-^Left::MoveMouse(-100, 0)  ; Ctrl+左，向左移动100像素
-^Right::MoveMouse(100, 0)  ; Ctrl+右，向右移动100像素
+Down::MoveMouse(0, -100)
+Up::MoveMouse(0, 100)
+Right::MoveMouse(-100, 0)
+Left::MoveMouse(100, 0)
+Space::Click  ; 空格键模拟鼠标左键点击(视频暂停/播放)
 
-; 定义一个通用函数处理鼠标移动
 MoveMouse(x, y)
 {
-	Click, Down  ; 按下鼠标左键
-	MouseMove, x, y, 0, R  ; 根据传入的x和y值移动鼠标，速度设置为最快
-	Click, Up  ; 释放鼠标左键
-	MouseMove, -x, -y, 0, R  ; 将光标移回初始位置
+	Click, Down
+	MouseMove, x, y, 0, R  ; 0表示速度设置为最快
+	Click, Up
+	MouseMove, -x, -y, 0, R
 	return
 }
 

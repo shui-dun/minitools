@@ -1,11 +1,11 @@
 ; 将字符串转换为Unicode并发送
 SendUnicode(str) {
-    unicodeString := ""
-    Loop, Parse, str
-    {
-        unicodeString .= "{" . Format("U+{:04X}", Asc(A_LoopField)) . "}"
-    }
-    SendInput, %unicodeString%
+	unicodeString := ""
+	Loop, Parse, str
+	{
+		unicodeString .= "{" . Format("U+{:04X}", Asc(A_LoopField)) . "}"
+	}
+	SendInput, %unicodeString%
 }
 
 ; 方向
@@ -212,11 +212,11 @@ Return
 ; 定义一个通用函数处理鼠标移动
 MoveMouse(x, y)
 {
-    Click, Down  ; 按下鼠标左键
-    MouseMove, x, y, 0, R  ; 根据传入的x和y值移动鼠标，速度设置为最快
-    Click, Up  ; 释放鼠标左键
+	Click, Down  ; 按下鼠标左键
+	MouseMove, x, y, 0, R  ; 根据传入的x和y值移动鼠标，速度设置为最快
+	Click, Up  ; 释放鼠标左键
 	MouseMove, -x, -y, 0, R  ; 将光标移回初始位置
-    return
+	return
 }
 
 #IfWinActive

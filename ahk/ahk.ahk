@@ -208,7 +208,7 @@ Down::MoveMouse(0, -100)
 Up::MoveMouse(0, 100)
 Right::MoveMouse(-100, 0)
 Left::MoveMouse(100, 0)
-Space::Click  ; 空格键模拟鼠标左键点击(视频暂停/播放)
+; Space::Click  ; 空格键模拟鼠标左键点击(视频暂停/播放)，但该功能导致打字出现问题，暂时废弃
 
 MoveMouse(x, y)
 {

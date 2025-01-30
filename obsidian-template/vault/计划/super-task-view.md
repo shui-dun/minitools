@@ -42,7 +42,13 @@ const tasks = dv.pages(`"${path}"`)
     // 日期升序排序，数字降序排序
     .sort(t => sortDue(t.due));
 
+for (let task of tasks) {
+	let file = task.path.split("/").pop();
+	task.text += ` \`(${file})\``;
+}
+
 if (tasks.length > 0) {
-    dv.taskList(tasks);
+    // dv.table(["", ""], tasks.map(t=>[t.text,t.link,t.header,t.section]));
+    dv.taskList(tasks, false);
 }
 ```

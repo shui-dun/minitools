@@ -263,6 +263,9 @@ class Files {
         }
     }
 
+    // 移动笔记
+    // 对于folder note，移动整个文件夹
+    // 否则，移动笔记及其附件
     async moveNote() {
         const modalForm = app.plugins.plugins.modalforms.api;
 

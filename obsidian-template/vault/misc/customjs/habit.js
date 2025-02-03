@@ -119,12 +119,16 @@ class Habit {
 		const habitID = fm.id;
 
 		/* 获取当前日期 */
-		let todayDate = moment().format("YYYY-MM-DD");
-		if (fm.daysOffset != null) {
-			todayDate = moment().add(fm.daysOffset, 'days').format("YYYY-MM-DD");
-			new Notice(`打卡时间被设置为${Math.abs(fm.daysOffset)}天${fm.daysOffset > 0 ? '后' : '前'}，即${todayDate}`);
+		let now = moment();
+		if (now.hour() < 4) {
+			now.subtract(1, 'day');
 		}
-
+		if (fm.daysOffset != null) {
+			now = now.add(fm.daysOffset, 'days');
+			new Notice(`打卡时间被设置为${Math.abs(fm.daysOffset)}天${fm.daysOffset > 0 ? '后' : '前'}，即${now.format('YYYY-MM-DD')}`);
+		}
+		let todayDate = now.format("YYYY-MM-DD");
+		
 		/* 让用户输入打卡次数 */
 		let count = 0;
 		if (fileName == '早睡') {

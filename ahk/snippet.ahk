@@ -70,6 +70,8 @@ AddPhrase(phrase, alias := "") {
 onKeyDown(wParam, lParam) {
     if (wParam = 13) {  ; 13 = VK_RETURN (回车键)
         PasteSelectedPhrase()
+    } else if (wParam = 27) {  ; 27 = VK_ESCAPE (Esc键)
+        Gui, Destroy
     }
 }
 

@@ -2,14 +2,14 @@
 #SingleInstance Force
 #NoTrayIcon
 
-; 短语选择器脚本
+; snippet管理器脚本
 global phraseList := []
 global snippetFilePath := "D:\file\cloud\misc\snippet.txt"
 
-; 从文件中读取短语
+; 从文件中读取snippet
 ReadPhrasesFromFile(snippetFilePath)
 
-; 函数：从文件读取短语并添加到phraseList
+; 函数：从文件读取snippet并添加到phraseList
 ReadPhrasesFromFile(filePath) {
     FileRead, fileContent, %filePath%
     Loop, Parse, fileContent, `n, `r
@@ -44,7 +44,7 @@ AddPhrase(phrase, alias := "") {
     Gui, +AlwaysOnTop +Resize ; 设置窗口属性：始终在顶部，可调整大小
     Gui, Font, s10
     
-    Gui, Add, Text,, 搜索短语: ; 添加一个文本标签
+    Gui, Add, Text,, 搜索snippet: ; 添加一个文本标签
 	; 添加一个宽度为400的编辑框
 	; v表示编辑框的内容将被存储在名为SearchTerm的变量中
 	; g表示当控件的事件发生时（如编辑框的内容发生变化），将跳转到该标签（UpdateList）执行相应的代码
@@ -53,8 +53,8 @@ AddPhrase(phrase, alias := "") {
 	; 选中的内容将存储在名为 PhraseListView 的变量中
 	; 当列表视图中的项目被选择或双击时，程序会跳转到该标签（SelectPhrase）执行相应的代码
 	; -Multi禁用多选功能
-	; 定义了三列标题：“序号” “短语” 和 “完整内容”
-    Gui, Add, ListView, r10 w400 vPhraseListView gSelectPhrase -Multi, 序号|短语|完整内容
+	; 定义了三列标题：“序号” “snippet” 和 “完整内容”
+    Gui, Add, ListView, r10 w400 vPhraseListView gSelectPhrase -Multi, 序号|snippet|完整内容
     Gui, Add, Button, gEditSnippet, 编辑
     
     UpdateListView("")
@@ -63,7 +63,7 @@ AddPhrase(phrase, alias := "") {
     OnMessage(0x100, "onKeyDown")
     
     ; 显示GUI
-    Gui, Show, w420 h300, 短语选择器
+    Gui, Show, w420 h300, snippet管理器
     return
 
 ; 处理键盘按键
@@ -93,12 +93,12 @@ UpdateListView(SearchTerm) {
     ; 清空列表
     LV_Delete()
     index := 1
-    ; 为每个匹配的短语添加列表项
+    ; 为每个匹配的snippet添加列表项
     for idx, item in phraseList
     {
         ; 确定显示文本
         displayText := (item.alias != "") ? item.alias : item.text
-        ; 创建用于搜索的文本（包含完整短语和别名）
+        ; 创建用于搜索的文本（包含完整snippet和别名）
         searchInText := item.text . " " . item.alias
         ; 如果搜索词为空或者在搜索文本中找到搜索词
         if (searchTerm = "" || InStr(searchInText, searchTerm)) {
@@ -124,12 +124,12 @@ SelectPhrase:
     }
     return
 
-; 粘贴选中的短语
+; 粘贴选中的snippet
 PasteSelectedPhrase() {
     ; 获取选中的行号
     row := LV_GetNext(0)
     if (row > 0) {  ; 确保有选中的行
-        ; 获取第二列的完整短语
+        ; 获取第二列的完整snippet
         LV_GetText(fullPhrase, row, 3)
         ; 复制到剪贴板
         Clipboard := fullPhrase
@@ -142,7 +142,7 @@ PasteSelectedPhrase() {
     }
 }
 
-; 通过索引选择短语
+; 通过索引选择snippet
 SelectPhraseByIndex(index) {
     if (index > 0 && index <= LV_GetCount()) {
         LV_Modify(index, "Select Focus")

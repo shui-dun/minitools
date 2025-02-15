@@ -38,7 +38,7 @@ AddPhrase(phrase, alias := "") {
 }
 
 ; 显示搜索对话框和列表框
-!+^s::
+!^z::
     Gui, Destroy ; 销毁已有的GUI
     Gui, +AlwaysOnTop +Resize ; 设置窗口属性：始终在顶部，可调整大小
     Gui, Font, s10
@@ -98,7 +98,7 @@ UpdateListView(SearchTerm) {
     }
     ; 自动调整列宽
     LV_ModifyCol(1, "AutoHdr")
-    LV_ModifyCol(2, 0)  ; 隐藏第二列（完整内容）
+    LV_ModifyCol(2, "AutoHdr")  ; 自动调整第二列（完整内容）的宽度
     ; 如果有项目，选中第一项
     if (LV_GetCount() > 0)
         LV_Modify(1, "Select Focus")

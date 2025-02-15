@@ -4,9 +4,10 @@
 
 ; 短语选择器脚本
 global phraseList := []
+global snippetFilePath := "D:\file\cloud\misc\snippet.txt"
 
 ; 从文件中读取短语
-ReadPhrasesFromFile("D:\file\cloud\misc\snippet.txt")
+ReadPhrasesFromFile(snippetFilePath)
 
 ; 函数：从文件读取短语并添加到phraseList
 ReadPhrasesFromFile(filePath) {
@@ -54,6 +55,7 @@ AddPhrase(phrase, alias := "") {
 	; -Multi禁用多选功能
 	; 定义了两列标题：“短语” 和 “完整内容”
     Gui, Add, ListView, r10 w400 vPhraseListView gSelectPhrase -Multi, 短语|完整内容
+    Gui, Add, Button, gEditSnippet, 编辑
     
     UpdateListView("")
     
@@ -128,3 +130,7 @@ PasteSelectedPhrase() {
         Send ^v
     }
 }
+
+EditSnippet:
+	Run, %snippetFilePath%
+return

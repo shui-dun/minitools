@@ -102,8 +102,6 @@ PasteSelectedPhrase() {
         LV_GetText(fullPhrase, row, 2)
         ; 复制到剪贴板
         Clipboard := fullPhrase
-        ; 取消消息钩子，但我发现不取消也没事不知道为啥
-        OnMessage(0x100, "")
         ; 关闭GUI
         Gui, Destroy
         ; 等待一下确保GUI完全关闭
@@ -112,11 +110,3 @@ PasteSelectedPhrase() {
         Send ^v
     }
 }
-
-; 处理GUI关闭
-GuiClose:
-GuiEscape:
-    ; 取消消息钩子，但我发现不取消也没事不知道为啥
-    OnMessage(0x100, "")
-    Gui, Destroy
-    return

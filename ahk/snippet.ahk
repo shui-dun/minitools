@@ -53,8 +53,8 @@ AddPhrase(phrase, alias := "") {
 	; 选中的内容将存储在名为 PhraseListView 的变量中
 	; 当列表视图中的项目被选择或双击时，程序会跳转到该标签（SelectPhrase）执行相应的代码
 	; -Multi禁用多选功能
-	; 定义了两列标题：“短语” 和 “完整内容”
-    Gui, Add, ListView, r10 w400 vPhraseListView gSelectPhrase -Multi, 短语|完整内容
+	; 定义了三列标题：“序号” “短语” 和 “完整内容”
+    Gui, Add, ListView, r10 w400 vPhraseListView gSelectPhrase -Multi, 序号|短语|完整内容
     Gui, Add, Button, gEditSnippet, 编辑
     
     UpdateListView("")
@@ -72,6 +72,11 @@ onKeyDown(wParam, lParam) {
         PasteSelectedPhrase()
     } else if (wParam = 27) {  ; 27 = VK_ESCAPE (Esc键)
         Gui, Destroy
+    } else if (wParam >= 49 && wParam <= 57) {  ; Ctrl+1 to Ctrl+9
+        if (GetKeyState("Ctrl", "P")) {
+            index := wParam - 48
+            SelectPhraseByIndex(index)
+        }
     }
 }
 
@@ -87,8 +92,9 @@ UpdateListView(SearchTerm) {
     global phraseList
     ; 清空列表
     LV_Delete()
+    index := 1
     ; 为每个匹配的短语添加列表项
-    for index, item in phraseList
+    for idx, item in phraseList
     {
         ; 确定显示文本
         displayText := (item.alias != "") ? item.alias : item.text
@@ -96,13 +102,16 @@ UpdateListView(SearchTerm) {
         searchInText := item.text . " " . item.alias
         ; 如果搜索词为空或者在搜索文本中找到搜索词
         if (searchTerm = "" || InStr(searchInText, searchTerm)) {
+            indexText := (index <= 9) ? index : ""
             ; 添加到列表视图
-            LV_Add("", displayText, item.text)
+            LV_Add("", indexText, displayText, item.text)
+            index++
         }
     }
     ; 自动调整列宽
     LV_ModifyCol(1, "AutoHdr")
-    LV_ModifyCol(2, "AutoHdr")  ; 自动调整第二列（完整内容）的宽度
+    LV_ModifyCol(2, "AutoHdr")
+    LV_ModifyCol(3, "AutoHdr")  ; 自动调整第三列（完整内容）的宽度
     ; 如果有项目，选中第一项
     if (LV_GetCount() > 0)
         LV_Modify(1, "Select Focus")
@@ -121,7 +130,7 @@ PasteSelectedPhrase() {
     row := LV_GetNext(0)
     if (row > 0) {  ; 确保有选中的行
         ; 获取第二列的完整短语
-        LV_GetText(fullPhrase, row, 2)
+        LV_GetText(fullPhrase, row, 3)
         ; 复制到剪贴板
         Clipboard := fullPhrase
         ; 关闭GUI
@@ -130,6 +139,14 @@ PasteSelectedPhrase() {
         Sleep, 100
         ; 粘贴文本
         Send ^v
+    }
+}
+
+; 通过索引选择短语
+SelectPhraseByIndex(index) {
+    if (index > 0 && index <= LV_GetCount()) {
+        LV_Modify(index, "Select Focus")
+        PasteSelectedPhrase()
     }
 }
 

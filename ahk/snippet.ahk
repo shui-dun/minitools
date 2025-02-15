@@ -5,15 +5,24 @@
 ; 短语选择器脚本
 global phraseList := []
 
-; 添加短语，可选别名（如果不需要别名，第二个参数留空）
-AddPhrase("您好，很高兴为您服务。", "问候")
-AddPhrase("感谢您的来信，我们会尽快回复。", "感谢信")
-AddPhrase("如有任何疑问，请随时联系我。")
-AddPhrase("请确认您已收到此信息。", "确认接收")
-AddPhrase("祝您有美好的一天！")
-AddPhrase("根据我们公司的政策，所有申请将在5个工作日内处理完毕。如有特殊情况，我们会及时通知您。", "处理政策")
-AddPhrase("我们已收到您的反馈，技术团队正在解决此问题。我们将在24小时内回复您。", "技术支持")
-AddPhrase("此为自动回复邮件，请勿直接回复。") ; 原代码这里有个拼写错误 AddPhrase
+; 从文件中读取短语
+ReadPhrasesFromFile("D:\file\cloud\misc\snippet.txt")
+
+; 函数：从文件读取短语并添加到phraseList
+ReadPhrasesFromFile(filePath) {
+    FileRead, fileContent, %filePath%
+    Loop, Parse, fileContent, `n, `r
+    {
+        line := A_LoopField
+        if (line != "") {
+            StringSplit, parts, line, %A_Tab% ; 使用Tab作为分隔符
+            alias := Trim(parts1)
+            phrase := Trim(parts2)
+            phrase := StrReplace(phrase, "\n", "`n") ; 替换\n为换行符
+            AddPhrase(phrase, alias)
+        }
+    }
+}
 
 AddPhrase(phrase, alias := "") {
     global phraseList

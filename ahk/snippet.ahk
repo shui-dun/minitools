@@ -151,5 +151,6 @@ SelectPhraseByIndex(index) {
 }
 
 EditSnippet:
-	Run, %snippetFilePath%
+    Gui, Destroy ; 关闭窗口
+    Run, %snippetFilePath%
 return

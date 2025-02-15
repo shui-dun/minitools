@@ -1,27 +1,16 @@
-#Warn  ; 启用警告
+#Warn ; 启用警告
 #SingleInstance Force ; 如果脚本已经在运行，则终止旧实例并启动新实例
 
-#Include snippet.ahk
+; 下述脚本暴露了太多了变量、函数、标签
+; 而ahk的封装性差得离谱
+; 为了不污染全局命名空间
+; 所以将这些脚本放在新的进程中运行
+Run, snippet.ahk
+
+; 引入其他脚本
+#Include misc.ahk
 #Include markdown.ahk
 #Include pdf.ahk
 #Include terminal.ahk
 ; #Include vim.ahk
 #Include wechat.ahk
-
-; ; 方向
-; !Left::SendInput {Home}
-; !Right::SendInput {End}
-; !Up::SendInput {PgUp}
-; !Down::SendInput {PgDn}
-
-; +!Left::SendInput +{Home}
-; +!Right::SendInput +{End}
-; +!Up::SendInput +{PgUp}
-; +!Down::SendInput +{PgDn}
-
-; 播放视频时手工模拟下一帧
-^!+Right::
-	SendInput {Space}
-	sleep 25
-	SendInput {Space}
-Return

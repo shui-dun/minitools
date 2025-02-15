@@ -1,4 +1,8 @@
-﻿; 短语选择器脚本
+﻿#Warn
+#SingleInstance Force
+#NoTrayIcon
+
+; 短语选择器脚本
 global phraseList := []
 
 ; 添加短语，可选别名（如果不需要别名，第二个参数留空）

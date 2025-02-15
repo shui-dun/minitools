@@ -15,9 +15,14 @@ ReadPhrasesFromFile(filePath) {
     {
         line := A_LoopField
         if (line != "") {
-            StringSplit, parts, line, %A_Tab% ; 使用Tab作为分隔符
-            alias := Trim(parts1)
-            phrase := Trim(parts2)
+            tabPos := InStr(line, A_Tab) ; 使用Tab作为分隔符
+            if (tabPos > 0) {
+                alias := Trim(SubStr(line, 1, tabPos - 1))
+                phrase := Trim(SubStr(line, tabPos + 1))
+            } else { ; 没有别名的情况
+                alias := ""
+                phrase := Trim(line)
+            }
             phrase := StrReplace(phrase, "\n", "`n") ; 替换\n为换行符
             AddPhrase(phrase, alias)
         }

@@ -158,7 +158,7 @@ class SnippetManager {
         editGui.Add("Text",, "短语:")
         aliasEdit := editGui.Add("Edit", "w600", alias)
         editGui.Add("Text",, "完整内容:")
-        phraseEdit := editGui.Add("Edit", "w600 r10", phrase)
+        phraseEdit := editGui.Add("Edit", "w600 r20", phrase)
         
         btnSave := editGui.Add("Button", "x10", "保存")
         btnSave.OnEvent("Click", (*) => this.SaveSnippet(mode, row, aliasEdit.Value, phraseEdit.Value, editGui))

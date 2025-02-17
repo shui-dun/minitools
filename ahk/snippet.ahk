@@ -44,6 +44,8 @@ class SnippetManager {
     }
     
     ShowMainGui() {
+        if (this.mainGui)
+            this.CleanupAndDestroy()
         this.mainGui := Gui("+Resize", "snippet管理器")
         this.mainGui.SetFont("s12")
         this.mainGui.MarginX := 10

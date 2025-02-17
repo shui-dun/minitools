@@ -8,6 +8,7 @@ import psutil
 import wx
 import wx.adv
 import yaml
+import ctypes
 
 def load_config():
     config_path = os.path.join(os.path.dirname(__file__), "config.json")
@@ -123,6 +124,9 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
 
 class App(wx.App):
     def OnInit(self):
+        # 启用高 DPI 支持，否则字体模糊
+        if wx.Platform == "__WXMSW__":
+            ctypes.OleDLL('shcore').SetProcessDpiAwareness(1)
         config = load_config()
         self.tbIcon = TaskBarIcon(config)
         return True

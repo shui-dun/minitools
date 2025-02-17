@@ -139,6 +139,8 @@ PasteSelectedPhrase() {
     if (selectedRow > 0) {  ; 确保有选中的行
         ; 获取第二列的完整snippet
         LV_GetText(fullPhrase, selectedRow, 3)
+        ; 保存当前剪贴板内容
+        ClipSaved := ClipboardAll
         ; 复制到剪贴板
         Clipboard := fullPhrase
         ; 关闭GUI
@@ -147,6 +149,8 @@ PasteSelectedPhrase() {
         Sleep, 100
         ; 粘贴文本
         Send ^v
+        ; 恢复剪贴板内容
+        Clipboard := ClipSaved
     }
 }
 

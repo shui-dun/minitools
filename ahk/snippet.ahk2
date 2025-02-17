@@ -7,6 +7,7 @@ class SnippetManager {
     snippets := []
     mainGui := ""
     listView := ""  ; 添加ListView引用
+    keyDownHandler := ""
     
     __New() {
         this.ReadSnippets()
@@ -68,13 +69,38 @@ class SnippetManager {
         btnConfig := this.mainGui.Add("Button", "x265 y290 w80", "配置文件")
         btnConfig.OnEvent("Click", (*) => Run(this.snippetFilePath))
         
-        ; 设置快捷键
-        this.mainGui.OnEvent("Close", (*) => this.mainGui.Destroy())
-        this.mainGui.OnEvent("Escape", (*) => this.mainGui.Destroy())
+        ; 注册消息处理
+        this.keyDownHandler := ObjBindMethod(this, "HandleKeyDown")
+        OnMessage(0x0100, this.keyDownHandler) ; WM_KEYDOWN
+        this.mainGui.OnEvent("Close", (*) => this.CleanupAndDestroy())
+        this.mainGui.OnEvent("Escape", (*) => this.CleanupAndDestroy())
         
         ; 初始显示所有snippets
         this.UpdateListView("")
         this.mainGui.Show("w620 h330")
+    }
+
+    HandleKeyDown(wParam, lParam, msg, hwnd) {
+        ; 检查Enter键 (13)
+        if (wParam = 13) {
+            this.PasteSelectedSnippet()
+            return
+        }
+
+        ; 检查Ctrl+1到Ctrl+9（使用 "P" 参数判断物理状态）
+        if (GetKeyState("Control", "P") && wParam >= 49 && wParam <= 57) {
+            index := wParam - 48  ; 转换为数字
+            if (this.listView.GetCount() >= index) {
+                this.listView.Modify(0, "-Select")  ; 取消所有选择
+                this.listView.Modify(index, "Select Focus")
+                this.PasteSelectedSnippet()
+            }
+        }
+    }
+
+    CleanupAndDestroy() {
+        OnMessage(0x0100, this.keyDownHandler, 0)  ; 必须要移除消息处理
+        this.mainGui.Destroy()
     }
     
     UpdateListView(searchTerm) {
@@ -104,7 +130,7 @@ class SnippetManager {
         if (selectedRow := this.listView.GetNext(0)) {
             fullPhrase := this.listView.GetText(selectedRow, 3)
             A_Clipboard := fullPhrase
-            this.mainGui.Destroy()
+            this.CleanupAndDestroy()
             Sleep(100)
             Send("^v")
         }

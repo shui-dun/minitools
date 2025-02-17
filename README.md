@@ -4,6 +4,7 @@
 
 ## 工具列表
 
+- [stretchlyMonitor](./stretchlyMonitor) 记录stretchly退出次数，并与obsidian的习惯打卡相关联
 - [obsidian-template](./obsidian-template) obsidian模板，包含任务清单、间隔复习笔记、习惯打卡等插件
 - [replaceText](./replaceText) 替换指定文件夹下指定格式的文件中的指定文本
 - [pipenvInstaller](./pipenvInstaller) 指定一个pipenv项目中的python文件，会自动安装项目所需的python环境，并为该文件创建快捷方式。

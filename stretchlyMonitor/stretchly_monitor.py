@@ -30,10 +30,16 @@ def parse_log(filepath):
         return empty_data
     frontmatter = m.group(1)
     data = yaml.safe_load(frontmatter)
+    # 把historyDates转化为字符串格式
+    if "historyDates" in data:
+        data["historyDates"] = [date.strftime("%Y-%m-%d") if isinstance(date, datetime.date) else date for date in data["historyDates"]]
     return data if data else empty_data
 
 # 将前言 YAML 部分写回文件
 def update_log(filepath, data):
+    # 把historyDates转化为日期格式
+    if "historyDates" in data:
+        data["historyDates"] = [datetime.datetime.strptime(date, "%Y-%m-%d").date() for date in data["historyDates"]]
     frontmatter = "---\n"
     frontmatter += yaml.dump(data, allow_unicode=True, default_flow_style=False, sort_keys=False)
     frontmatter += "---\n"

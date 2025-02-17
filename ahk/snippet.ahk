@@ -74,7 +74,9 @@ class SnippetManager {
         btnConfig := this.mainGui.Add("Button", "x+5 w80", "配置文件")
         btnConfig.OnEvent("Click", (*) => Run(this.snippetFilePath))
         
-        ; 注册消息处理
+        ; 注册消息处理，没有提供诸如this.mainGui.OnEvent("KeyDown", xxx)的方法也太不健壮了，导致：
+        ; 1. 只能监听全局按键，需要判断当前窗口是否是mainGui
+        ; 2. 销毁窗口时还需要手动移除消息处理，消息处理的生命周期没有被绑定到窗口上
         this.keyDownHandler := ObjBindMethod(this, "HandleKeyDown")
         OnMessage(0x0100, this.keyDownHandler) ; WM_KEYDOWN
         this.mainGui.OnEvent("Close", (*) => this.CleanupAndDestroy())
@@ -86,6 +88,10 @@ class SnippetManager {
     }
 
     HandleKeyDown(wParam, lParam, msg, hwnd) {
+        ; 检查当前窗口是否是mainGui
+        if (!this.mainGui || !WinActive("ahk_id " this.mainGui.Hwnd))
+            return
+
         ; 检查Enter键 (13)
         if (wParam = 13) {
             this.PasteSelectedSnippet()

@@ -43,29 +43,29 @@ class SnippetManager {
     }
     
     ShowMainGui() {
-        this.mainGui := Gui("+AlwaysOnTop +Resize", "snippet管理器")
-        this.mainGui.SetFont("s10")
+        this.mainGui := Gui("+Resize", "snippet管理器")
+        this.mainGui.SetFont("s12")
         
         ; 添加搜索框
         this.mainGui.Add("Text",, "搜索snippet:")
-        searchBox := this.mainGui.Add("Edit", "w400")
+        searchBox := this.mainGui.Add("Edit", "w600")
         searchBox.OnEvent("Change", (ctrl, *) => this.UpdateListView(searchBox.Value))
         
         ; 添加列表视图并保存引用
-        this.listView := this.mainGui.Add("ListView", "r10 w400 -Multi", ["序号", "snippet", "完整内容"])
+        this.listView := this.mainGui.Add("ListView", "r10 w600 -Multi", ["序号", "snippet", "完整内容"])
         this.listView.OnEvent("DoubleClick", (ctrl, *) => this.PasteSelectedSnippet())
         
         ; 添加按钮
-        btnAdd := this.mainGui.Add("Button", "x10 y240 w80", "添加")
+        btnAdd := this.mainGui.Add("Button", "x10 y290 w80", "添加")
         btnAdd.OnEvent("Click", (*) => this.ShowAddSnippetGui())
         
-        btnDelete := this.mainGui.Add("Button", "x95 y240 w80", "删除")
+        btnDelete := this.mainGui.Add("Button", "x95 y290 w80", "删除")
         btnDelete.OnEvent("Click", (*) => this.DeleteSelectedSnippet())
         
-        btnEdit := this.mainGui.Add("Button", "x180 y240 w80", "编辑")
+        btnEdit := this.mainGui.Add("Button", "x180 y290 w80", "编辑")
         btnEdit.OnEvent("Click", (*) => this.EditSelectedSnippet())
         
-        btnConfig := this.mainGui.Add("Button", "x265 y240 w80", "配置文件")
+        btnConfig := this.mainGui.Add("Button", "x265 y290 w80", "配置文件")
         btnConfig.OnEvent("Click", (*) => Run(this.snippetFilePath))
         
         ; 设置快捷键
@@ -74,7 +74,7 @@ class SnippetManager {
         
         ; 初始显示所有snippets
         this.UpdateListView("")
-        this.mainGui.Show("w420 h300")
+        this.mainGui.Show("w620 h330")
     }
     
     UpdateListView(searchTerm) {

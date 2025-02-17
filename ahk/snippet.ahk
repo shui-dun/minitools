@@ -11,6 +11,7 @@ ReadPhrasesFromFile(snippetFilePath)
 
 ; 函数：从文件读取snippet并添加到phraseList
 ReadPhrasesFromFile(filePath) {
+    phraseList := [] ; 清空phraseList
     FileRead, fileContent, %filePath%
     Loop, Parse, fileContent, `n, `r
     {
@@ -18,14 +19,14 @@ ReadPhrasesFromFile(filePath) {
         if (line != "") {
             tabPos := InStr(line, A_Tab) ; 使用Tab作为分隔符
             if (tabPos > 0) {
-                alias := Trim(SubStr(line, 1, tabPos - 1))
-                phrase := Trim(SubStr(line, tabPos + 1))
+                localAlias := Trim(SubStr(line, 1, tabPos - 1))
+                localPhrase := Trim(SubStr(line, tabPos + 1))
             } else { ; 没有别名的情况
-                alias := ""
-                phrase := Trim(line)
+                localAlias := ""
+                localPhrase := Trim(line)
             }
-            phrase := StrReplace(phrase, "\n", "`n") ; 替换\n为换行符
-            AddPhrase(phrase, alias)
+            localPhrase := StrReplace(localPhrase, "\n", "`n") ; 替换\n为换行符
+            AddPhrase(localPhrase, localAlias)
         }
     }
 }
@@ -55,7 +56,11 @@ AddPhrase(phrase, alias := "") {
 	; -Multi禁用多选功能
 	; 定义了三列标题：“序号” “snippet” 和 “完整内容”
     Gui, Add, ListView, r10 w400 vPhraseListView gSelectPhrase -Multi, 序号|snippet|完整内容
-    Gui, Add, Button, gEditSnippet, 编辑
+    ; 使用固定坐标定位按钮，确保它们在同一行
+    Gui, Add, Button, x10 y240 w80 gAddSnippet, 添加
+    Gui, Add, Button, x95 y240 w80 gDeleteSnippet, 删除
+    Gui, Add, Button, x180 y240 w80 gEditSelectedSnippet, 编辑
+    Gui, Add, Button, x265 y240 w80 gEditSnippet, 编辑文件
     
     UpdateListView("")
     
@@ -74,8 +79,8 @@ onKeyDown(wParam, lParam) {
         Gui, Destroy
     } else if (wParam >= 49 && wParam <= 57) {  ; Ctrl+1 to Ctrl+9
         if (GetKeyState("Ctrl", "P")) {
-            index := wParam - 48
-            SelectPhraseByIndex(index)
+            rowNum := wParam - 48
+            SelectPhraseByIndex(rowNum)
         }
     }
 }
@@ -127,10 +132,10 @@ SelectPhrase:
 ; 粘贴选中的snippet
 PasteSelectedPhrase() {
     ; 获取选中的行号
-    row := LV_GetNext(0)
-    if (row > 0) {  ; 确保有选中的行
+    local selectedRow := LV_GetNext(0)
+    if (selectedRow > 0) {  ; 确保有选中的行
         ; 获取第二列的完整snippet
-        LV_GetText(fullPhrase, row, 3)
+        LV_GetText(fullPhrase, selectedRow, 3)
         ; 复制到剪贴板
         Clipboard := fullPhrase
         ; 关闭GUI
@@ -154,3 +159,119 @@ EditSnippet:
     Gui, Destroy ; 关闭窗口
     Run, %snippetFilePath%
 return
+
+AddSnippet:
+    CreateSnippetGUI("add")
+return
+
+DeleteSnippet:
+    row := LV_GetNext(0)
+    if (row > 0) {
+        ; 获取选中的别名和完整内容
+        LV_GetText(selAlias, row, 2)
+        LV_GetText(selPhrase, row, 3)
+        ; 从文件中删除选中行
+        RemoveLineFromFile(snippetFilePath, selAlias, selPhrase)
+        ; 重新读取文件内容并更新列表
+        ReadPhrasesFromFile(snippetFilePath)
+        UpdateListView("")
+    }
+    return
+
+EditSelectedSnippet:
+    row := LV_GetNext(0)
+    if (row > 0) {
+        ; 获取选中的别名和完整内容
+        LV_GetText(selAlias, row, 2)
+        LV_GetText(selPhrase, row, 3)
+        CreateSnippetGUI("edit", row, selAlias, selPhrase)
+    }
+return
+
+CreateSnippetGUI(mode, row := 0, alias := "", phrase := "") {
+    Gui, New, +AlwaysOnTop
+    Gui, Add, Text,, 短语:
+    Gui, Add, Edit, vAliasInput w400, %alias% ; 调整宽度为400
+    Gui, Add, Text,, 完整内容:
+    Gui, Add, Edit, vPhraseInput w400 r10, %phrase% ; 调整宽度为400，高度为10行
+    ; 修改保存和取消按钮布局
+    Gui, Add, Button, x10 gSaveSnippet, 保存
+    Gui, Add, Button, x+5 gCancelSnippet, 取消
+    Gui, Show,, % (mode="add" ? "添加" : "编辑")
+    Gui, +OwnDialogs
+    ; 用于标记是新增还是编辑，以及行号
+    GuiControl,, AliasInput, %alias%
+    GuiControl,, PhraseInput, %phrase%
+    Global snippetMode := mode, snippetRow := row
+}
+
+SaveSnippet:
+    Gui, Submit
+    alias := AliasInput
+    phraseForFile := StrReplace(PhraseInput, "`n", "\n")
+    if (snippetMode = "add") {
+        InsertNewSnippetAtTop(snippetFilePath, alias, phraseForFile)
+    } else {
+        EditLineInFile(snippetFilePath, snippetRow, alias, phraseForFile)
+    }
+    Gui, Destroy
+    ; 重新读取文件内容并更新列表
+    ReadPhrasesFromFile(snippetFilePath)
+    ; 等待100ms
+    Sleep, 100
+    UpdateListView("")
+    return
+
+CancelSnippet:
+    Gui, Destroy
+return
+
+RemoveLineFromFile(filePath, targetAlias, targetPhrase) {
+    FileRead, fileContent, %filePath%
+    lines := StrSplit(fileContent, "`n", "`r")
+    newContent := ""
+    Loop, % lines.MaxIndex() {
+        currentLine := Trim(lines[A_Index])
+        if (currentLine = "")
+            continue
+            
+        tabPos := InStr(currentLine, A_Tab)
+        if (tabPos > 0) {
+            currentAlias := Trim(SubStr(currentLine, 1, tabPos - 1))
+            currentPhrase := StrReplace(Trim(SubStr(currentLine, tabPos + 1)), "\n", "`n")
+        } else {
+            currentAlias := ""
+            currentPhrase := StrReplace(Trim(currentLine), "\n", "`n")
+        }
+        
+        if (currentAlias != targetAlias || currentPhrase != targetPhrase)
+            newContent .= currentLine . "`r`n"
+    }
+    FileDelete, %filePath%
+    FileAppend, % RTrim(newContent, "`r`n"), %filePath%
+}
+
+EditLineInFile(filePath, targetRow, alias, phrase) {
+    FileRead, fileContent, %filePath%
+    lines := StrSplit(fileContent, "`n", "`r")
+    newContent := ""
+    Loop, % lines.MaxIndex() {
+        currentLine := Trim(lines[A_Index])
+        if (currentLine = "")
+            continue
+            
+        if (A_Index = targetRow)
+            newContent .= (alias ? alias : "") . A_Tab . phrase . "`r`n"
+        else
+            newContent .= currentLine . "`r`n"
+    }
+    FileDelete, %filePath%
+    FileAppend, % RTrim(newContent, "`r`n"), %filePath%
+}
+
+InsertNewSnippetAtTop(filePath, alias, phrase) {
+    FileRead, fileContent, %filePath%
+    newContent := (alias ? alias : "") . A_Tab . phrase . "`r`n" . fileContent
+    FileDelete, %filePath%
+    FileAppend, % RTrim(newContent, "`r`n"), %filePath%
+}

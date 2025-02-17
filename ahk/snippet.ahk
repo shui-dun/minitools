@@ -41,26 +41,26 @@ AddPhrase(phrase, alias := "") {
 
 ; 显示搜索对话框和列表框
 !^z::
-    Gui, Destroy ; 销毁已有的GUI
-    Gui, +AlwaysOnTop +Resize ; 设置窗口属性：始终在顶部，可调整大小
-    Gui, Font, s10
+    Gui, 1:Destroy ; 销毁已有的GUI
+    Gui, 1:+AlwaysOnTop +Resize ; 设置窗口属性：始终在顶部，可调整大小
+    Gui, 1:Font, s10
     
-    Gui, Add, Text,, 搜索snippet: ; 添加一个文本标签
+    Gui, 1:Add, Text,, 搜索snippet: ; 添加一个文本标签
 	; 添加一个宽度为400的编辑框
 	; v表示编辑框的内容将被存储在名为SearchTerm的变量中
 	; g表示当控件的事件发生时（如编辑框的内容发生变化），将跳转到该标签（UpdateList）执行相应的代码
-    Gui, Add, Edit, vSearchTerm w400 gUpdateList
+    Gui, 1:Add, Edit, vSearchTerm w400 gUpdateList
 	; 添加一个高度为10行、宽度为400的列表视图
 	; 选中的内容将存储在名为 PhraseListView 的变量中
 	; 当列表视图中的项目被选择或双击时，程序会跳转到该标签（SelectPhrase）执行相应的代码
 	; -Multi禁用多选功能
 	; 定义了三列标题：“序号” “snippet” 和 “完整内容”
-    Gui, Add, ListView, r10 w400 vPhraseListView gSelectPhrase -Multi, 序号|snippet|完整内容
-    ; 使用固定坐标定位按钮，确保它们在同一行
-    Gui, Add, Button, x10 y240 w80 gAddSnippet, 添加
-    Gui, Add, Button, x95 y240 w80 gDeleteSnippet, 删除
-    Gui, Add, Button, x180 y240 w80 gEditSelectedSnippet, 编辑
-    Gui, Add, Button, x265 y240 w80 gEditSnippet, 编辑文件
+    Gui, 1:Add, ListView, r10 w400 vPhraseListView gSelectPhrase -Multi, 序号|snippet|完整内容
+    ; 使用固定坐标定位按钮，确保它们在同一行，之后再找有没有更优雅的排版方法
+    Gui, 1:Add, Button, x10 y240 w80 gAddSnippet, 添加
+    Gui, 1:Add, Button, x95 y240 w80 gDeleteSnippet, 删除
+    Gui, 1:Add, Button, x180 y240 w80 gEditSelectedSnippet, 编辑
+    Gui, 1:Add, Button, x265 y240 w80 gEditSnippet, 配置文件
     
     UpdateListView("")
     
@@ -68,7 +68,7 @@ AddPhrase(phrase, alias := "") {
     OnMessage(0x100, "onKeyDown")
     
     ; 显示GUI
-    Gui, Show, w420 h300, snippet管理器
+    Gui, 1:Show, w420 h300, snippet管理器
     return
 
 ; 处理键盘按键
@@ -94,6 +94,7 @@ UpdateList:
 
 ; 更新列表视图
 UpdateListView(SearchTerm) {
+    Gui, 1:Default  ; 确保操作的是主窗口的ListView
     global phraseList
     ; 清空列表
     LV_Delete()
@@ -189,24 +190,23 @@ EditSelectedSnippet:
 return
 
 CreateSnippetGUI(mode, row := 0, alias := "", phrase := "") {
-    Gui, New, +AlwaysOnTop
-    Gui, Add, Text,, 短语:
-    Gui, Add, Edit, vAliasInput w400, %alias% ; 调整宽度为400
-    Gui, Add, Text,, 完整内容:
-    Gui, Add, Edit, vPhraseInput w400 r10, %phrase% ; 调整宽度为400，高度为10行
-    ; 修改保存和取消按钮布局
-    Gui, Add, Button, x10 gSaveSnippet, 保存
-    Gui, Add, Button, x+5 gCancelSnippet, 取消
-    Gui, Show,, % (mode="add" ? "添加" : "编辑")
-    Gui, +OwnDialogs
-    ; 用于标记是新增还是编辑，以及行号
-    GuiControl,, AliasInput, %alias%
-    GuiControl,, PhraseInput, %phrase%
+    ; 使用GUI 2来创建编辑窗口，与主窗口(GUI 1)分开
+    Gui, 2:New, +AlwaysOnTop
+    Gui, 2:Add, Text,, 短语:
+    Gui, 2:Add, Edit, vAliasInput w400, %alias%
+    Gui, 2:Add, Text,, 完整内容:
+    Gui, 2:Add, Edit, vPhraseInput w400 r10, %phrase%
+    Gui, 2:Add, Button, x10 g2SaveSnippet, 保存
+    Gui, 2:Add, Button, x+5 g2CancelSnippet, 取消
+    Gui, 2:Show,, % (mode="add" ? "添加" : "编辑")
+    Gui, 2:+OwnDialogs
+    GuiControl, 2:, AliasInput, %alias%
+    GuiControl, 2:, PhraseInput, %phrase%
     Global snippetMode := mode, snippetRow := row
 }
 
-SaveSnippet:
-    Gui, Submit
+2SaveSnippet:
+    Gui, 2:Submit
     alias := AliasInput
     phraseForFile := StrReplace(PhraseInput, "`n", "\n")
     if (snippetMode = "add") {
@@ -214,16 +214,16 @@ SaveSnippet:
     } else {
         EditLineInFile(snippetFilePath, snippetRow, alias, phraseForFile)
     }
-    Gui, Destroy
-    ; 重新读取文件内容并更新列表
+    Gui, 2:Destroy
+    ; 重新读取文件内容
     ReadPhrasesFromFile(snippetFilePath)
-    ; 等待100ms
-    Sleep, 100
+    ; 清空主窗口的列表视图并更新
+    Gui, 1:Default  ; 设置默认GUI为主窗口
     UpdateListView("")
     return
 
-CancelSnippet:
-    Gui, Destroy
+2CancelSnippet:
+    Gui, 2:Destroy
 return
 
 RemoveLineFromFile(filePath, targetAlias, targetPhrase) {

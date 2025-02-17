@@ -181,6 +181,20 @@ DeleteSnippet:
         ; 获取选中的别名和完整内容
         LV_GetText(selAlias, row, 2)
         LV_GetText(selPhrase, row, 3)
+        
+        ; 临时取消窗口置顶
+        Gui, 1:-AlwaysOnTop
+        ; 确认删除
+        MsgBox, 4, 确认删除, 确定要删除该snippet吗？`n别名: %selAlias%
+        ; 恢复窗口置顶
+        Gui, 1:+AlwaysOnTop
+        
+        ; IfMsgBox用于检查最近显示的消息框的用户响应
+        ; ahk很多这种类似全局变量的设计，就像c的errno一样
+        ; 这样对多线程很不友好，
+        ; 即使是单线程，如果有多个消息框，也容易出错
+        IfMsgBox, No 
+            return
         ; 从文件中删除选中行
         RemoveLineFromFile(snippetFilePath, selAlias, selPhrase)
         ; 重新读取文件内容并更新列表

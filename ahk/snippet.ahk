@@ -140,10 +140,14 @@ class SnippetManager {
     PasteSelectedSnippet() {
         if (selectedRow := this.listView.GetNext(0)) {
             fullPhrase := this.listView.GetText(selectedRow, 3)
+            originalClipboard := A_Clipboard
+            Sleep(100)
             A_Clipboard := fullPhrase
             this.CleanupAndDestroy()
             Sleep(100)
             Send("^v")
+            Sleep(100)
+            A_Clipboard := originalClipboard
         }
     }
     

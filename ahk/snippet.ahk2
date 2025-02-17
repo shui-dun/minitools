@@ -46,27 +46,32 @@ class SnippetManager {
     ShowMainGui() {
         this.mainGui := Gui("+Resize", "snippet管理器")
         this.mainGui.SetFont("s12")
+        this.mainGui.MarginX := 10
+        this.mainGui.MarginY := 10
         
         ; 添加搜索框
         this.mainGui.Add("Text",, "搜索snippet:")
-        searchBox := this.mainGui.Add("Edit", "w600")
+        searchBox := this.mainGui.Add("Edit", "w600 Section", "")  ; 使用 Section 标记位置
         searchBox.OnEvent("Change", (ctrl, *) => this.UpdateListView(searchBox.Value))
         
         ; 添加列表视图并保存引用
-        this.listView := this.mainGui.Add("ListView", "r10 w600 -Multi", ["序号", "snippet", "完整内容"])
+        this.listView := this.mainGui.Add("ListView", "xs w600 r10 -Multi", ["序号", "snippet", "完整内容"])
         this.listView.OnEvent("DoubleClick", (ctrl, *) => this.PasteSelectedSnippet())
         
-        ; 添加按钮
-        btnAdd := this.mainGui.Add("Button", "x10 y290 w80", "添加")
+        ; 创建按钮容器
+        buttonGroup := this.mainGui.Add("GroupBox", "xs w600 h50", "")  ; 创建一个不可见的组来容纳按钮
+        
+        ; 添加按钮并使用相对定位
+        btnAdd := this.mainGui.Add("Button", "xp+10 yp+15 w80", "添加")
         btnAdd.OnEvent("Click", (*) => this.ShowAddSnippetGui())
         
-        btnDelete := this.mainGui.Add("Button", "x95 y290 w80", "删除")
+        btnDelete := this.mainGui.Add("Button", "x+5 w80", "删除")
         btnDelete.OnEvent("Click", (*) => this.DeleteSelectedSnippet())
         
-        btnEdit := this.mainGui.Add("Button", "x180 y290 w80", "编辑")
+        btnEdit := this.mainGui.Add("Button", "x+5 w80", "编辑")
         btnEdit.OnEvent("Click", (*) => this.EditSelectedSnippet())
         
-        btnConfig := this.mainGui.Add("Button", "x265 y290 w80", "配置文件")
+        btnConfig := this.mainGui.Add("Button", "x+5 w80", "配置文件")
         btnConfig.OnEvent("Click", (*) => Run(this.snippetFilePath))
         
         ; 注册消息处理
@@ -77,7 +82,7 @@ class SnippetManager {
         
         ; 初始显示所有snippets
         this.UpdateListView("")
-        this.mainGui.Show("w620 h330")
+        this.mainGui.Show("w620 h350")
     }
 
     HandleKeyDown(wParam, lParam, msg, hwnd) {

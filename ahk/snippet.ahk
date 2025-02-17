@@ -22,8 +22,10 @@ ReadPhrasesFromFile(filePath) {
                 localAlias := Trim(SubStr(line, 1, tabPos - 1))
                 localPhrase := Trim(SubStr(line, tabPos + 1))
             } else { ; 没有别名的情况
-                localAlias := ""
-                localPhrase := Trim(line)
+                ; 报错，解析失败
+                MsgBox, 16, 错误, snippet管理器无法解析文件内容`n行内容: %line%
+                ; 退出
+                ExitApp
             }
             localPhrase := StrReplace(localPhrase, "\n", "`n") ; 替换\n为换行符
             AddPhrase(localPhrase, localAlias)
@@ -271,6 +273,10 @@ EditLineInFile(filePath, targetRow, alias, phrase) {
 
 InsertNewSnippetAtTop(filePath, alias, phrase) {
     FileRead, fileContent, %filePath%
+    ; 如果phrase为空，则设为alias
+    if (phrase = "") {
+        phrase := alias
+    }
     newContent := (alias ? alias : "") . A_Tab . phrase . "`r`n" . fileContent
     FileDelete, %filePath%
     FileAppend, % RTrim(newContent, "`r`n"), %filePath%

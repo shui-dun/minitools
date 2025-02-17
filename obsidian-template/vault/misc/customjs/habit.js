@@ -8,7 +8,7 @@ class Habit {
 	defaultPeriod(startDate, endDate) {
 		startDate = startDate || this.dv.date('sow').minus(this.dv.duration('1 days')); // 默认从周日开始
 		endDate = endDate || startDate.plus({ days: 6 }); // 默认是一周
-		return {startDate, endDate};
+		return { startDate, endDate };
 	}
 
 	// 月视图的默认时间段
@@ -19,10 +19,10 @@ class Habit {
 		if (endDate > this.dv.date('today')) {
 			endDate = this.dv.date('today');
 		}
-		return {startDate, endDate};
+		return { startDate, endDate };
 	}
 
-	habitInfoBetween(habit, startDate, endDate, needClockDetails=false) {
+	habitInfoBetween(habit, startDate, endDate, needClockDetails = false) {
 		let diff = Math.floor((endDate - startDate) / (24 * 60 * 60 * 1000)) + 1;
 
 		let historyFile = this.dv.page(`habit/habit_history/${habit.id}`);
@@ -43,7 +43,8 @@ class Habit {
 		}
 		let finalTarget = habit.target * diff / 7;
 		let progress = clockCounts / finalTarget;
-		let clockPoints = clockCounts * habit.pointsPerClock;
+		let initPointsPerDay = (habit.initPoints ?? 0) / 7;
+		let clockPoints = clockCounts * habit.pointsPerClock + initPointsPerDay * diff;
 		return { clockCounts, finalTarget, progress, clockPoints, clockDetails };
 	}
 
@@ -60,7 +61,7 @@ class Habit {
 				}
 			}
 		}
-		return {clockCounts};
+		return { clockCounts };
 	}
 
 	// 时间趋势展示
@@ -69,8 +70,8 @@ class Habit {
 		if (habit == null) {
 			return;
 		}
-		({startDate, endDate} = this.defaultMonthPeriod(startDate, endDate));
-		let {clockCounts, finalTarget, progress, clockPoints, clockDetails} = this.habitInfoBetween(habit, startDate, endDate, true);
+		({ startDate, endDate } = this.defaultMonthPeriod(startDate, endDate));
+		let { clockCounts, finalTarget, progress, clockPoints, clockDetails } = this.habitInfoBetween(habit, startDate, endDate, true);
 		// 生成折线图数据
 		let labels = [];
 		let data = [];
@@ -109,7 +110,7 @@ class Habit {
 		};
 		window.renderChart(chartData, this.container);
 	}
-	
+
 	// 习惯打卡
 	// refresh: 是否刷新界面
 	async clock(file, refresh = true) {
@@ -128,7 +129,7 @@ class Habit {
 			new Notice(`打卡时间被设置为${Math.abs(fm.daysOffset)}天${fm.daysOffset > 0 ? '后' : '前'}，即${now.format('YYYY-MM-DD')}`);
 		}
 		let todayDate = now.format("YYYY-MM-DD");
-		
+
 		/* 让用户输入打卡次数 */
 		let count = 0;
 		if (fileName == '早睡') {
@@ -200,7 +201,7 @@ class Habit {
 				}
 				if (newCount != 0) {
 					frontmatter["historyDates"].push(todayDate);
-					frontmatter["historyCounts"].push(count);	
+					frontmatter["historyCounts"].push(count);
 				}
 			} else {
 				// 如果今天已有记录，则累加或减少打卡次数
@@ -225,7 +226,7 @@ class Habit {
 
 		if (refresh) {
 			// 刷新界面
-			setTimeout(function() {
+			setTimeout(function () {
 				app.commands.executeCommandById('dataview:dataview-force-refresh-views')
 			}, 400);
 		}
@@ -237,35 +238,35 @@ class Habit {
 		if (typeof timeStr == 'string') {
 			currentTime = moment(timeStr, "HH:mm");
 		}
-		
+
 		// 定义时间点
 		const t0 = moment("12:00", "HH:mm");
 		const t1 = moment("22:30", "HH:mm");
 		const t2 = moment("23:30", "HH:mm");
 		const t3 = moment("01:30", "HH:mm").add(1, 'days'); // 确保跨午夜比较正确
-		
+
 		// 调整当前时间以处理跨午夜情况
 		let adjustedCurrentTime = currentTime;
 		if (currentTime.isBefore(t0)) {
-				adjustedCurrentTime = currentTime.add(1, 'days');
+			adjustedCurrentTime = currentTime.add(1, 'days');
 		}
-		
+
 		let score;
-		
+
 		if (adjustedCurrentTime.isBetween(t0, t1, null, '[]')) {
-				score = 1;
+			score = 1;
 		} else if (adjustedCurrentTime.isBetween(t1, t2, null, '[]')) {
-				// t1-t2: 1->0
-				const progress = (adjustedCurrentTime - t1) / (t2 - t1);
-				score = 1 - progress;
+			// t1-t2: 1->0
+			const progress = (adjustedCurrentTime - t1) / (t2 - t1);
+			score = 1 - progress;
 		} else if (adjustedCurrentTime.isBetween(t2, t3, null, '[]')) {
-				// t2-t3: 0->-1
-				const progress = (adjustedCurrentTime - t2) / (t3 - t2);
-				score = -progress;
+			// t2-t3: 0->-1
+			const progress = (adjustedCurrentTime - t2) / (t3 - t2);
+			score = -progress;
 		} else {
-				score = -1;
+			score = -1;
 		}
-		
+
 		return parseFloat(score.toFixed(2));
 	}
 	// timeToNum 的测试用例：

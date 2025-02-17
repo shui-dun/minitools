@@ -2,6 +2,8 @@
 #SingleInstance Force
 #NoTrayIcon
 
+; ahk的健壮性太差，难以维护，以后只用ahk写简单的脚本，不写这种了
+
 ; snippet管理器脚本
 global phraseList := []
 global snippetFilePath := "D:\file\cloud\misc\snippet.txt"
@@ -15,9 +17,9 @@ ReadPhrasesFromFile(filePath) {
     FileRead, fileContent, %filePath%
     Loop, Parse, fileContent, `n, `r
     {
-        line := A_LoopField
+        line := A_LoopField ; A_LoopField 表示当前循环的迭代对象
         if (line != "") {
-            tabPos := InStr(line, A_Tab) ; 使用Tab作为分隔符
+            tabPos := InStr(line, A_Tab) ; InStr在一个字符串中查找子字符串的位置，A_Tab是tab符
             if (tabPos > 0) {
                 localAlias := Trim(SubStr(line, 1, tabPos - 1))
                 localPhrase := Trim(SubStr(line, tabPos + 1))
@@ -74,7 +76,9 @@ AddPhrase(phrase, alias := "") {
     return
 
 ; 处理键盘按键
+; 我实验了一下，只在当前进程的任意窗口中按键才会触发这个函数
 onKeyDown(wParam, lParam) {
+    ; wParam是按键的虚拟键码，lParam是按键的扫描码
     if (wParam = 13) {  ; 13 = VK_RETURN (回车键)
         PasteSelectedPhrase()
     } else if (wParam = 27) {  ; 27 = VK_ESCAPE (Esc键)
@@ -88,7 +92,7 @@ onKeyDown(wParam, lParam) {
 }
 
 ; 当搜索框内容变化时更新列表
-; 这种语法叫做标签
+; 这种语法叫做标签，ahk保留了汇编的一些设计
 UpdateList:
     Gui, Submit, NoHide ; ahk竟然需要手动提交变量，也就是将GUI里面的内容传递给指定变量
     UpdateListView(SearchTerm)
@@ -135,7 +139,7 @@ SelectPhrase:
 ; 粘贴选中的snippet
 PasteSelectedPhrase() {
     ; 获取选中的行号
-    local selectedRow := LV_GetNext(0)
+    local selectedRow := LV_GetNext(0) ; 返回列表视图中第一个选中项的索引。如果没有选中项，则返回 0。
     if (selectedRow > 0) {  ; 确保有选中的行
         ; 获取第二列的完整snippet
         LV_GetText(fullPhrase, selectedRow, 3)
@@ -254,6 +258,8 @@ RemoveLineFromFile(filePath, targetAlias, targetPhrase) {
     FileRead, fileContent, %filePath%
     lines := StrSplit(fileContent, "`n", "`r")
     newContent := ""
+    ; 直接通过行号来定位要删的行似乎是更快捷的方法
+    ; 但是有时我们对snippet进行排序，会导致行号失效，所以暂时还是通过内容来定位
     Loop, % lines.MaxIndex() {
         currentLine := Trim(lines[A_Index])
         if (currentLine = "")
@@ -280,6 +286,7 @@ EditLineInFile(filePath, targetRow, alias, phrase) {
     lines := StrSplit(fileContent, "`n", "`r")
     newContent := ""
     Loop, % lines.MaxIndex() {
+        ; A_Index表示当前循环的迭代次数，ahk的很多设计都很奇怪
         currentLine := Trim(lines[A_Index])
         if (currentLine = "")
             continue

@@ -5,7 +5,7 @@
 ; 而ahk的封装性差得离谱
 ; 为了不污染全局命名空间
 ; 所以将这些脚本放在新的进程中运行
-Run, snippet.ahk
+Run, snippet.ahk2
 
 ; 引入其他脚本
 #Include misc.ahk

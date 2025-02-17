@@ -1,0 +1,235 @@
+﻿#Warn
+#SingleInstance Force
+#Requires AutoHotkey v2.0
+
+class SnippetManager {
+    snippetFilePath := "D:\file\cloud\misc\snippet.txt"
+    snippets := []
+    mainGui := ""
+    listView := ""  ; 添加ListView引用
+    
+    __New() {
+        this.ReadSnippets()
+        this.InitHotkey()
+    }
+    
+    InitHotkey() {
+        HotKey "!^z", (*) => this.ShowMainGui()
+    }
+    
+    ReadSnippets() {
+        try {
+            fileContent := FileRead(this.snippetFilePath)
+            this.snippets.Length := 0  ; 清空数组
+            
+            for line in StrSplit(fileContent, "`n", "`r") {
+                if (line = "")
+                    continue
+                    
+                if (tabPos := InStr(line, "`t")) {
+                    alias := Trim(SubStr(line, 1, tabPos - 1))
+                    phrase := Trim(SubStr(line, tabPos + 1))
+                    phrase := StrReplace(phrase, "\n", "`n")
+                    this.snippets.Push({text: phrase, alias: alias})
+                } else {
+                    MsgBox("snippet解析失败，行内容: " line, "错误", 16)
+                    ExitApp()
+                }
+            }
+        } catch Error as e {
+            MsgBox("读取snippet文件失败: " e.Message, "错误", 16)
+            ExitApp()
+        }
+    }
+    
+    ShowMainGui() {
+        this.mainGui := Gui("+AlwaysOnTop +Resize", "snippet管理器")
+        this.mainGui.SetFont("s10")
+        
+        ; 添加搜索框
+        this.mainGui.Add("Text",, "搜索snippet:")
+        searchBox := this.mainGui.Add("Edit", "w400")
+        searchBox.OnEvent("Change", (ctrl, *) => this.UpdateListView(searchBox.Value))
+        
+        ; 添加列表视图并保存引用
+        this.listView := this.mainGui.Add("ListView", "r10 w400 -Multi", ["序号", "snippet", "完整内容"])
+        this.listView.OnEvent("DoubleClick", (ctrl, *) => this.PasteSelectedSnippet())
+        
+        ; 添加按钮
+        btnAdd := this.mainGui.Add("Button", "x10 y240 w80", "添加")
+        btnAdd.OnEvent("Click", (*) => this.ShowAddSnippetGui())
+        
+        btnDelete := this.mainGui.Add("Button", "x95 y240 w80", "删除")
+        btnDelete.OnEvent("Click", (*) => this.DeleteSelectedSnippet())
+        
+        btnEdit := this.mainGui.Add("Button", "x180 y240 w80", "编辑")
+        btnEdit.OnEvent("Click", (*) => this.EditSelectedSnippet())
+        
+        btnConfig := this.mainGui.Add("Button", "x265 y240 w80", "配置文件")
+        btnConfig.OnEvent("Click", (*) => Run(this.snippetFilePath))
+        
+        ; 设置快捷键
+        this.mainGui.OnEvent("Close", (*) => this.mainGui.Destroy())
+        this.mainGui.OnEvent("Escape", (*) => this.mainGui.Destroy())
+        
+        ; 初始显示所有snippets
+        this.UpdateListView("")
+        this.mainGui.Show("w420 h300")
+    }
+    
+    UpdateListView(searchTerm) {
+        this.listView.Delete()
+        index := 1
+        
+        for snippet in this.snippets {
+            displayText := snippet.alias ? snippet.alias : snippet.text
+            searchInText := snippet.text " " snippet.alias
+            
+            if (searchTerm = "" || InStr(searchInText, searchTerm)) {
+                indexText := (index <= 9) ? index : ""
+                this.listView.Add(, indexText, displayText, snippet.text)
+                index++
+            }
+        }
+        
+        this.listView.ModifyCol(1, "AutoHdr")
+        this.listView.ModifyCol(2, "AutoHdr")
+        this.listView.ModifyCol(3, "AutoHdr")
+        
+        if (this.listView.GetCount() > 0)
+            this.listView.Modify(1, "Select Focus")
+    }
+    
+    PasteSelectedSnippet() {
+        if (selectedRow := this.listView.GetNext(0)) {
+            fullPhrase := this.listView.GetText(selectedRow, 3)
+            A_Clipboard := fullPhrase
+            this.mainGui.Destroy()
+            Sleep(100)
+            Send("^v")
+        }
+    }
+    
+    ShowAddSnippetGui() {
+        this.ShowSnippetEditGui("add")
+    }
+    
+    ShowSnippetEditGui(mode, row := 0, alias := "", phrase := "") {
+        editGui := Gui("+AlwaysOnTop", (mode="add" ? "添加" : "编辑"))
+        editGui.SetFont("s10")
+        
+        editGui.Add("Text",, "短语:")
+        aliasEdit := editGui.Add("Edit", "w400", alias)
+        editGui.Add("Text",, "完整内容:")
+        phraseEdit := editGui.Add("Edit", "w400 r10", phrase)
+        
+        btnSave := editGui.Add("Button", "x10", "保存")
+        btnSave.OnEvent("Click", (*) => this.SaveSnippet(mode, row, aliasEdit.Value, phraseEdit.Value, editGui))
+        
+        btnCancel := editGui.Add("Button", "x+5", "取消")
+        btnCancel.OnEvent("Click", (*) => editGui.Destroy())
+        
+        editGui.Show()
+    }
+    
+    SaveSnippet(mode, row, alias, phrase, editGui) {
+        phraseForFile := StrReplace(phrase, "`n", "\n")
+        if (mode = "add")
+            this.InsertNewSnippet(alias, phraseForFile)
+        else
+            this.EditSnippet(row, alias, phraseForFile)
+            
+        editGui.Destroy()
+        this.ReadSnippets()
+        this.UpdateListView("")  ; 修改这里，不再传递ListView参数
+    }
+    
+    DeleteSelectedSnippet() {
+        if (selectedRow := this.listView.GetNext(0)) {
+            selAlias := this.listView.GetText(selectedRow, 2)
+            selPhrase := this.listView.GetText(selectedRow, 3)
+            
+            result := MsgBox("确定要删除该snippet吗？`n别名: " selAlias, "确认删除", "YesNo")
+            if (result != "Yes")
+                return
+                
+            this.RemoveSnippetFromFile(selAlias, selPhrase)
+            this.ReadSnippets()
+            this.UpdateListView("")
+        }
+    }
+    
+    EditSelectedSnippet() {
+        if (selectedRow := this.listView.GetNext(0)) {
+            selAlias := this.listView.GetText(selectedRow, 2)
+            selPhrase := this.listView.GetText(selectedRow, 3)
+            this.ShowSnippetEditGui("edit", selectedRow, selAlias, selPhrase)
+        }
+    }
+    
+    RemoveSnippetFromFile(targetAlias, targetPhrase) {
+        try {
+            fileContent := FileRead(this.snippetFilePath)
+            newContent := ""
+            
+            for line in StrSplit(fileContent, "`n", "`r") {
+                if (line = "")
+                    continue
+                    
+                if (tabPos := InStr(line, "`t")) {
+                    currentAlias := Trim(SubStr(line, 1, tabPos - 1))
+                    currentPhrase := StrReplace(Trim(SubStr(line, tabPos + 1)), "\n", "`n")
+                    
+                    if (currentAlias != targetAlias || currentPhrase != targetPhrase)
+                        newContent .= line "`r`n"
+                }
+            }
+            
+            FileDelete(this.snippetFilePath)
+            FileAppend(RTrim(newContent, "`r`n"), this.snippetFilePath)
+        } catch Error as e {
+            MsgBox("删除snippet失败: " e.Message, "错误", 16)
+        }
+    }
+    
+    EditSnippet(targetRow, alias, phrase) {
+        try {
+            fileContent := FileRead(this.snippetFilePath)
+            newContent := ""
+            currentRow := 1
+            
+            for line in StrSplit(fileContent, "`n", "`r") {
+                if (line = "") {
+                    currentRow++
+                    continue
+                }
+                
+                if (currentRow = targetRow)
+                    newContent .= alias "`t" phrase "`r`n"
+                else
+                    newContent .= line "`r`n"
+                    
+                currentRow++
+            }
+            
+            FileDelete(this.snippetFilePath)
+            FileAppend(RTrim(newContent, "`r`n"), this.snippetFilePath)
+        } catch Error as e {
+            MsgBox("编辑snippet失败: " e.Message, "错误", 16)
+        }
+    }
+    
+    InsertNewSnippet(alias, phrase) {
+        try {
+            fileContent := FileRead(this.snippetFilePath)
+            newContent := alias "`t" phrase "`r`n" fileContent
+            
+            FileDelete(this.snippetFilePath)
+            FileAppend(RTrim(newContent, "`r`n"), this.snippetFilePath)
+        } catch Error as e {
+            MsgBox("添加snippet失败: " e.Message, "错误", 16)
+        }
+    }
+}
+
+snippetMgr := SnippetManager()

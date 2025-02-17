@@ -134,6 +134,8 @@ class SnippetManager {
     
     SaveSnippet(mode, row, alias, phrase, editGui) {
         phraseForFile := StrReplace(phrase, "`n", "\n")
+        if (phraseForFile = "")
+            phraseForFile := alias
         if (mode = "add")
             this.InsertNewSnippet(alias, phraseForFile)
         else

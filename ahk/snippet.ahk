@@ -10,7 +10,6 @@ class SnippetManager {
     keyDownHandler := ""
     
     __New() {
-        this.ReadSnippets()
         this.InitHotkey()
     }
     
@@ -85,6 +84,7 @@ class SnippetManager {
         this.mainGui.OnEvent("Escape", (*) => this.CleanupAndDestroy())
         
         ; 初始显示所有snippets
+        this.ReadSnippets()
         this.UpdateListView("")
         this.mainGui.Show("w620 h350")
     }

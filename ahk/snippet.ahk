@@ -56,7 +56,7 @@ class SnippetManager {
         searchBox.OnEvent("Change", (ctrl, *) => this.UpdateListView(searchBox.Value))
         
         ; 添加列表视图并保存引用
-        this.listView := this.mainGui.Add("ListView", "xs w600 r10 -Multi", ["序号", "snippet", "完整内容"])
+        this.listView := this.mainGui.Add("ListView", "xs w600 r10 -Multi NoSort", ["序号", "snippet", "完整内容"])
         this.listView.OnEvent("DoubleClick", (ctrl, *) => this.PasteSelectedSnippet())
         
         ; 创建按钮容器

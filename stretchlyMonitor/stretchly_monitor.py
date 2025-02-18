@@ -126,7 +126,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         total_confirm = today_count + 1
         confirmed = 0
         for i in range(total_confirm):
-            dlg = wx.MessageDialog(None, f"今日已跳过 {today_count} 次。\n再次确认跳过休息？\n({i+1}/{total_confirm})", "确认", wx.OK | wx.CANCEL | wx.ICON_INFORMATION)
+            dlg = wx.MessageDialog(None, f"今日已跳过 {today_count} 次。\n再次确认跳过休息？({i+1}/{total_confirm})", "跳过休息", wx.OK | wx.CANCEL | wx.ICON_NONE)
             if dlg.ShowModal() == wx.ID_OK:
                 confirmed += 1
             else:

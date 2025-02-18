@@ -77,6 +77,23 @@ def kill_stretchly():
             except Exception as e:
                 print(f"Error killing process: {e}")
 
+def kill_stretchly_monitor():
+    for proc in psutil.process_iter(['name', 'cmdline']):
+        if not (proc.info['name'] and proc.info['name'].lower() == "python.exe"):
+            continue
+        if not (len(proc.info['cmdline']) > 1 and os.path.basename(__file__) in proc.info['cmdline'][1]):
+            continue
+        if proc.pid == os.getpid():
+            continue
+        # 如果是当前进程的父/子进程，不杀(pipenv通常会创建一个子进程)
+        if proc.ppid() == os.getpid() or proc.pid == os.getppid():
+            continue
+        try:
+            print(f"Killing process {proc.pid}")
+            proc.kill()
+        except Exception as e:
+            print(f"Error killing process: {e}")
+
 # 启动 Stretchly.exe
 def launch_stretchly(path):
     try:
@@ -132,5 +149,6 @@ class App(wx.App):
         return True
 
 if __name__ == "__main__":
+    kill_stretchly_monitor()
     app = App(False)
     app.MainLoop()

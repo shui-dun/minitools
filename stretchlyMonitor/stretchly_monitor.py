@@ -149,6 +149,7 @@ class App(wx.App):
         return True
 
 if __name__ == "__main__":
-    kill_stretchly_monitor()
+    # 先加载图标，显得流畅
     app = App(False)
+    kill_stretchly_monitor()
     app.MainLoop()

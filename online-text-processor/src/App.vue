@@ -51,7 +51,7 @@ export default {
           }
         },
         {
-          label: '隐藏Markdown标题',
+          label: '隐藏标题',
           func: (text) => {
             // 遍历每一行，检测是否以# 开头，如果是，只将#用``包裹
             return text.split('\n').map(line => {
@@ -63,24 +63,18 @@ export default {
           }
         },
         {
-          label: '移除Markdown标签',
-          func: (text) => {
-            // 移除markdown中的特定标签
-            text = text.replace(/`<ignore-until-end\/>`/g, '');
-            text = text.replace(/`<todo>`[\s\S]*?`<\/todo>`/g, '');
-            text = text.replace(/`<comment>`[\s\S]*?`<\/comment>`/g, '');
-            // 超过两个换行符替换为两个换行符
-            text = text.replace(/\n([ \t]*\n[ \t]*)+\n/g, '\n\n');
-            return text;
-          },
-        },
-        {
           label: '去除粗体',
           func: (text) => {
             // 移除markdown中的粗体标记
             return text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/__(.*?)__/g, '$1');
           }
         },
+        {
+          label: '逗号切换',
+          func: (text) => {
+            return text.replace(/,/g, '，');
+          }
+        }
         { label: '转换为大写', func: (text) => text.toUpperCase() },
         { label: '转换为小写', func: (text) => text.toLowerCase() }
       ]

@@ -16,6 +16,7 @@
         <button v-for="action in actions" :key="action.label" @click="processText(action.func)" class="button">
           {{ action.label }}
         </button>
+        <button @click="applyOutput" class="button apply-button">应用</button>
       </div>
       <!-- 文本比较区 -->
       <div class="diff-container">
@@ -93,6 +94,9 @@ export default {
   methods: {
     processText(func) {
       this.outputText = func(this.inputText);
+    },
+    applyOutput() {
+      this.inputText = this.outputText;
     }
   }
 }
@@ -167,6 +171,14 @@ export default {
 
 .button:hover {
   background: #0056b3;
+}
+
+.apply-button {
+  background: #28a745;
+}
+
+.apply-button:hover {
+  background: #218838;
 }
 
 .diff-container {

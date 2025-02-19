@@ -74,7 +74,7 @@ export default {
           func: (text) => {
             return text.replace(/,/g, '，');
           }
-        }
+        },
         { label: '转换为大写', func: (text) => text.toUpperCase() },
         { label: '转换为小写', func: (text) => text.toLowerCase() }
       ]

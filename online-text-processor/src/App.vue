@@ -71,6 +71,13 @@ export default {
             // 超过两个换行符替换为两个换行符
             text = text.replace(/\n([ \t]*\n[ \t]*)+\n/g, '\n\n');
             return text;
+          },
+        },
+        {
+          label: '去除粗体',
+          func: (text) => {
+            // 移除markdown中的粗体标记
+            return text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/__(.*?)__/g, '$1');
           }
         },
         { label: '转换为大写', func: (text) => text.toUpperCase() },

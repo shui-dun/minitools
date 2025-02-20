@@ -14,6 +14,14 @@ HandleDirection(direction) {
     return
 }
 
+; 媒体控制快捷键
+CapsLock & F4::Send {Media_Prev}
+CapsLock & F5::Send {Media_Play_Pause}
+CapsLock & F6::Send {Media_Next}
+CapsLock & F7::Send {Volume_Mute}
+CapsLock & F8::Send {Volume_Down}
+CapsLock & F9::Send {Volume_Up}
+
 ; 播放视频时手工模拟下一帧
 ^!+Right::
 	SendInput {Space}

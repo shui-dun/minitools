@@ -122,9 +122,13 @@ export default {
 }
 
 .header-image {
-  width: 70px;
+  width: 50px;
   height: auto;
   margin-right: 10px;
+}
+
+.header-container h3 {
+  font-size: 1.2em;  /* 添加标题大小控制 */
 }
 
 .container {
@@ -146,7 +150,7 @@ export default {
 
 .textarea {
   width: 45%;
-  height: 200px;
+  height: 400px;
   border: 1px solid #ddd;
   border-radius: 4px;
   padding: 10px;
@@ -199,6 +203,7 @@ export default {
   }
   .textarea {
     width: 90%;
+    height: 400px;
     margin-bottom: 10px;
   }
   .button-container {

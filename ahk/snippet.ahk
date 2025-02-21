@@ -42,6 +42,28 @@ class SnippetManager {
             ExitApp()
         }
     }
+
+    ResolveReferences(text, depth := 0) {
+        if (depth > 10) ; 防止循环引用
+            return text
+
+        resolved := text
+        refPattern := "@\{\{(.+?)\}\}"
+        
+        while (refStart := RegExMatch(resolved, refPattern, &match)) {
+            refAlias := match[1]
+            ; 在snippets数组中查找引用的别名
+            for snippet in this.snippets {
+                if (snippet.alias = refAlias) {
+                    referenced := this.ResolveReferences(snippet.text, depth + 1)
+                    resolved := RegExReplace(resolved, refPattern, referenced,, 1)
+                    break
+                }
+            }
+        }
+        
+        return resolved
+    }
     
     ShowMainGui() {
         if (this.mainGui)
@@ -143,9 +165,12 @@ class SnippetManager {
     PasteSelectedSnippet() {
         if (selectedRow := this.listView.GetNext(0)) {
             fullPhrase := this.listView.GetText(selectedRow, 3)
+            ; 在粘贴前解析引用
+            resolvedPhrase := this.ResolveReferences(fullPhrase)
+            
             originalClipboard := A_Clipboard
             Sleep(100)
-            A_Clipboard := fullPhrase
+            A_Clipboard := resolvedPhrase
             this.CleanupAndDestroy()
             Sleep(100)
             Send("^v")

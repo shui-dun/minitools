@@ -96,7 +96,7 @@ class SnippetManager {
         btnEdit.OnEvent("Click", (*) => this.EditSelectedSnippet())
         
         btnConfig := this.mainGui.Add("Button", "x+5 w80", "配置文件")
-        btnConfig.OnEvent("Click", (*) => Run("explorer.exe /select," this.snippetFilePath))
+        btnConfig.OnEvent("Click", (*) => Run(this.snippetFilePath))
         
         ; 注册消息处理，没有提供诸如this.mainGui.OnEvent("KeyDown", xxx)的方法也太不健壮了，导致：
         ; 1. 只能监听全局按键，需要判断当前窗口是否是mainGui

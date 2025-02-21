@@ -51,7 +51,8 @@ export default {
           description: `将 \\(x\\) 格式的公式替换为 $x$ 格式
 将 \\[x\\] 格式的公式替换为 $$x$$ 格式
 移除文本中的 Markdown 粗体标记 ** 和 __
-将英文逗号替换为中文逗号`,
+将英文逗号替换为中文逗号
+去掉分隔符以及其附近的换行符`,
           func: (text) => {
             // 替换行内数学公式
             text = text.replace(/\\\(\s*(.{0,}?)\s*\\\)/g, '$$$1$$');
@@ -61,6 +62,8 @@ export default {
             text = text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/__(.*?)__/g, '$1');
             // 替换英文逗号
             text = text.replace(/,/g, '，')
+            // 去掉分隔符以及其附近的换行符
+            text = text.replace(/\n\-\-\-\n/g, '');
             return text;
           }
         },

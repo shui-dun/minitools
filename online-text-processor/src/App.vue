@@ -48,10 +48,10 @@ export default {
       actions: [
         {
           label: 'MD正则化',
-          description: `将 \\(x\\) 格式的公式替换为 $x$ 格式\n
-            将 \\[x\\] 格式的公式替换为 $$x$$ 格式\n
-            移除文本中的 Markdown 粗体标记 ** 和 __\n
-            将英文逗号替换为中文逗号`,
+          description: `将 \\(x\\) 格式的公式替换为 $x$ 格式
+将 \\[x\\] 格式的公式替换为 $$x$$ 格式
+移除文本中的 Markdown 粗体标记 ** 和 __
+将英文逗号替换为中文逗号`,
           func: (text) => {
             // 替换行内数学公式
             text = text.replace(/\\\(\s*(.{0,}?)\s*\\\)/g, '$$$1$$');

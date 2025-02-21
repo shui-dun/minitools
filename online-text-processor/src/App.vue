@@ -13,10 +13,16 @@
       </div>
       <!-- 按钮区 -->
       <div class="button-container">
-        <button v-for="action in actions" :key="action.label" @click="processText(action.func)" class="button">
+        <button v-for="action in actions" 
+                :key="action.label" 
+                @click="processText(action.func)" 
+                :title="action.description"
+                class="button">
           {{ action.label }}
         </button>
-        <button @click="applyOutput" class="button apply-button">应用</button>
+        <button @click="applyOutput" 
+                title="将右侧文本框的内容复制到左侧文本框"
+                class="button apply-button">应用</button>
       </div>
       <!-- 文本比较区 -->
       <div class="diff-container">
@@ -41,17 +47,26 @@ export default {
       diffMode: 'split',
       actions: [
         {
-          label: '替换公式风格',
+          label: 'MD正则化',
+          description: `将 \\(x\\) 格式的公式替换为 $x$ 格式\n
+            将 \\[x\\] 格式的公式替换为 $$x$$ 格式\n
+            移除文本中的 Markdown 粗体标记 ** 和 __\n
+            将英文逗号替换为中文逗号`,
           func: (text) => {
             // 替换行内数学公式
             text = text.replace(/\\\(\s*(.{0,}?)\s*\\\)/g, '$$$1$$');
             // 替换块级数学公式
             text = text.replace(/\\\[(\s*[\s\S]*?\s*)\\\]/g, '$$$$$1$$$$');
+            // 移除粗体和下划线
+            text = text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/__(.*?)__/g, '$1');
+            // 替换英文逗号
+            text = text.replace(/,/g, '，')
             return text;
           }
         },
         {
           label: '隐藏标题',
+          description: '将 Markdown 标题的 # 符号用反引号包裹',
           func: (text) => {
             // 遍历每一行，检测是否以# 开头，如果是，只将#用``包裹
             return text.split('\n').map(line => {
@@ -62,21 +77,16 @@ export default {
             }).join('\n');
           }
         },
-        {
-          label: '去除粗体',
-          func: (text) => {
-            // 移除markdown中的粗体标记
-            return text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/__(.*?)__/g, '$1');
-          }
+        { 
+          label: '转换为大写', 
+          description: '将文本转换为大写字母',
+          func: (text) => text.toUpperCase() 
         },
-        {
-          label: '逗号切换',
-          func: (text) => {
-            return text.replace(/,/g, '，');
-          }
-        },
-        { label: '转换为大写', func: (text) => text.toUpperCase() },
-        { label: '转换为小写', func: (text) => text.toLowerCase() }
+        { 
+          label: '转换为小写', 
+          description: '将文本转换为小写字母',
+          func: (text) => text.toLowerCase() 
+        }
       ]
     };
   },

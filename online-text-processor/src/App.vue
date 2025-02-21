@@ -63,7 +63,7 @@ export default {
             // 替换英文逗号
             text = text.replace(/,/g, '，')
             // 去掉分隔符以及其附近的换行符
-            text = text.replace(/\n\-\-\-\n/g, '');
+            text = text.replace(/\n---\n/g, '');
             return text;
           }
         },

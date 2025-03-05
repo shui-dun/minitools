@@ -75,7 +75,7 @@ Return
 	tmpString := ""
 	Loop, Parse, Clipboard, `n 
 	{
-		if (RegExMatch(A_LoopField, "^#+ ") != 0) 
+		if (RegExMatch(A_LoopField, "^##+ ") != 0) ; 一级标题退无可退
 		{
 			tmpString := tmpString . StrReplace(A_LoopField, "#", "", 0, 1) . "`n"
 		} else 

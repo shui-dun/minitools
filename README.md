@@ -23,7 +23,7 @@
 - [localizeWebsite](./localizeWebsite) 将一个网站中所有的文件中的所有远程路径改为本地路径，方便复刻网站
 - [dictionaryAttack](./dictionaryAttack) 使用字典攻击破解压缩包密码
 - [dockerClear](./dockerClear) 清理docker-desktop占用的内存
-- [randomFile](./randomFile) 生成指定大小的内容完全随机的文件
+- [randomFile](./randomFile) 一个用于生成指定大小和内容类型的文件的命令行工具。
 - [localizeMD](./localizeMD) 将指定文件夹下的所有markdown文件中引用的图片下载到本地
 - [pipenvRun](./pipenvRun) 在windows上一键使用pipenv运行python文件
 - [headers2dict](./headers2dict) 将http消息头转化为python字典（json）
@@ -38,7 +38,7 @@
 - [pan-spider](./pan-spider) 通过bing搜索找到有效的网盘链接（已废弃）
 - [questionnaire-spider](./questionnaire-spider) 自动填写“问卷星”（已废弃）
 - [lockScreen](./lockScreen) 一键锁屏，如果因为某种原因不适合使用 `Win+L`
-- [saladictHelper](./saladictHelper) 沙拉查词无法获得输入框中的单词的上下文，在这个网页粘贴句子，沙拉查词就可以获取上下文
+- [saladictHelper](./saladictHelper) 沙拉查词无法获得输入框中的单词的上下文，在这个网页粘贴句子，沙拉查词就可以获取上下文（已废弃）
 - [liuji](./liuji) 爬取六级词汇表（已废弃）
 - [img-spider](./img-spider) 批量从百度图片上下载图片（已废弃）
 

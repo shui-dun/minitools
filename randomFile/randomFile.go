@@ -104,7 +104,6 @@ func readConfigFile() (Config, bool) {
 	configPath := "random_file_setting.json"
 	data, err := os.ReadFile(configPath)
 	if err != nil {
-		fmt.Printf("未找到配置文件或无法读取: %v\n", err)
 		return config, false
 	}
 

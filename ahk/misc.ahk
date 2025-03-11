@@ -21,6 +21,9 @@ F4::Send {Media_Next}
 F6::Send {Volume_Mute}
 F7::Send {Volume_Down}
 F8::Send {Volume_Up}
+F9::
+    WinMaximize, A
+return
 
 ; 播放视频时手工模拟下一帧
 ^!+Right::

@@ -65,6 +65,10 @@ dv.table(["习惯", "今日", "进度", "", "积分"],
     })
 );
 ```
+```dataviewjs
+const {Ai} = await cJS();
+dv.paragraph("✨ ​**今日格言**  \n" + await Ai.getDailyQuote());
+```
 ### 趋势
 ```dataviewjs
 const {WaitLoading, Utils, Habit} = await cJS();

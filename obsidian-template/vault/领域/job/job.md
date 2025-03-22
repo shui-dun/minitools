@@ -62,9 +62,9 @@ let searchLine2 = Utils.container(
 dv.paragraph(searchLine2);
 ```
 ## 事项
-```meta-bind-embed
-[复习事项](复习事项.md)
-```
+
+![job事项](job事项/job事项.md)
+
 ## 统计
 ```dataviewjs
 let notes = dv.pages('"领域/job/jobList"');

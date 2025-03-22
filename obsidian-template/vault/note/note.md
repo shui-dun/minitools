@@ -40,3 +40,7 @@ dv.paragraph(Utils.container(
 	Utils.select(dv.current(), 'openNextNote', `['no', 'random', 'next']`),
 ))
 ```
+```dataviewjs
+const {Ai} = await cJS();
+dv.paragraph("✨ ​**今日格言**  \n" + await Ai.getDailyQuote());
+```

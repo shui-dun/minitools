@@ -21,6 +21,10 @@ include_folders = [
     r"misc\template",
 ]
 
+exclude_folders = [
+    r"misc\customjs\secret.js",
+]
+
 if __name__ == "__main__":
     # 删除并创建目标文件夹
     if os.path.exists(dest_folder):
@@ -38,7 +42,18 @@ if __name__ == "__main__":
         # print(f"复制: {src_path} -> {dest_path}")
         
         if os.path.isdir(src_path):
-            shutil.copytree(src_path, dest_path)
+            for root, dirs, files in os.walk(src_path):
+                rel_root = os.path.relpath(root, source_folder)
+                if any(rel_root.startswith(excl) for excl in exclude_folders):
+                    continue
+                for f in files:
+                    src_file = os.path.join(root, f)
+                    rel_file = os.path.relpath(src_file, source_folder)
+                    if any(rel_file.startswith(excl) for excl in exclude_folders):
+                        continue
+                    dest_file = os.path.join(dest_folder, rel_file)
+                    os.makedirs(os.path.dirname(dest_file), exist_ok=True)
+                    shutil.copy2(src_file, dest_file)
         elif os.path.isfile(src_path):
             os.makedirs(os.path.dirname(dest_path), exist_ok=True)
             shutil.copy2(src_path, dest_path)

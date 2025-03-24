@@ -1,27 +1,55 @@
 class Ai {
-    async getDailyQuote(model="huihui_ai/qwen2.5-abliterate:1.5b") {
-        const apiUrl = "http://localhost:11434/api/generate";
-        const prompt = "生成一句格言，激励人心且富有哲理。";
+    lastDailyQuote = null;
+    lastDailyQuoteTime = 0;
+
+    async getDailyQuote() {
+        const {Secret} = await cJS();
+        const apiKey = Secret.DEEPSEEK_API_KEY;
+        const apiUrl = "https://api.lkeap.cloud.tencent.com/v1/chat/completions";
+        let fileText = await app.vault.read(app.vault.getAbstractFileByPath("领域/心理健康.md"));
+        // 找出所有以- 开头的行
+        const lines = fileText.split('\n').filter(line => line.trim().startsWith('- '));
+        // 随机选择一行
+        fileText = lines[Math.floor(Math.random() * lines.length)];
+        const prompt = "根据以下内容生成一句30字左右的格言：\n" + fileText;
+
+        // 缓存机制
+        if (this.lastDailyQuote && (Date.now() - this.lastDailyQuoteTime < 1000 * 60 * 5)) {
+            return this.lastDailyQuote;
+        }
+
         try {
-            const response = await fetch(apiUrl, {
+            // obsidian提供的requestUrl类似fetch，但是绕过了CORS限制
+            const { requestUrl } = require('obsidian');
+            const response = await requestUrl({
+                url: apiUrl,
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + apiKey
+                },
                 body: JSON.stringify({
-                    model: model,
-                    prompt: prompt,
-                    max_tokens: 50,
+                    model: "deepseek-v3",
+                    messages: [{ role: "user", content: prompt }],
                     stream: false
                 })
             });
-            
-            if (!response.ok) throw new Error(`HTTP错误 ${response.status}`);
-            
-            const data = await response.json();
-            // 如果两侧都是双引号，则去掉
-            return data.response.replace(/^"(.*)"$/, '$1');
-            
+            let data = JSON.parse(response.text)["choices"][0]["message"]["content"];
+            // 去掉换行符
+            data = data.replace(/[\r\n]/g, '');
+            // 去掉双引号
+            data = data.replace(/^"(.*)"$/, '$1');
+            // 去掉中文引号
+            data = data.replace(/^“(.*)”$/, '$1');
+            // 去掉粗体
+            data = data.replace(/\*\*/g, '');
+
+            this.lastDailyQuote = data;
+            this.lastDailyQuoteTime = Date.now();
+
+            return data;
         } catch (error) {
-            return `获取格言失败: ${error.message}`;
+            return "网络问题，无法获取格言";
         }
     }
 }

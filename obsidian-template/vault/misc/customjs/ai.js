@@ -11,7 +11,7 @@ class Ai {
         const lines = fileText.split('\n').filter(line => line.trim().startsWith('- '));
         // 随机选择一行
         fileText = lines[Math.floor(Math.random() * lines.length)];
-        const prompt = "根据以下内容生成一句30字左右的格言：\n" + fileText;
+        const prompt = "根据以下内容生成人生哲理，要求契合原文，不要自己发挥，字数也和原文差不多，要通俗不要文绉绉：\n" + fileText;
 
         // 缓存机制
         if (this.lastDailyQuote && (Date.now() - this.lastDailyQuoteTime < 1000 * 60 * 5)) {

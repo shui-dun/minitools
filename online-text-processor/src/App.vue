@@ -62,8 +62,11 @@ export default {
             text = text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/__(.*?)__/g, '$1');
             // 替换中文周围的英文逗号
             text = text.replace(/([\u4e00-\u9fa5]),|,([\u4e00-\u9fa5])/g, '$1，$2');
-            // 去掉分隔符以及其附近的换行符
-            text = text.replace(/\n---\n/g, '');
+            // 去掉分隔符
+            text = text.replace(/\n---\n/g, '\n\n');
+            text = text.replace(/\n----\n/g, '\n\n');
+            // 移除连续的换行符
+            text = text.replace(/\n{3,}/g, '\n\n');
             return text;
           }
         },

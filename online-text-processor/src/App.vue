@@ -72,7 +72,7 @@ export default {
 移除文本中的 Markdown 粗体标记 ** 和 __
 将英文逗号替换为中文逗号（当逗号前后有中文字符时）
 去掉分隔符以及其附近的换行符`,
-          mdNormalizer,
+          func: mdNormalizer
         },
         {
           label: 'MD正则并隐藏标题',

@@ -35,6 +35,23 @@
 <script>
 import { Diff } from 'vue-diff';
 
+let mdNormalizer = (text) => {
+  // 替换行内数学公式
+  text = text.replace(/\\\(\s*(.{0,}?)\s*\\\)/g, '$$$1$$');
+  // 替换块级数学公式
+  text = text.replace(/\\\[(\s*[\s\S]*?\s*)\\\]/g, '$$$$$1$$$$');
+  // 移除粗体和下划线
+  text = text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/__(.*?)__/g, '$1');
+  // 替换中文周围的英文逗号
+  text = text.replace(/([\u4e00-\u9fa5]),|,([\u4e00-\u9fa5])/g, '$1，$2');
+  // 去掉分隔符
+  text = text.replace(/\n---\n/g, '\n\n');
+  text = text.replace(/\n----\n/g, '\n\n');
+  // 移除连续的换行符
+  text = text.replace(/\n{3,}/g, '\n\n');
+  return text;
+};
+
 export default {
   name: 'App',
   components: {
@@ -53,27 +70,13 @@ export default {
 移除文本中的 Markdown 粗体标记 ** 和 __
 将英文逗号替换为中文逗号（当逗号前后有中文字符时）
 去掉分隔符以及其附近的换行符`,
-          func: (text) => {
-            // 替换行内数学公式
-            text = text.replace(/\\\(\s*(.{0,}?)\s*\\\)/g, '$$$1$$');
-            // 替换块级数学公式
-            text = text.replace(/\\\[(\s*[\s\S]*?\s*)\\\]/g, '$$$$$1$$$$');
-            // 移除粗体和下划线
-            text = text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/__(.*?)__/g, '$1');
-            // 替换中文周围的英文逗号
-            text = text.replace(/([\u4e00-\u9fa5]),|,([\u4e00-\u9fa5])/g, '$1，$2');
-            // 去掉分隔符
-            text = text.replace(/\n---\n/g, '\n\n');
-            text = text.replace(/\n----\n/g, '\n\n');
-            // 移除连续的换行符
-            text = text.replace(/\n{3,}/g, '\n\n');
-            return text;
-          }
+          mdNormalizer,
         },
         {
-          label: '隐藏标题',
-          description: '将 Markdown 标题的 # 符号用反引号包裹',
+          label: 'MD正则并隐藏标题',
+          description: '将 Markdown 标题的 # 符号用反引号包裹，并隐藏标题',
           func: (text) => {
+            text = mdNormalizer(text);
             // 遍历每一行，检测是否以# 开头，如果是，只将#用``包裹
             return text.split('\n').map(line => {
               if (/^#+\s+/.test(line)) {

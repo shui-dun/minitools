@@ -45,10 +45,12 @@ let mdNormalizer = (text) => {
   // 替换中文周围的英文逗号
   text = text.replace(/([\u4e00-\u9fa5]),|,([\u4e00-\u9fa5])/g, '$1，$2');
   // 去掉分隔符
-  text = text.replace(/\n---\n/g, '\n\n');
-  text = text.replace(/\n----\n/g, '\n\n');
+  text = text.replace(/\n---\s*\n/g, '\n\n');
+  text = text.replace(/\n----\s*\n/g, '\n\n');
   // 移除连续的换行符
   text = text.replace(/\n{3,}/g, '\n\n');
+  // deepseek喜欢用• ，应该替换为- 
+  text = text.replace(/• /g, '- ');
   return text;
 };
 

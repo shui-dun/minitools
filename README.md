@@ -4,8 +4,9 @@
 
 ## 工具列表
 
-- [stretchlyMonitor](./stretchlyMonitor) 记录stretchly退出次数，并与obsidian的习惯打卡相关联
 - [obsidian-template](./obsidian-template) obsidian模板，包含任务清单、间隔复习笔记、习惯打卡等插件
+- [appLauncher](./appLauncher) 多应用一键启动工具，支持分类管理和启动带参数的应用。
+- [stretchlyMonitor](./stretchlyMonitor) 记录stretchly退出次数，并与obsidian的习惯打卡相关联
 - [replaceText](./replaceText) 替换指定文件夹下指定格式的文件中的指定文本
 - [pipenvInstaller](./pipenvInstaller) 指定一个pipenv项目中的python文件，会自动安装项目所需的python环境，并为该文件创建快捷方式。
 - [online-text-processor](./online-text-processor) 基于 Vue.js 的纯前端文本处理工具

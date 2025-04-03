@@ -25,8 +25,7 @@ class AppLauncherFrame(wx.Frame):
         
         # 创建类别列表
         self.list_box = wx.ListBox(panel, size=(-1, 300))
-        for category in self.categories:
-            self.list_box.Append(category)
+        self.update_list_box()
         main_sizer.Add(self.list_box, 1, wx.ALL | wx.EXPAND, 10)
         
         # 按钮行
@@ -49,13 +48,43 @@ class AppLauncherFrame(wx.Frame):
         launch_button.Bind(wx.EVT_BUTTON, self.on_launch)
         config_button.Bind(wx.EVT_BUTTON, self.on_config)
         
+        # 绑定键盘事件
+        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_press)
+        
         self.Centre()
         self.Show()
     
-    def on_launch(self, event):
+    def update_list_box(self):
+        """更新列表框，添加序号（1-9）"""
+        self.list_box.Clear()
+        for i, category in enumerate(self.categories):
+            # 只为前9个项目添加序号
+            if i < 9:
+                self.list_box.Append(f"{i+1}. {category}")
+            else:
+                self.list_box.Append(f"   {category}")
+    
+    def on_key_press(self, event):
+        """处理键盘按键事件"""
+        key_code = event.GetKeyCode()
+        is_ctrl = event.ControlDown()
+        
+        # 检查是否按下 Ctrl + 数字键 (1-9)
+        if is_ctrl and ord('1') <= key_code <= ord('9'):
+            index = key_code - ord('1')  # 将按键转为索引(0-8)
+            if index < len(self.categories):
+                # 选择并启动对应项目
+                self.list_box.SetSelection(index)
+                self.launch_selected_category()
+                return
+                
+        event.Skip()
+    
+    def launch_selected_category(self):
+        """启动选中的类别"""
         selection = self.list_box.GetSelection()
         if selection != wx.NOT_FOUND:
-            category = self.list_box.GetString(selection)
+            category = self.categories[selection]  # 直接从列表获取类别名称
             apps = self.config_manager.get_apps_for_category(category)
             
             launch_success = True
@@ -76,15 +105,15 @@ class AppLauncherFrame(wx.Frame):
             if launch_success:
                 self.Close()
     
+    def on_launch(self, event):
+        self.launch_selected_category()
+    
     def on_config(self, event):
         config_editor = ConfigEditor(self, self.config_manager)
         config_editor.ShowModal()
         # 更新列表
         self.categories = self.config_manager.get_categories()
-        self.list_box.Clear()
-        for category in self.categories:
-            self.list_box.Append(category)
-        
+        self.update_list_box()
         
 if __name__ == "__main__":
     app = wx.App()

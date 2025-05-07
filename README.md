@@ -14,6 +14,7 @@
 - [copyMd](./copyMd) 复制markdown以及其链接的本地图片（使用go实现）
 - [rmMd](./rmMd) 删除markdown文件以及其链接的图片
 - [flatFolder](./flatFolder) 递归地读取文件夹下的所有文件，将其转化为一个大文件，以便于与Claude2等LLM通话。
+- [restReminder](./restReminder) 休息提醒小工具
 - [fullcpu](./fullcpu) 用 Go 语言编写的系统资源消耗工具,用来模拟高强度的 CPU、内存和 I/O 使用
 - [handright](./handright) 使用handright库，生成手写笔记
 - [fullScreenCheck](./fullScreenCheck) 当你运行全屏应用，例如全屏播放视频时，每隔一分钟，输入`'shift'+'ctrl'+'alt'+'.'`，使得Stretchly不要误以为你没有使用电脑

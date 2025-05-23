@@ -24,6 +24,9 @@ F8::Send {Volume_Up}
 F9::
     WinMaximize, A
 return
+F10::
+    SendInput {AppsKey} ; 右键菜单
+return
 
 ; 播放视频时手工模拟下一帧
 ^!+Right::

@@ -2,4 +2,5 @@
 *.pyc
 .vscode/
 cache/
-restReminder.mp3
+gameAlarm.mp3
+bookAlarm.mp3

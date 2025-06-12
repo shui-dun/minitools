@@ -22,7 +22,13 @@ def tts(input, outputPath):
     }
     response = requests.post(url=url, data=json.dumps(query), headers=headers)
     if response.status_code != 200:
-        raise Exception(f"API调用失败: {response.status_code} - {response.text}")
+        msg = f"API调用失败: {response.status_code} - {response.text}"
+        print(msg)
+        raise Exception(msg)
     # 保存文件
     with open(outputPath, "wb") as f:
         f.write(response.content)
+        
+if __name__ == '__main__':
+    print(os.environ['OPENAI_BASE_URL'])
+    print(os.environ["OPENAI_API_KEY"])

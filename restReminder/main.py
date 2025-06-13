@@ -6,9 +6,9 @@ from openai_tts import tts
 
 class AudioGenerator:
     def __init__(self):
-        self.prelude = AudioSegment.from_mp3("prelude.mp3")[:8000] # 前8s
-        self.miniBreak = AudioSegment.from_mp3("prelude.mp3")[:40000]
-        self.longBreak = AudioSegment.from_mp3("prelude.mp3")
+        self.prelude = AudioSegment.from_mp3("prelude.mp3")[:8000].fade_out(1000) # 前8s，最后1s淡出
+        self.miniBreak = AudioSegment.from_mp3("prelude.mp3")[:50000].fade_out(1000)
+        self.longBreak = AudioSegment.from_mp3("alarm.mp3").fade_in(15000) - 1 # 前15s淡入；整体分贝减1
         self.audio = AudioSegment.empty()
         self.cacheRoot = "cache/"
         # 如果不存在cache目录，则生成
@@ -16,6 +16,9 @@ class AudioGenerator:
             os.mkdir(self.cacheRoot)
 
     def addText(self, text):
+        if text == "":
+            self.audio = self.audio + self.prelude
+            return self
         # 计算文本的sha256值
         textHash = sha256(text)
         # 缓存文件
@@ -45,7 +48,7 @@ class AudioGenerator:
         return self
 
     def addLongBreak(self):
-        for _ in range(2):
+        for _ in range(3):
             self.audio = self.audio + self.longBreak
         return self
         
@@ -55,7 +58,7 @@ class AudioGenerator:
         self.audio.export(outputPath, format=format)
 
 AudioGenerator()\
-    .addText("开始计时")\
+    .addText("")\
     .addSilent(30 * 60)\
     .addText("距离休息还有30分钟")\
     .addSilent(15 * 60)\
@@ -67,14 +70,11 @@ AudioGenerator()\
     .export("gameAlarm.mp3")
 
 AudioGenerator()\
-    .addText("开始计时")\
+    .addText("")\
     .addSilent(20 * 60)\
-    .addText("距离休息还有40分钟")\
     .addMiniBreak()\
     .addSilent(20 * 60)\
-    .addText("距离休息还有20分钟")\
     .addMiniBreak()\
     .addSilent(20 * 60)\
-    .addText("开始休息")\
     .addLongBreak()\
     .export("bookAlarm.mp3")

@@ -19,6 +19,12 @@ func main() {
 	length := flag.Int("len", 0, "Length in bytes (required for decimal type)")
 	flag.Parse()
 
+	// 如果没有指定任何参数，则显示帮助信息
+	if *oldStr == "" {
+		flag.Usage()
+		os.Exit(0)
+	}
+
 	// 解析值类型
 	vType, err := convert.ParseValueType(*valueType)
 	if err != nil {

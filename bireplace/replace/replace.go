@@ -1,4 +1,4 @@
-package main
+package replace
 
 import (
 	"bytes"
@@ -9,7 +9,7 @@ import (
 
 var ErrDifferentLength = errors.New("old and new byte slices must have the same length")
 
-// BinaryReplace 在二进制文件中替换所有指定的字符串
+// BinaryReplace 在二进制文件中替换所有指定的字节序列
 // 返回替换的次数和可能的错误
 func BinaryReplace(input io.Reader, output io.Writer, old, new []byte) (int, error) {
 	if len(old) != len(new) {
@@ -38,7 +38,7 @@ func BinaryReplace(input io.Reader, output io.Writer, old, new []byte) (int, err
 }
 
 // FileReplace 对文件执行二进制替换操作
-func FileReplace(inputPath, outputPath string, old, new string) (int, error) {
+func FileReplace(inputPath, outputPath string, old, new []byte) (int, error) {
 	input, err := os.Open(inputPath)
 	if err != nil {
 		return 0, err
@@ -51,5 +51,21 @@ func FileReplace(inputPath, outputPath string, old, new string) (int, error) {
 	}
 	defer output.Close()
 
-	return BinaryReplace(input, output, []byte(old), []byte(new))
+	return BinaryReplace(input, output, old, new)
+}
+
+// FileSearch 在文件中搜索指定的字节序列并返回出现次数
+func FileSearch(inputPath string, pattern []byte) (int, error) {
+	input, err := os.Open(inputPath)
+	if err != nil {
+		return 0, err
+	}
+	defer input.Close()
+
+	content, err := io.ReadAll(input)
+	if err != nil {
+		return 0, err
+	}
+
+	return bytes.Count(content, pattern), nil
 }

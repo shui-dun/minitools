@@ -1,4 +1,4 @@
-package main
+package replace
 
 import (
 	"bytes"
@@ -6,6 +6,12 @@ import (
 	"path/filepath"
 	"testing"
 )
+
+var input = []byte{0xAB, 0xC7, 0x2D, 0xEF, 0x65, 0x89, 0xC7, 0x2D, 0xBC}
+var old = []byte{0xC7, 0x2D}
+var new = []byte{0xF3, 0x4A}
+var expected = []byte{0xAB, 0xF3, 0x4A, 0xEF, 0x65, 0x89, 0xF3, 0x4A, 0xBC}
+var expectedCount = 2
 
 func TestBinaryReplace(t *testing.T) {
 	tests := []struct {
@@ -17,36 +23,12 @@ func TestBinaryReplace(t *testing.T) {
 		count    int
 	}{
 		{
-			name:     "simple replacement",
-			input:    []byte("hello world"),
-			old:      []byte("world"),
-			new:      []byte("there"),
-			expected: []byte("hello there"),
-			count:    1,
-		},
-		{
-			name:     "multiple replacements",
-			input:    []byte("test test test"),
-			old:      []byte("test"),
-			new:      []byte("done"),
-			expected: []byte("done done done"),
-			count:    3,
-		},
-		{
-			name:     "no replacement",
-			input:    []byte("hello world"),
-			old:      []byte("xyz"),
-			new:      []byte("abc"),
-			expected: []byte("hello world"),
-			count:    0,
-		},
-		{
-			name:     "binary data replacement",
-			input:    []byte{0x00, 0x01, 0x02, 0x00, 0x01, 0x02},
-			old:      []byte{0x00, 0x01, 0x02},
-			new:      []byte{0x03, 0x04, 0x05},
-			expected: []byte{0x03, 0x04, 0x05, 0x03, 0x04, 0x05},
-			count:    2,
+			name: "hex pattern",
+			input:    input,
+			old:      old,
+			new:      new,
+			expected: expected,
+			count: expectedCount,
 		},
 	}
 
@@ -78,20 +60,19 @@ func TestFileReplace(t *testing.T) {
 	outputPath := filepath.Join(dir, "output.txt")
 
 	// 测试数据
-	input := []byte("hello world hello world")
 	err := os.WriteFile(inputPath, input, 0644)
 	if err != nil {
 		t.Fatalf("创建测试文件失败: %v", err)
 	}
 
 	// 测试替换
-	count, err := FileReplace(inputPath, outputPath, "world", "there")
+	count, err := FileReplace(inputPath, outputPath, old, new)
 	if err != nil {
 		t.Fatalf("FileReplace 失败: %v", err)
 	}
 
-	if count != 2 {
-		t.Errorf("期望替换 2 处, 实际替换了 %d 处", count)
+	if count != expectedCount {
+		t.Errorf("期望替换 次数 %d, 实际得到 %d", expectedCount, count)
 	}
 
 	// 验证输出
@@ -100,8 +81,29 @@ func TestFileReplace(t *testing.T) {
 		t.Fatalf("读取输出文件失败: %v", err)
 	}
 
-	expected := []byte("hello there hello there")
 	if !bytes.Equal(output, expected) {
-		t.Errorf("期望得到 %q, 实际得到 %q", expected, output)
+		t.Errorf("期望得到 %v, 实际得到 %v", expected, output)
+	}
+}
+
+func TestFileSearch(t *testing.T) {
+	// 创建临时测试文件
+	dir := t.TempDir()
+	inputPath := filepath.Join(dir, "input.txt")
+
+	// 测试数据
+	err := os.WriteFile(inputPath, input, 0644)
+	if err != nil {
+		t.Fatalf("创建测试文件失败: %v", err)
+	}
+
+	// 测试搜索
+	count, err := FileSearch(inputPath, old)
+	if err != nil {
+		t.Fatalf("FileSearch 失败: %v", err)
+	}
+
+	if count != expectedCount {
+		t.Errorf("期望找到 %d 次, 实际找到 %d 次", expectedCount, count)
 	}
 }

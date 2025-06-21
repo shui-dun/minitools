@@ -11,10 +11,10 @@
 - [pipenvInstaller](./pipenvInstaller) 指定一个pipenv项目中的python文件，会自动安装项目所需的python环境，并为该文件创建快捷方式。
 - [online-text-processor](./online-text-processor) 基于 Vue.js 的纯前端文本处理工具
 - [ahk](./ahk) autohotkey脚本
+- [bireplace](./bireplace) 在二进制文件中执行字符串或数值替换，同时保持文件大小不变。
 - [copyMd](./copyMd) 复制markdown以及其链接的本地图片（使用go实现）
 - [rmMd](./rmMd) 删除markdown文件以及其链接的图片
 - [flatFolder](./flatFolder) 递归地读取文件夹下的所有文件，将其转化为一个大文件，以便于与Claude2等LLM通话。
-- [bireplace](./bireplace) 在二进制文件中执行字符串替换，同时保持文件大小不变。
 - [restReminder](./restReminder) 休息提醒小工具
 - [fullcpu](./fullcpu) 用 Go 语言编写的系统资源消耗工具,用来模拟高强度的 CPU、内存和 I/O 使用
 - [handright](./handright) 使用handright库，生成手写笔记

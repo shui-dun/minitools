@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"bireplace/convert"
-	"bireplace/replace"
+	"binreplace/convert"
+	"binreplace/replace"
 )
 
 func main() {

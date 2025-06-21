@@ -1,4 +1,4 @@
-# bireplace
+# binreplace
 
 在二进制文件中执行字符串或数值替换，同时保持文件大小不变。
 
@@ -22,21 +22,21 @@ go install
 
 2. 查看值的十六进制表示：
 ```
-bireplace -type dec -endian big -len 4 -old 12345678
-bireplace -type hex -old ff00ff
-bireplace -type string -old "Hello"
+binreplace -type dec -endian big -len 4 -old 12345678
+binreplace -type hex -old ff00ff
+binreplace -type string -old "Hello"
 ```
 
 3. 搜索文件中的值：
 ```
-bireplace -i a.data -type dec -endian little -len 4 -old 12345678
-bireplace -i a.data -type hex -old ff00ff
-bireplace -i a.data -type string -old "Hello"
+binreplace -i a.data -type dec -endian little -len 4 -old 12345678
+binreplace -i a.data -type hex -old ff00ff
+binreplace -i a.data -type string -old "Hello"
 ```
 
 4. 替换文件中的值：
 ```
-bireplace -i a.data -o b.data -type dec -endian little -len 4 -old 12345678 -new 12876543
-bireplace -i a.data -o b.data -type hex -old ff00ff -new 00ff00
-bireplace -i a.data -o b.data -type string -old "Hello" -new "World"
+binreplace -i a.data -o b.data -type dec -endian little -len 4 -old 12345678 -new 12876543
+binreplace -i a.data -o b.data -type hex -old ff00ff -new 00ff00
+binreplace -i a.data -o b.data -type string -old "Hello" -new "World"
 ```

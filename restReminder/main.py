@@ -7,7 +7,7 @@ from openai_tts import tts
 class AudioGenerator:
     def __init__(self):
         self.prelude = AudioSegment.from_mp3("prelude.mp3")[:8000].fade_out(1000) # 前8s，最后1s淡出
-        self.miniBreak = AudioSegment.from_mp3("prelude.mp3")[:50000].fade_out(1000)
+        self.miniBreak = AudioSegment.from_mp3("prelude.mp3")[:50000].fade_out(1000) - 10
         self.longBreak = AudioSegment.from_mp3("alarm.mp3").fade_in(15000) - 1 # 前15s淡入；整体分贝减1
         self.audio = AudioSegment.empty()
         self.cacheRoot = "cache/"
@@ -72,9 +72,15 @@ AudioGenerator()\
 AudioGenerator()\
     .addText("")\
     .addSilent(20 * 60)\
+    .addText("即将开始小憩")\
+    .addSilent(20)\
     .addMiniBreak()\
     .addSilent(20 * 60)\
+    .addText("即将开始小憩")\
+    .addSilent(20)\
     .addMiniBreak()\
     .addSilent(20 * 60)\
+    .addText("即将开始休息")\
+    .addSilent(20)\
     .addLongBreak()\
     .export("bookAlarm.mp3")

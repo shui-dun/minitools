@@ -59,28 +59,16 @@ class AudioGenerator:
 
 AudioGenerator()\
     .addText("")\
-    .addSilent(30 * 60)\
-    .addText("距离休息还有30分钟")\
-    .addSilent(15 * 60)\
-    .addText("距离休息还有15分钟")\
-    .addSilent(10 * 60)\
-    .addText("距离休息还有5分钟")\
-    .addSilent(5 * 60)\
-    .addLongBreak()\
-    .export("gameAlarm.mp3")
-
-AudioGenerator()\
-    .addText("")\
     .addSilent(20 * 60)\
-    .addText("即将开始小憩")\
+    .addText("即将开始第一次小憩")\
     .addSilent(20)\
     .addMiniBreak()\
     .addSilent(20 * 60)\
-    .addText("即将开始小憩")\
+    .addText("即将开始第二次小憩")\
     .addSilent(20)\
     .addMiniBreak()\
     .addSilent(20 * 60)\
     .addText("即将开始休息")\
     .addSilent(20)\
     .addLongBreak()\
-    .export("bookAlarm.mp3")
+    .export("rest.mp3")

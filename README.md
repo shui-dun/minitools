@@ -11,6 +11,7 @@
 - [pipenvInstaller](./pipenvInstaller) 指定一个pipenv项目中的python文件，会自动安装项目所需的python环境，并为该文件创建快捷方式。
 - [online-text-processor](./online-text-processor) 基于 Vue.js 的纯前端文本处理工具
 - [ahk](./ahk) autohotkey脚本
+- [hollow_knight_trainer](./hollow_knight_trainer) 空洞骑士修改器
 - [binreplace](./binreplace) 在二进制文件中执行字符串或数值替换，同时保持文件大小不变。
 - [copyMd](./copyMd) 复制markdown以及其链接的本地图片（使用go实现）
 - [rmMd](./rmMd) 删除markdown文件以及其链接的图片

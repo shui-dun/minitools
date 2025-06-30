@@ -6,8 +6,8 @@
   <CheatEntries>
     <CheatEntry>
       <ID>0</ID>
-      <Description>"无限血量"</Description>
-      <LastState Value="5" RealAddress="28DF8CEA190"/>
+      <Description>"锁定血量"</Description>
+      <LastState Value="2" RealAddress="1F28D9CB190"/>
       <VariableType>4 Bytes</VariableType>
       <Address>"UnityPlayer.dll"+01966FC0</Address>
       <Offsets>
@@ -21,7 +21,7 @@
       </Offsets>
       <Hotkeys>
         <Hotkey>
-          <Action>Toggle Activation</Action>
+          <Action>Toggle Activation Allow Increase</Action>
           <Keys>
             <Key>17</Key>
             <Key>49</Key>

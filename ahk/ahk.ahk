@@ -14,3 +14,4 @@ Run, snippet.ahk
 #Include terminal.ahk
 ; #Include vim.ahk
 #Include wechat.ahk
+#Include, danganronpa.ahk

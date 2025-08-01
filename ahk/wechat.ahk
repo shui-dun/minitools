@@ -17,4 +17,16 @@ MoveMouse(x, y)
 	return
 }
 
+; 控制窗口位置
+F9::
+	; 获取屏幕分辨率
+	SysGet, ScreenWidth, 78
+	SysGet, ScreenHeight, 79
+	if (ScreenWidth = 1920 && ScreenHeight = 1080) {
+		WinMove, A, , 410, 0, 930, 1250
+	} else { ; 2560 × 1440
+		WinMove, A, , 680, 0, 1080, 1600
+	}
+return
+
 #IfWinActive

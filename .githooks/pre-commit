@@ -2,7 +2,7 @@
 
 echo "run readmeGenerator before commit"
 
-python3 readmeGenerator.py
+python readmeGenerator.py
 
 # 检查工作区中是否有未暂存的变更
 if git diff --exit-code --name-only | grep -q "README.md"; then

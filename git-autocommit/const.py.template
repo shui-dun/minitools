@@ -1,0 +1,15 @@
+from models import RepoConfig
+
+DEFAULT_ORIGIN_PREFIX = 'ssh://git@43.138.138.37:1774/shui-dun/' # 必须以/结尾
+
+REPO_CONFIGS = [
+    RepoConfig(
+        path=r"D:\example\repo1", # 必须是绝对路径
+        interval_minutes=30,
+    ),
+    RepoConfig(
+        path=r"D:\example\repo2", 
+        interval_minutes=60,
+        do_push=False # 默认值为True，表示在拉取代码后自动推送到远程仓库，如果不需要推送可以设置为False
+    ),
+]

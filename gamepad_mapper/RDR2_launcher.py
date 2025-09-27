@@ -21,16 +21,19 @@ lb_pressed = False
 rb_pressed = False
 
 while True:
-    events = get_gamepad()
-    for event in events:
-        if event.code == 'BTN_TL':  # LB
-            lb_pressed = event.state == 1 # event.state为1表示按下
-        if event.code == 'BTN_TR':  # RB
-            rb_pressed = event.state == 1
-        # 检查是否同时按下
-        if lb_pressed and rb_pressed:
-            press(win32con.VK_NUMPAD9)
-            print("已发送数字9")
-            lb_pressed = False
-            rb_pressed = False
-            break
+    try:
+        events = get_gamepad()
+        for event in events:
+            if event.code == 'BTN_TL':  # LB
+                lb_pressed = event.state == 1 # event.state为1表示按下
+            if event.code == 'BTN_TR':  # RB
+                rb_pressed = event.state == 1
+            # 检查是否同时按下
+            if lb_pressed and rb_pressed:
+                press(win32con.VK_NUMPAD9)
+                print("已发送数字9")
+                lb_pressed = False
+                rb_pressed = False
+                break
+    except Exception as e: # 在手柄断开时仍能正常工作不退出
+        print(f"发生错误: {e}")

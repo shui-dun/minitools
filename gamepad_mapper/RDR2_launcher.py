@@ -1,5 +1,5 @@
 # 这个脚本的功能是：运行大表哥2修改器，随后通过手柄来控制修改器：
-# 当按下手柄的LB和RB键时，发送数字键9，以触发大表哥的风灵月影的加速功能
+# 当按下手柄的LB和RB键时（先按rb，再按lb），发送数字键9，以触发大表哥的风灵月影的加速功能
 # 该脚本必须用管理员身份运行
 from inputs import get_gamepad
 import win32api
@@ -17,17 +17,18 @@ def press(key_code):
     time.sleep(0.2)
     win32api.keybd_event(key_code, 0, win32con.KEYEVENTF_KEYUP, 0)  # 松开
 
-lb_pressed = False
 rb_pressed = False
+lb_pressed = False
 
 while True:
     try:
         events = get_gamepad()
         for event in events:
-            if event.code == 'BTN_TL':  # LB
-                lb_pressed = event.state == 1 # event.state为1表示按下
             if event.code == 'BTN_TR':  # RB
                 rb_pressed = event.state == 1
+            if rb_pressed and event.code == 'BTN_TL':  # LB，先按rb，再按lb
+                lb_pressed = event.state == 1 # event.state为1表示按下
+
             # 检查是否同时按下
             if lb_pressed and rb_pressed:
                 press(win32con.VK_NUMPAD9)

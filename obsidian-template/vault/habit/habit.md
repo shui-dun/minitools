@@ -24,6 +24,7 @@ let {startDate, endDate} = Habit.defaultPeriod(dv.current().startDate, dv.curren
 
 let habits = dv.pages('"habit" and -"habit/habit_history"')
 	.where(habit => habit.id)
+	.where(habit => habit.deprecated !== true)
 	.map(habit => {
 		return {
 			habit: habit,

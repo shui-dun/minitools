@@ -120,21 +120,25 @@ class Habit {
 		const habitID = fm.id;
 
 		/* 获取当前日期 */
-		let now = moment();
-		if (now.hour() < 4) {
-			now.subtract(1, 'day');
+		let todayDate = null;
+		{
+			let now = moment(); // 这个now是要被魔改的，为了防止被使用，限制其作用域
+			if (now.hour() < 4) {
+				now.subtract(1, 'day');
+			}
+			if (fm.daysOffset != null) {
+				now = now.add(fm.daysOffset, 'days');
+				new Notice(`打卡时间被设置为${Math.abs(fm.daysOffset)}天${fm.daysOffset > 0 ? '后' : '前'}，即${now.format('YYYY-MM-DD')}`);
+			}
+			todayDate = now.format("YYYY-MM-DD");
 		}
-		if (fm.daysOffset != null) {
-			now = now.add(fm.daysOffset, 'days');
-			new Notice(`打卡时间被设置为${Math.abs(fm.daysOffset)}天${fm.daysOffset > 0 ? '后' : '前'}，即${now.format('YYYY-MM-DD')}`);
-		}
-		let todayDate = now.format("YYYY-MM-DD");
 
 		/* 让用户输入打卡次数 */
 		let count = 0;
 		if (fileName == '早睡') {
 			const currentTime = moment();
-			count = this.timeToNum(currentTime);
+			const isWeekend = this.checkWeekend(currentTime);
+			count = this.timeToNum(currentTime, isWeekend);
 			count = parseFloat(count.toFixed(2));
 		} else if (fileName == '笔记') {
 			// 确保当前笔记含有sr属性
@@ -232,7 +236,7 @@ class Habit {
 		}
 	}
 
-	timeToNum(timeStr) {
+	timeToNum(timeStr, isWeekend) {
 		let currentTime = timeStr;
 		// 如果是字符串类型
 		if (typeof timeStr == 'string') {
@@ -240,10 +244,17 @@ class Habit {
 		}
 
 		// 定义时间点
-		const t0 = moment("12:00", "HH:mm");
-		const t1 = moment("22:30", "HH:mm");
-		const t2 = moment("23:30", "HH:mm");
-		const t3 = moment("01:30", "HH:mm").add(1, 'days'); // 确保跨午夜比较正确
+		let t0 = moment("12:00", "HH:mm");
+		let t1 = moment("22:30", "HH:mm");
+		let t2 = moment("23:00", "HH:mm");
+		let t3 = moment("00:00", "HH:mm").add(1, 'days');
+		// 如果是周末，可以迟点睡觉
+		if (isWeekend) {
+			t0 = moment("12:00", "HH:mm");
+			t1 = moment("23:00", "HH:mm");
+			t2 = moment("23:30", "HH:mm");
+			t3 = moment("00:30", "HH:mm").add(1, 'days'); // 确保跨午夜比较正确
+		}
 
 		// 调整当前时间以处理跨午夜情况
 		let adjustedCurrentTime = currentTime;
@@ -254,6 +265,7 @@ class Habit {
 		let score;
 
 		if (adjustedCurrentTime.isBetween(t0, t1, null, '[]')) {
+			// t0-t1: 恒定为1
 			score = 1;
 		} else if (adjustedCurrentTime.isBetween(t1, t2, null, '[]')) {
 			// t1-t2: 1->0
@@ -264,6 +276,7 @@ class Habit {
 			const progress = (adjustedCurrentTime - t2) / (t3 - t2);
 			score = -progress;
 		} else {
+			// t3-t0: 恒定为-1
 			score = -1;
 		}
 
@@ -300,6 +313,28 @@ class Habit {
 	// testCases.forEach(([time, expected]) => {
 	// 	const result = timeToNum(time);
 	// 	console.log(`Time: ${time}, Expected: ${expected}, Got: ${result}, ${result === expected ? '✓' : '✗'}`);
+	// });
+
+	// 判断是否是周末（打卡时间为周五12:00到周一12:00）
+	checkWeekend(date) {
+		return (date.day() === 5 && date.hour() >= 12) || date.day() === 6 || date.day() === 0 || (date.day() === 1 && date.hour() < 12); // 注意周日是0而非7
+	}
+	// checkWeekend 的测试用例：
+	// > npm install moment
+	// const moment = require('moment');
+	// const testDates = [
+	// "2023-10-06 11:59", // 周五 12:00 前 - 非周末
+	// "2023-10-06 12:01", // 周五
+	// "2023-10-07 15:00", // 周六
+	// "2023-10-08 09:00", // 周日
+	// "2023-10-09 11:59", // 周一 12:00 前
+	// "2023-10-09 12:01", // 周一
+	// "2023-10-10 10:00"  // 周二 - 非周末
+	// ];
+	// testDates.forEach(dateStr => {
+	// const date = moment(dateStr, "YYYY-MM-DD HH:mm");
+	// const result = checkWeekend(date);
+	// console.log(`Date: ${dateStr}, Is Weekend: ${result}`);
 	// });
 
 }

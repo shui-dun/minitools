@@ -250,53 +250,123 @@ class Task {
 		return ans;
 	}
 	
-	renderTasks(pages) {
+	async showTasks(rootPath) {
+		const { Files } = await cJS();
+		if (!Files.isFolderNote(rootPath)) {
+			console.log("请在Folder Note中使用该命令");
+			return;
+		}
+
 		let {DateTime} = this.dv.luxon;
 		let today = DateTime.local().startOf("day");
-		
-		let events = [];
 
-		let pushEvent = (p, date) => {
-			events.push({
-				title: p.file.link,
-				priority: p.priority,
-				date: date,
-				startTime: p.startTime,
-				endTime: p.endTime,
-				note: p.note,
-			})
+		let findTasks = (rootPath) => {
+			let tasks = [];
+
+			let pushTask = (p, date) => {
+				tasks.push({
+					key: p.file.path,
+					title: p.file.link,
+					priority: p.priority,
+					date: date,
+					startTime: p.startTime,
+					endTime: p.endTime,
+					note: p.note,
+				})
+			}
+
+			let pushError = (p, msg) => {
+				tasks.push({
+					key: p.file.path,
+					title: p.file.link,
+					priority: p.priority,
+					date: today,
+					startTime: "",
+					endTime: msg,
+					note: p.note,
+				})
+			}
+
+			// 获取所有子页面
+			let rootFolderPath = Files.getParentPath(rootPath);
+			let pages = this.dv.pages(`"${rootFolderPath}"`)
+						.where(p => !p.file.path.split('/').includes('archive'))
+						.where(p => p.file.path !== rootPath);
+
+			pages.forEach((p) => {
+				try {
+					var ans = this.daysOfTask(p);
+					ans.forEach((date) => {
+						pushTask(p, date)
+					});
+					let priorityFilter = (p.priority > 0);
+					if (ans.length === 0 && p.priority != null && priorityFilter) {
+						pushTask(p, null)
+					}
+				} catch (error) {
+					pushError(p, error.message)
+				}
+			});
+			return tasks;
 		}
 
-		let pushError = (p, msg) => {
-			events.push({
-				title: p.file.link,
-				priority: p.priority,
-				date: today,
-				startTime: "",
-				endTime: msg,
-				note: p.note,
-			})
-		}
-		
-		let formatTime = (e) => {
-			if (e.date === null) {
-				return ""
+		let sortTasks = (tasks) => {
+			let paddingTime = (time) => {
+				if (time == null) {
+					return ""
+				}
+				if (time.length === 4) {
+					return "0" + time
+				}
+				return time
 			}
-			let currentYear = today.year;
-			let time = e.date.toFormat(currentYear === e.date.year ? "MM-dd" : "yy-MM-dd");
-			if (e.startTime || e.endTime) {
-				time += ' '
-			}
-			if (e.startTime) {
-				time += e.startTime
-			}
-			if (e.endTime) {
-				time += '->' + e.endTime
-			}
-			return `<code>${time}</code>  `
+
+			tasks.sort((a, b) => {
+				let urgentEndDate = today.plus({
+					days: 6
+				});
+				let isUrgentA = a.date != null && a.date <= urgentEndDate;
+				let isUrgentB = b.date != null && b.date <= urgentEndDate;
+				if (isUrgentA && !isUrgentB) return -1;
+				if (!isUrgentA && isUrgentB) return 1;
+				if (isUrgentA && isUrgentB) {
+					let dateDiff = a.date - b.date;
+					if (dateDiff !== 0) return dateDiff;
+					if (a.startTime != null && b.startTime != null) {
+						let timeDiff = paddingTime(a.startTime).localeCompare(paddingTime(b.startTime));
+						if (timeDiff !== 0) return timeDiff
+					}
+					let aEndTime = paddingTime(a.endTime || "23:59");
+					let bEndTime = paddingTime(b.endTime || "23:59");
+					return aEndTime.localeCompare(bEndTime)
+				}
+				let aPriority = a.priority || 0;
+				let bPriority = b.priority || 0;
+				return bPriority - aPriority
+			});
+
+			return tasks;
 		}
 
-		let highlightTitle = (e) => {
+		let printTasks = (e) => {
+			let formatTime = (e) => {
+				if (e.date === null) {
+					return ""
+				}
+				let currentYear = today.year;
+				let time = e.date.toFormat(currentYear === e.date.year ? "MM-dd" : "yy-MM-dd");
+				if (e.startTime || e.endTime) {
+					time += ' '
+				}
+				if (e.startTime) {
+					time += e.startTime
+				}
+				if (e.endTime) {
+					time += '->' + e.endTime
+				}
+				return `<code>${time}</code>  `
+			}
+
 			if (e.priority == null || typeof e.priority !== 'number' || e.priority < 0) {
 				e.priority = 0
 			}
@@ -317,56 +387,14 @@ class Task {
 				   `</svg>  ${formatTime(e)}${e.title}${note}`;
 		}
 		
-		let paddingTime = (time) => {
-			if (time == null) {
-				return ""
-			}
-			if (time.length === 4) {
-				return "0" + time
-			}
-			return time
+		let tasks = findTasks(rootPath);
+
+		tasks = sortTasks(tasks);
+
+		if (tasks.length === 0) {
+			return;
 		}
-
-		pages.forEach((p) => {
-			try {
-				var ans = this.daysOfTask(p);
-				ans.forEach((date) => {
-					pushEvent(p, date)
-				});
-				let priorityFilter = (p.priority > 0);
-				if (ans.length === 0 && p.priority != null && priorityFilter) {
-					pushEvent(p, null)
-				}
-			} catch (error) {
-				pushError(p, error.message)
-			}
-		});
-
-		events.sort((a, b) => {
-			let urgentEndDate = today.plus({
-				days: 6
-			});
-			let isUrgentA = a.date != null && a.date <= urgentEndDate;
-			let isUrgentB = b.date != null && b.date <= urgentEndDate;
-			if (isUrgentA && !isUrgentB) return -1;
-			if (!isUrgentA && isUrgentB) return 1;
-			if (isUrgentA && isUrgentB) {
-				let dateDiff = a.date - b.date;
-				if (dateDiff !== 0) return dateDiff;
-				if (a.startTime != null && b.startTime != null) {
-					let timeDiff = paddingTime(a.startTime).localeCompare(paddingTime(b.startTime));
-					if (timeDiff !== 0) return timeDiff
-				}
-				let aEndTime = paddingTime(a.endTime || "23:59");
-				let bEndTime = paddingTime(b.endTime || "23:59");
-				return aEndTime.localeCompare(bEndTime)
-			}
-			let aPriority = a.priority || 0;
-			let bPriority = b.priority || 0;
-			return bPriority - aPriority
-		});
-
-		this.dv.table([""], events.map((e) => [highlightTitle(e)]));
+		this.dv.table([""], tasks.map((e) => [printTasks(e)]));
 	}
 
 	async skip(p) {

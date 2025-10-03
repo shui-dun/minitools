@@ -137,7 +137,7 @@ class Habit {
 		let count = 0;
 		if (fileName == '早睡') {
 			const currentTime = moment();
-			const isWeekend = this.checkWeekend(currentTime);
+			const isWeekend = await this.checkWeekend();
 			count = this.timeToNum(currentTime, isWeekend);
 			count = parseFloat(count.toFixed(2));
 		} else if (fileName == '笔记') {
@@ -315,26 +315,15 @@ class Habit {
 	// 	console.log(`Time: ${time}, Expected: ${expected}, Got: ${result}, ${result === expected ? '✓' : '✗'}`);
 	// });
 
-	// 判断是否是周末（打卡时间为周五12:00到周一12:00）
-	checkWeekend(date) {
-		return (date.day() === 5 && date.hour() >= 12) || date.day() === 6 || date.day() === 0 || (date.day() === 1 && date.hour() < 12); // 注意周日是0而非7
+	// 判断是否是休息日
+	// 考虑到请假、节假日等因素，还是让用户手动填写
+	async checkWeekend() {
+		const modalForm = app.plugins.plugins.modalforms.api;
+		let ans = await modalForm.openForm({
+			title: "是否是休息日",
+			fields: [],
+		});
+		return ans.status == 'ok';
 	}
-	// checkWeekend 的测试用例：
-	// > npm install moment
-	// const moment = require('moment');
-	// const testDates = [
-	// "2023-10-06 11:59", // 周五 12:00 前 - 非周末
-	// "2023-10-06 12:01", // 周五
-	// "2023-10-07 15:00", // 周六
-	// "2023-10-08 09:00", // 周日
-	// "2023-10-09 11:59", // 周一 12:00 前
-	// "2023-10-09 12:01", // 周一
-	// "2023-10-10 10:00"  // 周二 - 非周末
-	// ];
-	// testDates.forEach(dateStr => {
-	// const date = moment(dateStr, "YYYY-MM-DD HH:mm");
-	// const result = checkWeekend(date);
-	// console.log(`Date: ${dateStr}, Is Weekend: ${result}`);
-	// });
 
 }

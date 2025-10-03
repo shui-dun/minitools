@@ -310,7 +310,7 @@ class Task {
 			return tasks;
 		}
 
-		// 一个任务的优先级将是其自身和其所有子孙任务优先级（如>2）中的最大值。
+		// 一个任务的优先级将是其自身和其所有子孙任务优先级中的最大值。
 		// 一个任务的截止日期将是其自身和其所有子孙任务截止日期中的最早值。
 		// 在任务的备注中，会清晰地标示出提供最高优先级（P:）和最早截止日期（D:）的具体任务链接。
 		let processTasks = (tasks, rootPath) => {
@@ -338,15 +338,12 @@ class Task {
 				// 进行聚合计算
 				let maxPriority = task.priority || 0;
 				let priorityContributors = [];
-				let minDate = task.startDate || null;
+				let minDate = task.date || null;
 				let dateContributors = [];
 	
 				descTasks.forEach(descTask => {
 					// 聚合最高优先级
 					const currentPriority = descTask.priority || 0;
-					if (currentPriority <= 2) {
-						return;
-					}
 					if (currentPriority > maxPriority) {
 						maxPriority = currentPriority;
 						priorityContributors = [descTask.title];
@@ -357,30 +354,29 @@ class Task {
 					}
 	
 					// 聚合最早日期
-					const currentDate = descTask.startDate;
-					console.log(currentDate);
+					const currentDate = descTask.date;
 					if (currentDate) {
 						if (!minDate || currentDate < minDate) {
 							minDate = currentDate;
-							dateContributors = [task.title];
+							dateContributors = [descTask.title];
 						} else if (minDate && currentDate.ts === minDate.ts) {
-							if (!dateContributors.find(link => link.path === task.title.path)) {
-								dateContributors.push(task.title);
+							if (!dateContributors.find(link => link.path === descTask.title.path)) {
+								dateContributors.push(descTask.title);
 							}
 						}
 					}
 				});
 	
 				task.priority = maxPriority;
-				task.startDate = minDate;
+				task.date = minDate;
 					
 				// 将贡献者信息添加到备注中
 				let extraNotes = [];
 				if (priorityContributors.length > 0) {
-					extraNotes.push(`P: ${priorityContributors.join(', ')}`);
+					extraNotes.push(`\`P:\` ${priorityContributors.join(', ')}`);
 				}
 				if (dateContributors.length > 0) {
-					extraNotes.push(`D: ${dateContributors.join(', ')}`);
+					extraNotes.push(`\`D:\` ${dateContributors.join(', ')}`);
 				}
 	
 				if (extraNotes.length > 0) {

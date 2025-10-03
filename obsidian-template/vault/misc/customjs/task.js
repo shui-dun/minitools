@@ -250,7 +250,7 @@ class Task {
 		return ans;
 	}
 	
-	renderTasks(pages, allowZeroPriority) {
+	renderTasks(pages) {
 		let {DateTime} = this.dv.luxon;
 		let today = DateTime.local().startOf("day");
 		
@@ -333,7 +333,7 @@ class Task {
 				ans.forEach((date) => {
 					pushEvent(p, date)
 				});
-				let priorityFilter = allowZeroPriority ? true : (p.priority > 0);
+				let priorityFilter = (p.priority > 0);
 				if (ans.length === 0 && p.priority != null && priorityFilter) {
 					pushEvent(p, null)
 				}

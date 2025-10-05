@@ -303,7 +303,13 @@ class Task {
 					ans.forEach((date) => {
 						pushTask(p, date)
 					});
-					if (ans.length === 0 && p.priority != null && p.priority > 0) {
+					// 加入没有具体日期但优先级非0的任务
+					// 但rootPath的直接子任务，即使优先级为0，在这一步也暂时也加入，后续再依照情况删除
+					// 因为如果rootPath的直接子任务也只加入优先级>0的，会出现如下情况：
+					// 任务a的子任务b的优先级为0，b的子任务c优先级为3时，
+					// 预期行为是a页面中会显示任务b（并标明其子任务c）
+					// 但实际上，在a页面中，任务b不会被显示，即使b的子任务c优先级非0
+					if (ans.length === 0 && ((p.priority != null && p.priority > 0) || Files.getParentFolderNote(p.file.path) === rootPath)) {
 						pushTask(p, null)
 					}
 				} catch (error) {
@@ -381,7 +387,11 @@ class Task {
 				processedTasks.push(task);
 			});
 	
-			return processedTasks;
+			// 去掉优先级为0且没有截止日期的任务
+			const filteredTasks = processedTasks.filter(t => {
+				return t.priority > 0 || t.date != null;
+			});
+			return filteredTasks;	
 		}
 
 		let sortTasks = (tasks) => {

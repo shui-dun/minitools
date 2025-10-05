@@ -493,6 +493,12 @@ class Task {
 
 		tasks = sortTasks(tasks);
 
+		// 对子孙任务同样进行排序
+		tasks.forEach(t => {
+			t.priorityContributors = sortTasks(t.priorityContributors);
+			t.dateContributors = sortTasks(t.dateContributors);
+		});
+
 		if (tasks.length === 0) {
 			return;
 		}

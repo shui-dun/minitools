@@ -272,6 +272,8 @@ class Task {
 					startTime: p.startTime,
 					endTime: p.endTime,
 					note: p.note,
+					priorityContributors: [], // 高优先级的子任务
+					dateContributors: [], // 早截止日期的子任务
 				})
 			}
 
@@ -284,6 +286,8 @@ class Task {
 					startTime: "",
 					endTime: msg,
 					note: p.note,
+					priorityContributors: [],
+					dateContributors: [],
 				})
 			}
 
@@ -312,7 +316,7 @@ class Task {
 
 		// 一个任务的优先级将是其自身和其所有子孙任务优先级中的最大值。
 		// 一个任务的截止日期将是其自身和其所有子孙任务截止日期中的最早值。
-		// 在任务的备注中，会清晰地标示出提供最高优先级（P:）和最早截止日期（D:）的具体任务链接。
+		// 在任务的备注中，会清晰地标示出提供重要子任务（高优先级或者早截止日期）的具体任务链接。
 		let processTasks = (tasks, rootPath) => {
 			// 筛选出所有 rootPath 的直接子页面/任务
 			let directChildrenTasks = tasks.filter(t => {
@@ -338,20 +342,18 @@ class Task {
 				// 进行聚合计算
 				let taskPriority = task.priority || 0;
 				let maxPriority = taskPriority;
-				let priorityContributors = [];
 				let taskDate = task.date || null;
 				let minDate = taskDate;
 				let taskStartTime = task.startTime || null;
 				let minStartTime = taskStartTime;
 				let taskEndTime = task.endTime || null;
 				let minEndTime = taskEndTime;
-				let dateContributors = [];
 	
 				descTasks.forEach(descTask => {
 					// 聚合最高优先级
 					const currentPriority = descTask.priority || 0;
 					if (currentPriority >= taskPriority) {
-						priorityContributors.push(descTask.title);
+						task.priorityContributors.push(descTask);
 						if (currentPriority > maxPriority) {
 							maxPriority = currentPriority;
 						}
@@ -362,7 +364,7 @@ class Task {
 					const currentStartTime = descTask.startTime || null;
 					const currentEndTime = descTask.endTime || null;
 					if (currentDate) {
-						dateContributors.push(descTask.title);
+						task.dateContributors.push(descTask);
 						if (!minDate || currentDate < minDate || (currentDate.equals(minDate) && 
 							taskStartTime && currentStartTime && currentStartTime < minStartTime)) {
 							minDate = currentDate;
@@ -376,20 +378,7 @@ class Task {
 				task.date = minDate;
 				task.startTime = minStartTime;
 				task.endTime = minEndTime;
-					
-				// 将贡献者信息添加到备注中
-				let extraNotes = [];
-				if (priorityContributors.length > 0) {
-					extraNotes.push(`\`P:\` ${priorityContributors.join(', ')}`);
-				}
-				if (dateContributors.length > 0) {
-					extraNotes.push(`\`D:\` ${dateContributors.join(', ')}`);
-				}
-	
-				if (extraNotes.length > 0) {
-					task.note = (task.note ? task.note + '  ' : '') + extraNotes.join('  ');
-				}
-	
+
 				processedTasks.push(task);
 			});
 	
@@ -434,43 +423,53 @@ class Task {
 			return tasks;
 		}
 
-		let printTasks = (e) => {
-			let formatTime = (e) => {
-				if (e.date === null) {
+		let printTasks = (t) => {
+			let formatTime = (t) => {
+				if (t.date === null) {
 					return ""
 				}
 				let currentYear = today.year;
-				let time = e.date.toFormat(currentYear === e.date.year ? "MM-dd" : "yy-MM-dd");
-				if (e.startTime || e.endTime) {
+				let time = t.date.toFormat(currentYear === t.date.year ? "MM-dd" : "yy-MM-dd");
+				if (t.startTime || t.endTime) {
 					time += ' '
 				}
-				if (e.startTime) {
-					time += e.startTime
+				if (t.startTime) {
+					time += t.startTime
 				}
-				if (e.endTime) {
-					time += '->' + e.endTime
+				if (t.endTime) {
+					time += '->' + t.endTime
 				}
 				return `<code>${time}</code>  `
 			}
 
-			if (e.priority == null || typeof e.priority !== 'number' || e.priority < 0) {
-				e.priority = 0
+			if (t.priority == null || typeof t.priority !== 'number' || t.priority < 0) {
+				t.priority = 0
 			}
-			if (e.priority > 4) {
-				e.priority = 4
+			if (t.priority > 4) {
+				t.priority = 4
 			}
-			let val = 230 - e.priority * 55;
+			let val = 230 - t.priority * 55;
 			let blueVal = 230;
-			let innerRadius = e.priority >= 2 ? 0 : 2;
+			let innerRadius = t.priority >= 2 ? 0 : 2;
 			let note = "";
-			if (e.note != null) {
-				note = `  ${e.note}`;
+			if (t.note != null) {
+				note = `  ${t.note}`;
 			}
+
+			// 将贡献者信息添加到备注中
+			let extraNotes = [];
+			for (let priorityContributor of t.priorityContributors) {
+				extraNotes.push(`\`${priorityContributor.priority}:\` ${priorityContributor.title}`);
+			}
+			for (let dateContributor of t.dateContributors) {
+				extraNotes.push(`\`${dateContributor.date.toFormat("MM-dd")}:\` ${dateContributor.title}`);
+			}
+			note = '  ' + extraNotes.join('  ');
 			
 			return `<svg width="16" height="16" style="vertical-align: middle;">` +
 				   `<circle cx="8" cy="8" r="6.5" fill="rgb(${val}, ${val}, ${blueVal})" />` +
 				   `<circle cx="8" cy="8" r="${innerRadius}" fill="white" />` +
-				   `</svg>  ${formatTime(e)}${e.title}${note}`;
+				   `</svg>  ${formatTime(t)}${t.title}${note}`;
 		}
 		
 		let tasks = findTasks(rootPath);

@@ -336,33 +336,29 @@ class Task {
 				});
 	
 				// 进行聚合计算
-				let maxPriority = task.priority || 0;
+				let taskPriority = task.priority || 0;
+				let maxPriority = taskPriority;
 				let priorityContributors = [];
-				let minDate = task.date || null;
+				let taskDate = task.date || null;
+				let minDate = taskDate;
 				let dateContributors = [];
 	
 				descTasks.forEach(descTask => {
 					// 聚合最高优先级
 					const currentPriority = descTask.priority || 0;
-					if (currentPriority > maxPriority) {
-						maxPriority = currentPriority;
-						priorityContributors = [descTask.title];
-					} else if (currentPriority === maxPriority && maxPriority > task.priority) {
-						if (!priorityContributors.find(link => link.path === descTask.title.path)) {
-							priorityContributors.push(descTask.title);
+					if (currentPriority >= taskPriority) {
+						priorityContributors.push(descTask.title);
+						if (currentPriority > maxPriority) {
+							maxPriority = currentPriority;
 						}
 					}
 	
 					// 聚合最早日期
 					const currentDate = descTask.date;
 					if (currentDate) {
+						dateContributors.push(descTask.title);
 						if (!minDate || currentDate < minDate) {
 							minDate = currentDate;
-							dateContributors = [descTask.title];
-						} else if (minDate && currentDate.ts === minDate.ts) {
-							if (!dateContributors.find(link => link.path === descTask.title.path)) {
-								dateContributors.push(descTask.title);
-							}
 						}
 					}
 				});

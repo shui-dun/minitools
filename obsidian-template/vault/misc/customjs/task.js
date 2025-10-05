@@ -432,7 +432,7 @@ class Task {
 			return tasks;
 		}
 
-		let printTasks = (t) => {
+		let printTask = (t) => {
 			let formatTime = (t) => {
 				if (t.date === null) {
 					return ""
@@ -465,25 +465,45 @@ class Task {
 				note = `  ${t.note}`;
 			}
 
+			// 预处理 dateContributors，合并相同任务的多个日期
+			let combinedDateContributors = new Map();
+			for (let dateContributor of t.dateContributors) {
+				if (!combinedDateContributors.has(dateContributor.path)) {
+					combinedDateContributors.set(dateContributor.path, {
+						dates: [],
+						link: dateContributor.link,
+					});
+				}
+				combinedDateContributors.get(dateContributor.path).dates.push(
+					dateContributor.date.toFormat("MM-dd")
+				);
+			}
+
 			// 将贡献者信息添加到备注中
 			let extraNotes = [];
 			let processedContributors = new Set();
 
-			// 先处理优先级贡献者
+			// 处理优先级贡献者
 			for (let priorityContributor of t.priorityContributors) {
+				if (processedContributors.has(priorityContributor.path)) {
+					continue;
+				}
 				processedContributors.add(priorityContributor.path);
 				let info = `\`${priorityContributor.priority}`;
-				if (t.dateContributors.some(d => d.path === priorityContributor.path)) {
-					info += `|${priorityContributor.date.toFormat("MM-dd")}`;
+				
+				// 获取该贡献者的合并后日期
+				let dateInfo = combinedDateContributors.get(priorityContributor.path);
+				if (dateInfo) {
+					info += `|${dateInfo.dates.join(",")}`;
 				}
 				info += `\` ${priorityContributor.link}`;
 				extraNotes.push(info);
 			}
 
-			// 再处理未处理过的日期贡献者
-			for (let dateContributor of t.dateContributors) {
-				if (!processedContributors.has(dateContributor.path)) {
-					extraNotes.push(`\`${dateContributor.date.toFormat("MM-dd")}\` ${dateContributor.link}`);
+			// 处理未处理过的日期贡献者
+			for (let [path, value] of combinedDateContributors) {
+				if (!processedContributors.has(path)) {
+					extraNotes.push(`\`${value.dates.join(",")}\` ${value.link}`);
 				}
 			}
 
@@ -512,7 +532,7 @@ class Task {
 		if (tasks.length === 0) {
 			return;
 		}
-		this.dv.table([""], tasks.map((e) => [printTasks(e)]));
+		this.dv.table([""], tasks.map((t) => [printTask(t)]));
 	}
 
 	async skip(p) {

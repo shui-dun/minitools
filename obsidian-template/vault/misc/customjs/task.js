@@ -265,8 +265,8 @@ class Task {
 
 			let pushTask = (p, date) => {
 				tasks.push({
-					key: p.file.path,
-					title: p.file.link,
+					path: p.file.path,
+					link: p.file.link,
 					priority: p.priority,
 					date: date,
 					startTime: p.startTime,
@@ -279,8 +279,8 @@ class Task {
 
 			let pushError = (p, msg) => {
 				tasks.push({
-					key: p.file.path,
-					title: p.file.link,
+					path: p.file.path,
+					link: p.file.link,
 					priority: p.priority,
 					date: today,
 					startTime: "",
@@ -303,8 +303,7 @@ class Task {
 					ans.forEach((date) => {
 						pushTask(p, date)
 					});
-					let priorityFilter = (p.priority > 0);
-					if (ans.length === 0 && p.priority != null && priorityFilter) {
+					if (ans.length === 0 && p.priority != null && p.priority > 0) {
 						pushTask(p, null)
 					}
 				} catch (error) {
@@ -320,7 +319,7 @@ class Task {
 		let processTasks = (tasks, rootPath) => {
 			// 筛选出所有 rootPath 的直接子页面/任务
 			let directChildrenTasks = tasks.filter(t => {
-				return Files.getParentFolderNote(t.key) === rootPath;
+				return Files.getParentFolderNote(t.path) === rootPath;
 			});
 	
 			const processedTasks = [];
@@ -329,14 +328,14 @@ class Task {
 			// 这个时间复杂度有点高可以降低但先就这样吧
 			directChildrenTasks.forEach(task => {
 				// 只有foldernote含有子任务
-				if (!Files.isFolderNote(task.key)) {
+				if (!Files.isFolderNote(task.path)) {
 					processedTasks.push(task);
 					return;
 				}
-				let taskFolderPath = Files.getParentPath(task.key);
+				let taskFolderPath = Files.getParentPath(task.path);
 				// 筛选出当前任务的子孙任务
 				const descTasks = tasks.filter(descTask => {
-					return descTask.key !== task.key && descTask.key.startsWith(taskFolderPath + '/');
+					return descTask.path !== task.path && descTask.path.startsWith(taskFolderPath + '/');
 				});
 	
 				// 进行聚合计算
@@ -458,18 +457,34 @@ class Task {
 
 			// 将贡献者信息添加到备注中
 			let extraNotes = [];
+			let processedContributors = new Set();
+
+			// 先处理优先级贡献者
 			for (let priorityContributor of t.priorityContributors) {
-				extraNotes.push(`\`${priorityContributor.priority}:\` ${priorityContributor.title}`);
+				processedContributors.add(priorityContributor.path);
+				let info = `\`${priorityContributor.priority}`;
+				if (t.dateContributors.some(d => d.path === priorityContributor.path)) {
+					info += `|${priorityContributor.date.toFormat("MM-dd")}`;
+				}
+				info += `\` ${priorityContributor.link}`;
+				extraNotes.push(info);
 			}
+
+			// 再处理未处理过的日期贡献者
 			for (let dateContributor of t.dateContributors) {
-				extraNotes.push(`\`${dateContributor.date.toFormat("MM-dd")}:\` ${dateContributor.title}`);
+				if (!processedContributors.has(dateContributor.path)) {
+					extraNotes.push(`\`${dateContributor.date.toFormat("MM-dd")}\` ${dateContributor.link}`);
+				}
 			}
-			note = '  ' + extraNotes.join('  ');
+
+			if (extraNotes.length > 0) {
+				note = '  ' + extraNotes.join(' ');
+			}
 			
 			return `<svg width="16" height="16" style="vertical-align: middle;">` +
 				   `<circle cx="8" cy="8" r="6.5" fill="rgb(${val}, ${val}, ${blueVal})" />` +
 				   `<circle cx="8" cy="8" r="${innerRadius}" fill="white" />` +
-				   `</svg>  ${formatTime(t)}${t.title}${note}`;
+				   `</svg>  ${formatTime(t)}${t.link}${note}`;
 		}
 		
 		let tasks = findTasks(rootPath);

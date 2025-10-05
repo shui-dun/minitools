@@ -478,7 +478,7 @@ class Task {
 			}
 
 			if (extraNotes.length > 0) {
-				note = '  ' + extraNotes.join(' ');
+				note = note + ' ' + extraNotes.join(' ');
 			}
 			
 			return `<svg width="16" height="16" style="vertical-align: middle;">` +

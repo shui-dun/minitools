@@ -341,6 +341,10 @@ class Task {
 				let priorityContributors = [];
 				let taskDate = task.date || null;
 				let minDate = taskDate;
+				let taskStartTime = task.startTime || null;
+				let minStartTime = taskStartTime;
+				let taskEndTime = task.endTime || null;
+				let minEndTime = taskEndTime;
 				let dateContributors = [];
 	
 				descTasks.forEach(descTask => {
@@ -355,16 +359,23 @@ class Task {
 	
 					// 聚合最早日期
 					const currentDate = descTask.date;
+					const currentStartTime = descTask.startTime || null;
+					const currentEndTime = descTask.endTime || null;
 					if (currentDate) {
 						dateContributors.push(descTask.title);
-						if (!minDate || currentDate < minDate) {
+						if (!minDate || currentDate < minDate || (currentDate.equals(minDate) && 
+							taskStartTime && currentStartTime && currentStartTime < minStartTime)) {
 							minDate = currentDate;
+							minStartTime = currentStartTime;
+							minEndTime = currentEndTime;
 						}
 					}
 				});
 	
 				task.priority = maxPriority;
 				task.date = minDate;
+				task.startTime = minStartTime;
+				task.endTime = minEndTime;
 					
 				// 将贡献者信息添加到备注中
 				let extraNotes = [];

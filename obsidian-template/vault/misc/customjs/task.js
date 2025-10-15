@@ -357,7 +357,7 @@ class Task {
 				descTasks.forEach(descTask => {
 					// 聚合最高优先级
 					const currentPriority = descTask.priority || 0;
-					if (currentPriority >= taskPriority) {
+					if (currentPriority >= taskPriority && currentPriority > 0) {
 						task.priorityContributors.push(descTask);
 						if (currentPriority > maxPriority) {
 							maxPriority = currentPriority;

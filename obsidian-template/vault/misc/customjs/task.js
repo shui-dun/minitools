@@ -409,24 +409,35 @@ class Task {
 				let urgentEndDate = today.plus({
 					days: 6
 				});
+				let compareDateTime = (a, b) => {
+					if (a.date != null && b.date != null) {
+						let dateDiff = a.date - b.date;
+						if (dateDiff !== 0) return dateDiff;
+						if (a.startTime != null && b.startTime != null) {
+							let timeDiff = paddingTime(a.startTime).localeCompare(paddingTime(b.startTime));
+							if (timeDiff !== 0) return timeDiff
+						}
+						let aEndTime = paddingTime(a.endTime || "23:59");
+						let bEndTime = paddingTime(b.endTime || "23:59");
+						return aEndTime.localeCompare(bEndTime);
+					}
+					if (a.date != null) return -1;
+					if (b.date != null) return 1;
+					return 0;
+				}
 				let isUrgentA = a.date != null && a.date <= urgentEndDate;
 				let isUrgentB = b.date != null && b.date <= urgentEndDate;
 				if (isUrgentA && !isUrgentB) return -1;
 				if (!isUrgentA && isUrgentB) return 1;
 				if (isUrgentA && isUrgentB) {
-					let dateDiff = a.date - b.date;
-					if (dateDiff !== 0) return dateDiff;
-					if (a.startTime != null && b.startTime != null) {
-						let timeDiff = paddingTime(a.startTime).localeCompare(paddingTime(b.startTime));
-						if (timeDiff !== 0) return timeDiff
-					}
-					let aEndTime = paddingTime(a.endTime || "23:59");
-					let bEndTime = paddingTime(b.endTime || "23:59");
-					return aEndTime.localeCompare(bEndTime)
+					return compareDateTime(a, b);
 				}
 				let aPriority = a.priority || 0;
 				let bPriority = b.priority || 0;
-				return bPriority - aPriority
+				if (aPriority !== bPriority) {
+					return bPriority - aPriority;
+				}
+				return compareDateTime(a, b);
 			});
 
 			return tasks;

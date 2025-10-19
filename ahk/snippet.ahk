@@ -4,7 +4,7 @@
 #Requires AutoHotkey v2.0
 
 class SnippetManager {
-    snippetFilePath := "D:\file\cloud\misc\snippet.txt"
+    snippetFilePath := "C:\Users\shuidun\f\cloud\misc\snippet.txt"
     snippets := []
     mainGui := ""
     listView := ""  ; 添加ListView引用

@@ -20,6 +20,7 @@ class SnippetManager {
     
     ReadSnippets() {
         try {
+            FileEncoding("UTF-8")
             fileContent := FileRead(this.snippetFilePath)
             this.snippets.Length := 0  ; 清空数组
             

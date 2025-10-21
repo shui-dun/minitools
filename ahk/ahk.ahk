@@ -11,7 +11,4 @@ Run, snippet.ahk
 #Include misc.ahk
 #Include markdown.ahk
 #Include pdf.ahk
-#Include terminal.ahk
-; #Include vim.ahk
 #Include wechat.ahk
-#Include, danganronpa.ahk

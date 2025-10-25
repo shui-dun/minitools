@@ -27,8 +27,8 @@ F9::
 		WinMove, A, , 550, 0, 780, 1850
 	} else if (ScreenWidth = 2560 && ScreenHeight = 1440) {
 		WinMove, A, , 820, 0, 929, 1850
-	} else {
-		WinMove, A, , 680, 0, 1063, 1850
+	} else if (ScreenWidth = 3200 && ScreenHeight = 2000) {
+		WinMove, A, , 845, 0, 1483, 2200
 	}
 return
 

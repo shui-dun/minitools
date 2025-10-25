@@ -22,9 +22,12 @@ F9::
 	; 获取屏幕分辨率
 	SysGet, ScreenWidth, 78
 	SysGet, ScreenHeight, 79
+	; WinMove 参数：窗口标题, 左上角X坐标, 左上角Y坐标, 宽度, 高度
 	if (ScreenWidth = 1920 && ScreenHeight = 1080) {
 		WinMove, A, , 550, 0, 780, 1850
-	} else { ; 2560 × 1440
+	} else if (ScreenWidth = 2560 && ScreenHeight = 1440) {
+		WinMove, A, , 820, 0, 929, 1850
+	} else {
 		WinMove, A, , 680, 0, 1063, 1850
 	}
 return

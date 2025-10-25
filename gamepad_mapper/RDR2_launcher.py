@@ -8,7 +8,9 @@ import time
 import os
 
 # 运行“大表哥2修改器.exe”
-os.startfile("F:\\桌面\\游戏\\RDR2\\大表哥2修改器.exe")
+os.startfile("E:\\Game\\Red Dead Redemption 2\\大表哥2修改器.exe")
+# 运行大表哥
+os.startfile(r"C:\ProgramData\Microsoft\Windows\Start Menu\Programs\red dead redemption 2.lnk")
 
 # pyautogui可以通过pyautogui.press('num9')来发送数字键9，但是呢，不知道为什么风灵月影等软件有时认有时认不出来
 # 所以直接调用windows的底层API来发送按键

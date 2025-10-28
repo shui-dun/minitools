@@ -5,6 +5,7 @@ from datetime import datetime
 class RepoConfig:
     path: str
     interval_minutes: int # 提交间隔（分钟）
+    do_pull: bool = True # 是否拉取远程仓库最新代码，默认True
     do_push: bool = True # 是否推送到远程仓库，默认True
 
 @dataclass

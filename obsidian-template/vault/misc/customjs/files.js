@@ -464,13 +464,13 @@ class Files {
         return filePath.split('/').pop();
     }
 
-    // 找到某个文件夹一层的笔记以及folder note，我将folder note定义为文件夹名和文件名相同的文件，例如，对于：
+    // 找到直接子笔记（考虑folder note,我将folder note定义为文件夹名和文件名相同的文件）,例如，对于：
     // a/a.md
     // a/b.md
     // a/c/c.md
     // b.md
     // 返回a/a.md和b.md
-    getFolderNotes(folderPath) {
+    getChildNotes(folderPath) {
         // 获取指定文件夹
         const folder = app.vault.getAbstractFileByPath(folderPath);
         if (!folder) {

@@ -3,7 +3,7 @@ import os
 import stat
 
 # 文件夹设置，为了方便，硬编码在这里
-source_folder = r"D:\file\cloud\note"
+source_folder = r"C:\Users\shuidun\f\cloud\note"
 dest_folder = os.path.join(os.path.dirname(__file__), "vault")
 include_folders = [
     r"计划\计划.md",

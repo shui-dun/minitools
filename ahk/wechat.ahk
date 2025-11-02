@@ -32,5 +32,28 @@ F9::
 	}
 return
 
+; 自动滑动
+!f::
+{
+    if (wechatIsMoving = 0)
+    {
+        wechatIsMoving := 1
+        SetTimer, MoveUp, 6000
+        TrayTip, 自动刷鼠标, 向上移动已启动!
+    }
+    else
+    {
+        wechatIsMoving := 0
+        SetTimer, MoveUp, Off
+        TrayTip, 自动刷鼠标, 向上移动已停止!
+    }
+    return
+}
+
+MoveUp:
+{
+    MoveMouse(0, -100)
+    return
+}
 
 #IfWinActive

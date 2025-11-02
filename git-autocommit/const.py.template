@@ -1,6 +1,8 @@
 from models import RepoConfig
 
-DEFAULT_ORIGIN_PREFIX = 'ssh://git@43.138.138.37:1774/shui-dun/' # 必须以/结尾
+NETWORK_TEST_URL = 'https://43.138.138.37:84/'  # 用于测试网络连接的URL
+
+ORIGIN_PREFIX = 'ssh://git@43.138.138.37:1774/shui-dun/' # 必须以/结尾
 
 REPO_CONFIGS = [
     RepoConfig(
@@ -10,6 +12,7 @@ REPO_CONFIGS = [
     RepoConfig(
         path=r"D:\example\repo2", 
         interval_minutes=60,
+        do_pull=False, # 默认值为True，表示在提交代码前自动拉取远程仓库的最新代码，如果不需要拉取可以设置为False
         do_push=False # 默认值为True，表示在拉取代码后自动推送到远程仓库，如果不需要推送可以设置为False
     ),
 ]

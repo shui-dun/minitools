@@ -6,6 +6,7 @@ from queue import PriorityQueue
 import models
 import const
 from process_manager import kill_existing_process, save_current_pid
+import wait_network
 
 def run_command(cmd):
     # check=True, capture_output=True, text=True 是为了执行出错时能抛出异常（默认不抛出异常）
@@ -96,5 +97,7 @@ if __name__ == "__main__":
     
     script_dir = os.path.dirname(os.path.abspath(__file__))
     log_path = os.path.join(script_dir, "commit.log")
+    
+    wait_network.wait_for_network()
     
     run_scheduler(log_path)

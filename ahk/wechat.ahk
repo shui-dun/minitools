@@ -38,7 +38,7 @@ return
     if (wechatIsMoving = 0)
     {
         wechatIsMoving := 1
-        SetTimer, MoveUp, 6000
+        SetTimer, MoveUp, 9000
         TrayTip, 自动刷鼠标, 向上移动已启动!
     }
     else

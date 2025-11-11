@@ -23,11 +23,9 @@ class SnippetManager {
             FileEncoding("UTF-8")
             fileContent := FileRead(this.snippetFilePath)
             this.snippets.Length := 0  ; 清空数组
-            
             for line in StrSplit(fileContent, "`n", "`r") {
                 if (line = "")
                     continue
-                    
                 if (tabPos := InStr(line, "`t")) {
                     alias := Trim(SubStr(line, 1, tabPos - 1))
                     phrase := Trim(SubStr(line, tabPos + 1))
@@ -241,23 +239,21 @@ class SnippetManager {
     
     RemoveSnippetFromFile(targetAlias, targetPhrase) {
         try {
+            FileEncoding("UTF-8")
             fileContent := FileRead(this.snippetFilePath)
             newContent := ""
-            
             for line in StrSplit(fileContent, "`n", "`r") {
                 if (line = "")
                     continue
-                    
                 if (tabPos := InStr(line, "`t")) {
                     currentAlias := Trim(SubStr(line, 1, tabPos - 1))
                     currentPhrase := StrReplace(Trim(SubStr(line, tabPos + 1)), "\n", "`n")
-                    
                     if (currentAlias != targetAlias || currentPhrase != targetPhrase)
                         newContent .= line "`r`n"
                 }
             }
-            
             FileDelete(this.snippetFilePath)
+            FileEncoding("UTF-8")
             FileAppend(RTrim(newContent, "`r`n"), this.snippetFilePath)
         } catch Error as e {
             MsgBox("删除snippet失败: " e.Message, "错误", 16)
@@ -266,25 +262,23 @@ class SnippetManager {
     
     EditSnippet(targetRow, alias, phrase) {
         try {
+            FileEncoding("UTF-8")
             fileContent := FileRead(this.snippetFilePath)
             newContent := ""
             currentRow := 1
-            
             for line in StrSplit(fileContent, "`n", "`r") {
                 if (line = "") {
                     currentRow++
                     continue
                 }
-                
                 if (currentRow = targetRow)
                     newContent .= alias "`t" phrase "`r`n"
                 else
                     newContent .= line "`r`n"
-                    
                 currentRow++
             }
-            
             FileDelete(this.snippetFilePath)
+            FileEncoding("UTF-8")
             FileAppend(RTrim(newContent, "`r`n"), this.snippetFilePath)
         } catch Error as e {
             MsgBox("编辑snippet失败: " e.Message, "错误", 16)
@@ -293,10 +287,11 @@ class SnippetManager {
     
     InsertNewSnippet(alias, phrase) {
         try {
+            FileEncoding("UTF-8")
             fileContent := FileRead(this.snippetFilePath)
             newContent := alias "`t" phrase "`r`n" fileContent
-            
             FileDelete(this.snippetFilePath)
+            FileEncoding("UTF-8")
             FileAppend(RTrim(newContent, "`r`n"), this.snippetFilePath)
         } catch Error as e {
             MsgBox("添加snippet失败: " e.Message, "错误", 16)

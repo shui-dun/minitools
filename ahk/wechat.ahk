@@ -1,4 +1,4 @@
-; 微信小程序
+﻿; 微信小程序
 #IfWinActive, ahk_exe WeChatAppEx.exe
 
 ; 微信小程序中使用拖动效果

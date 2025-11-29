@@ -1,4 +1,4 @@
-#Warn
+﻿#Warn
 #NoTrayIcon
 #SingleInstance Force
 #Requires AutoHotkey v2.0

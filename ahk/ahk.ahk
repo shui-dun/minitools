@@ -1,4 +1,4 @@
-#Warn ; 启用警告
+﻿#Warn ; 启用警告
 #SingleInstance Force ; 如果脚本已经在运行，则终止旧实例并启动新实例
 
 ; ahkv1中，全局变量必须放在所有函数前面

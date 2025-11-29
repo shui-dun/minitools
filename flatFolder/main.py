@@ -2,7 +2,7 @@ import os
 from settings import *
 
 def concat_files_in_folder(root_dir, output_file_name):
-    with open(output_file_name, 'w') as output_file:
+    with open(output_file_name, 'w', encoding='utf-8') as output_file:
         for dirpath, dirnames, filenames in os.walk(root_dir):
             # Remove excluded folders from dirnames in-place
             for excluded in excludeFolders:
@@ -23,7 +23,7 @@ def concat_files_in_folder(root_dir, output_file_name):
                     
                     output_file.write(prompt)
                     
-                    with open(filepath, 'r', errors='replace') as current_file:
+                    with open(filepath, 'r', errors='replace', encoding='utf-8') as current_file:
                         content = current_file.read()
                         output_file.write(content + '\n\n')
                 except Exception as e:

@@ -16,15 +16,18 @@ def concat_files_in_folder(root_dir, output_file_name):
             filenames = [filename for filename in filenames if filename not in excludeFiles]
 
             for filename in filenames:
-                filepath = os.path.join(dirpath, filename)
-                relative_filepath = os.path.relpath(filepath, root_dir)
-                prompt = f'File [{relative_filepath}]:\n\n'
-                
-                output_file.write(prompt)
-                
-                with open(filepath, 'r', errors='replace') as current_file:
-                    content = current_file.read()
-                    output_file.write(content + '\n\n')
+                try:
+                    filepath = os.path.join(dirpath, filename)
+                    relative_filepath = os.path.relpath(filepath, root_dir)
+                    prompt = f'File [{relative_filepath}]:\n\n'
+                    
+                    output_file.write(prompt)
+                    
+                    with open(filepath, 'r', errors='replace') as current_file:
+                        content = current_file.read()
+                        output_file.write(content + '\n\n')
+                except Exception as e:
+                    print(f"在处理文件 {filepath} 时出错: {e}")
 
 if __name__ == '__main__':    
     concat_files_in_folder(rootFolder, 'merged_file.txt')

@@ -6,9 +6,9 @@ from openai_tts import tts
 
 class AudioGenerator:
     def __init__(self):
-        self.prelude = AudioSegment.from_mp3("prelude.mp3")[:8000].fade_out(1000) # 前8s，最后1s淡出
-        self.miniBreak = AudioSegment.from_mp3("prelude.mp3")[:50000].fade_out(1000) - 10
-        self.longBreak = AudioSegment.from_mp3("alarm.mp3").fade_in(15000) - 12 # 前15s淡入；整体分贝减10
+        self.prelude = AudioSegment.from_mp3("prelude.mp3")[:8000].fade_out(1000) + 20 # 前8s，最后1s淡出，整体分贝加20
+        self.miniBreak = AudioSegment.from_mp3("prelude.mp3")[:50000].fade_out(1000) + 10
+        self.longBreak = AudioSegment.from_mp3("alarm.mp3").fade_in(15000) + 10
         self.audio = AudioSegment.empty()
         self.cacheRoot = "cache/"
         # 如果不存在cache目录，则生成
@@ -30,7 +30,7 @@ class AudioGenerator:
         else:
             print("cache hit: " + text)
         # 读取缓存文件
-        add = AudioSegment.from_mp3(cacheFile)
+        add = AudioSegment.from_mp3(cacheFile) + 20
         self.audio = self.audio + self.prelude
         self.audio = self.audio + add
         return self

@@ -6,7 +6,15 @@ class Habit {
 
 	// 周视图的默认时间段
 	defaultPeriod(startDate, endDate) {
-		startDate = startDate || this.dv.date('sow').minus(this.dv.duration('1 days')); // 默认从周日开始
+		const today = this.dv.date('today');
+		let weekDay = today.weekday; // 1=Monday, 7=Sunday
+		if (weekDay === 1) {
+			// 今天是周一，取上一个周一
+			startDate = startDate || today.minus({ days: 7 });
+		} else {
+			// 否则，取本周周一
+			startDate = startDate || today.minus({ days: weekDay - 1 });
+		}
 		endDate = endDate || startDate.plus({ days: 6 }); // 默认是一周
 		return { startDate, endDate };
 	}

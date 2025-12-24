@@ -14,11 +14,6 @@ def press_keyboard():
     time.sleep(0.2)
     # 松开 8
     win32api.keybd_event(win32con.VK_NUMPAD8, 0, win32con.KEYEVENTF_KEYUP, 0)
-    # 松开 Alt
-    win32api.keybd_event(win32con.VK_MENU, 0, win32con.KEYEVENTF_KEYUP, 0)
-    time.sleep(0.3)
-    # 按下 Alt
-    win32api.keybd_event(win32con.VK_MENU, 0, 0, 0)
     time.sleep(0.05)
     # 按下 9
     win32api.keybd_event(win32con.VK_NUMPAD9, 0, 0, 0)

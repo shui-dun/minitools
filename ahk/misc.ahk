@@ -23,3 +23,19 @@ return
 	sleep 25
 	SendInput {Space}
 Return
+
+; 鼠标中键切换到标题中含有Gemini的窗口
+MButton::
+	WinGet, id, List,,, Program Manager
+	Loop, %id%
+	{
+		this_id := id%A_Index%
+		WinGetTitle, title, ahk_id %this_id%
+		if (InStr(title, "Gemini"))
+		{
+			WinActivate, ahk_id %this_id%
+			return
+		}
+	}
+return
+

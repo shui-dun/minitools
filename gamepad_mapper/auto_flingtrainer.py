@@ -1,6 +1,7 @@
 import time
 import win32api
 import win32con
+import os
 
 # 主键盘区按键码
 VK_TAB = win32con.VK_TAB
@@ -52,7 +53,10 @@ def input_ctrl_numpad_2():
 	time.sleep(0.1)
 
 def main():
-	time.sleep(2)  # 给用户2秒切换窗口
+	# 启动 "C:\Users\shuidun\Desktop\Shin Megami Tensei V Vengeance v1.0-v1.0.3 Plus 31 Trainer.exe"
+	trainer_path = r"C:\Users\shuidun\Desktop\Shin Megami Tensei V Vengeance v1.0-v1.0.3 Plus 31 Trainer.exe"
+	os.startfile(trainer_path)
+	time.sleep(4)  # 等待训练器启动
 	# 1. 按16次tab
 	for _ in range(16):
 		press_key(VK_TAB)

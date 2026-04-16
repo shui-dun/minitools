@@ -4,6 +4,18 @@ import subprocess
 import win32com.client
 from elevate import elevate
 import ctypes
+import traceback
+
+def my_exception_handler(exc_type, exc_value, exc_traceback):
+    # 1. 打印标准的 Traceback 信息
+    traceback.print_exception(exc_type, exc_value, exc_traceback)
+    
+    # 2. 阻止窗口立即关闭
+    print("\n" + "="*30)
+    input("程序崩溃了！请检查上方堆栈信息。按回车键退出...")
+
+# 将全局异常处理器设置为我们自定义的函数
+sys.excepthook = my_exception_handler
 
 def is_admin():
     """检查当前用户是否具有管理员权限"""

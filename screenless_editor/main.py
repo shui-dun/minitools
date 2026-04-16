@@ -19,11 +19,6 @@ else:
 if not os.path.exists(SAVE_DIR):
     os.makedirs(SAVE_DIR)
 
-# 定义生成文件名的函数
-def today_filename(idx=1):
-    date_str = datetime.datetime.now().strftime('%Y-%m-%d')
-    return f"{date_str}_{idx}.md"
-
 # 定义主界面类，继承自wx.Frame
 class ScreenlessEditor(wx.Frame):
     def __init__(self):
@@ -40,12 +35,9 @@ class ScreenlessEditor(wx.Frame):
         sizer.Add(self.text, 1, wx.EXPAND)  # 将文本框添加到布局，充满全窗口
         self.SetSizer(sizer)  # 应用布局
         self.Center()  # 将窗口居中显示在屏幕上
-        self.file_idx = 1  # 默认文件索引为1
-        self.filename = today_filename(self.file_idx)  # 生成默认文件名
+        self.filename = datetime.datetime.now().strftime('%Y-%m-%d') + '.md'  # 生成文件名
         self.filepath = os.path.join(SAVE_DIR, self.filename)
         self.last_content = ''  # 用于记录上次保存的内容，避免重复写入
-        self.Bind(wx.EVT_KEY_DOWN, self.on_key_down)  # 绑定窗口按键按下事件
-        self.text.Bind(wx.EVT_KEY_DOWN, self.on_key_down)  # 绑定文本框按键按下事件
         self.text.Bind(wx.EVT_TEXT, self.on_text)  # 绑定文字改变事件
         self.save_lock = threading.Lock()  # 创建线程锁，保护文件写入操作
         self.need_save = False  # 是否需要保存的标识位
@@ -67,23 +59,6 @@ class ScreenlessEditor(wx.Frame):
                 win32gui.SetForegroundWindow(hwnd)
             except Exception:
                 pass
-
-    # 按键按下事件处理
-    def on_key_down(self, event):
-        keycode = event.GetKeyCode()  # 获取按下的键码
-        control = event.ControlDown()  # 判断Ctrl是否按下
-        alt = event.AltDown()  # 判断Alt是否按下
-        # 快捷键：Ctrl + Alt + 数字键盘数字 (0-9) 切换文件
-        if control and alt and wx.WXK_NUMPAD0 <= keycode <= wx.WXK_NUMPAD9:
-            idx = keycode - wx.WXK_NUMPAD0
-            self.switch_file(idx)
-            return
-        # 快捷键：Ctrl + Alt + 普通主键盘数字 (0-9) 切换文件
-        elif control and alt and wx.WXK_0 <= keycode <= wx.WXK_9:
-            idx = keycode - wx.WXK_0
-            self.switch_file(idx)
-            return
-        event.Skip()  # 允许事件继续传递，确保文字能正常输入
 
     # 当文字发生变化时
     def on_text(self, event):
@@ -117,14 +92,6 @@ class ScreenlessEditor(wx.Frame):
         else:
             self.text.SetValue('')  # 文件不存在则清空文本框
         wx.CallAfter(self.text.SetInsertionPointEnd)  # 将光标移至末尾，方便继续输入
-
-    # 切换文件逻辑
-    def switch_file(self, idx):
-        self.save_file()  # 切换前先保存当前文件
-        self.file_idx = idx  # 更新索引
-        self.filename = today_filename(self.file_idx)
-        self.filepath = os.path.join(SAVE_DIR, self.filename)
-        self.load_file()
 
 # 定义wx应用程序类
 class App(wx.App):

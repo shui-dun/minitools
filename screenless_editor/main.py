@@ -4,16 +4,9 @@ import datetime
 import json
 import threading
 import time
-import sys
-
-try:
-    import win32con
-    import win32gui
-    import win32api
-    import win32process
-    import win32com.client
-except ImportError:
-    win32con = win32gui = win32api = win32process = win32com = None
+import win32con
+import win32gui
+import win32api
 
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'config.json')
 
@@ -34,7 +27,7 @@ def today_filename(idx=1):
 
 class ScreenlessEditor(wx.Frame):
     def __init__(self):
-        wx.Frame.__init__(self, None, title='', size=(300, 40), style=wx.NO_BORDER | wx.STAY_ON_TOP)
+        wx.Frame.__init__(self, None, title='', size=(300, 100), style=wx.NO_BORDER | wx.STAY_ON_TOP)
         self.SetBackgroundColour(wx.Colour(255, 255, 255))
         self.text = wx.TextCtrl(self, style=wx.TE_MULTILINE | wx.NO_BORDER)
         self.text.SetBackgroundColour(wx.Colour(255, 255, 255))
@@ -63,21 +56,19 @@ class ScreenlessEditor(wx.Frame):
     def set_always_on_top(self):
         self.Raise()
         self.SetWindowStyleFlag(wx.STAY_ON_TOP | wx.NO_BORDER)
-        if win32gui:
-            hwnd = self.GetHandle()
-            win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, 0, 0, 0, 0,
-                                  win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
+        hwnd = self.GetHandle()
+        win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, 0, 0, 0, 0,
+                                win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
 
     def disable_alt_tab(self):
-        # 通过注册全局热键屏蔽Alt+Tab（仅在Windows下有效）
-        if win32api:
-            try:
-                # 注册所有Alt+Tab组合
-                for i in range(256):
-                    wx.GetApp().Bind(wx.EVT_HOTKEY, lambda e: None, id=1000 + i)
-                    self.RegisterHotKey(1000 + i, win32con.MOD_ALT, i)
-            except Exception:
-                pass
+        # 通过注册全局热键屏蔽Alt+Tab
+        try:
+            # 注册所有Alt+Tab组合
+            for i in range(256):
+                wx.GetApp().Bind(wx.EVT_HOTKEY, lambda e: None, id=1000 + i)
+                self.RegisterHotKey(1000 + i, win32con.MOD_ALT, i)
+        except Exception:
+            pass
 
     def on_close(self, event):
         self.save_file()
@@ -90,14 +81,10 @@ class ScreenlessEditor(wx.Frame):
         # Ctrl+Alt+数字切换文件
         if control and alt and wx.WXK_NUMPAD0 <= keycode <= wx.WXK_NUMPAD9:
             idx = keycode - wx.WXK_NUMPAD0
-            if idx == 0:
-                idx = 10
             self.switch_file(idx)
             return
         elif control and alt and wx.WXK_0 <= keycode <= wx.WXK_9:
             idx = keycode - wx.WXK_0
-            if idx == 0:
-                idx = 10
             self.switch_file(idx)
             return
         # Alt+F4 允许关闭

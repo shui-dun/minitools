@@ -16,3 +16,5 @@
   之所以快捷方式的内容不是 `pipenv run python /path/to/project_name/python_file.py`，是因为寻找虚拟环境太耗时了。
 
 - 同样地，在 `C:\Windows\System32` 下创建 `project_name.bat` 脚本
+
+为方便起见，可以把自己也这样安装

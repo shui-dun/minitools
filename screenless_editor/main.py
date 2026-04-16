@@ -34,7 +34,10 @@ class ScreenlessEditor(wx.Frame):
         sizer = wx.BoxSizer(wx.VERTICAL)  # 创建垂直布局管理器
         sizer.Add(self.text, 1, wx.EXPAND)  # 将文本框添加到布局，充满全窗口
         self.SetSizer(sizer)  # 应用布局
-        self.Center()  # 将窗口居中显示在屏幕上
+        # 将窗口移动到屏幕最左下角
+        x = -10000
+        y = 10000
+        self.SetPosition((x, y))
         self.filename = datetime.datetime.now().strftime('%Y-%m-%d') + '.md'  # 生成文件名
         self.filepath = os.path.join(SAVE_DIR, self.filename)
         self.last_content = ''  # 用于记录上次保存的内容，避免重复写入

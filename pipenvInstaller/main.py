@@ -5,6 +5,15 @@ import win32com.client
 from elevate import elevate
 import ctypes
 import traceback
+import shutil
+
+def get_pipenv_cmd():
+    """获取系统中 pipenv 的绝对执行路径"""
+    pipenv_path = shutil.which('pipenv')
+    if not pipenv_path:
+        print("致命错误：无法在系统环境变量中找到 pipenv。")
+        exit(1)
+    return pipenv_path
 
 def my_exception_handler(exc_type, exc_value, exc_traceback):
     # 1. 打印标准的 Traceback 信息
@@ -13,9 +22,6 @@ def my_exception_handler(exc_type, exc_value, exc_traceback):
     # 2. 阻止窗口立即关闭
     print("\n" + "="*30)
     input("程序崩溃了！请检查上方堆栈信息。按回车键退出...")
-
-# 将全局异常处理器设置为我们自定义的函数
-sys.excepthook = my_exception_handler
 
 def is_admin():
     """检查当前用户是否具有管理员权限"""
@@ -28,7 +34,7 @@ def is_admin():
 def find_pipenv_venv(python_file):
     """在指定Python文件目录中查找并返回虚拟环境路径"""
     try:
-        result = subprocess.check_output(['pipenv', '--venv'], cwd=os.path.dirname(python_file))
+        result = subprocess.check_output([get_pipenv_cmd(), '--venv'], cwd=os.path.dirname(python_file))
         return result.decode().strip()
     except:
         return None
@@ -57,7 +63,7 @@ def create_venv(project_path):
     """
     在给定路径中创建虚拟环境
     """
-    subprocess.check_call(['pipenv', 'install'], cwd=project_path)
+    subprocess.check_call([get_pipenv_cmd(), 'install'], cwd=project_path)
 
 def create_bat_file(interpreter_path, python_file, bat_file_path):
     """创建批处理文件来运行指定的Python脚本"""
@@ -70,6 +76,9 @@ def exit(retVal=0):
     sys.exit(retVal)
 
 if __name__ == "__main__":
+    # 将全局异常处理器设置为我们自定义的函数
+    sys.excepthook = my_exception_handler
+
     if not is_admin():
         elevate(show_console=True)  # 这会提高权限并重启脚本
 

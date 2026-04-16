@@ -51,7 +51,6 @@ class ScreenlessEditor(wx.Frame):
         self.save_timer.start()
         self.load_file()
         self.set_always_on_top()
-        self.disable_alt_tab()
 
     def set_always_on_top(self):
         self.Raise()
@@ -60,15 +59,6 @@ class ScreenlessEditor(wx.Frame):
         win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, 0, 0, 0, 0,
                                 win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
 
-    def disable_alt_tab(self):
-        # 通过注册全局热键屏蔽Alt+Tab
-        try:
-            # 注册所有Alt+Tab组合
-            for i in range(256):
-                wx.GetApp().Bind(wx.EVT_HOTKEY, lambda e: None, id=1000 + i)
-                self.RegisterHotKey(1000 + i, win32con.MOD_ALT, i)
-        except Exception:
-            pass
 
     def on_close(self, event):
         self.save_file()
@@ -86,10 +76,6 @@ class ScreenlessEditor(wx.Frame):
         elif control and alt and wx.WXK_0 <= keycode <= wx.WXK_9:
             idx = keycode - wx.WXK_0
             self.switch_file(idx)
-            return
-        # Alt+F4 允许关闭
-        if alt and keycode == wx.WXK_F4:
-            self.Close()
             return
         event.Skip()
 

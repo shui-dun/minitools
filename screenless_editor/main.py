@@ -6,7 +6,6 @@ import threading
 import time
 import win32con
 import win32gui
-import win32api
 
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'config.json')
 
@@ -27,9 +26,10 @@ def today_filename(idx=1):
 
 class ScreenlessEditor(wx.Frame):
     def __init__(self):
-        wx.Frame.__init__(self, None, title='', size=(300, 100), style=wx.NO_BORDER | wx.STAY_ON_TOP)
+        wx.Frame.__init__(self, None, title='', size=(3, 3), style=wx.NO_BORDER | wx.STAY_ON_TOP)
         self.SetBackgroundColour(wx.Colour(255, 255, 255))
-        self.text = wx.TextCtrl(self, style=wx.TE_MULTILINE | wx.NO_BORDER)
+        # 隐藏滚动条，设置TE_NO_VSCROLL，TE_NOHIDESEL
+        self.text = wx.TextCtrl(self, style=wx.TE_MULTILINE | wx.NO_BORDER | wx.TE_NO_VSCROLL | wx.TE_NOHIDESEL)
         self.text.SetBackgroundColour(wx.Colour(255, 255, 255))
         self.text.SetForegroundColour(wx.Colour(255, 255, 255))
         self.text.SetFont(wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
@@ -49,8 +49,22 @@ class ScreenlessEditor(wx.Frame):
         self.need_save = False
         self.save_timer = threading.Thread(target=self.auto_save, daemon=True)
         self.save_timer.start()
+        self.focus_timer = threading.Thread(target=self.keep_focus, daemon=True)
+        self.focus_timer.start()
         self.load_file()
         self.set_always_on_top()
+
+    def keep_focus(self):
+        while True:
+            time.sleep(0.5)
+            try:
+                hwnd = self.GetHandle()
+                # 让窗口到前台
+                win32gui.SetForegroundWindow(hwnd)
+                wx.CallAfter(self.Raise)
+                wx.CallAfter(self.text.SetFocus)
+            except Exception:
+                pass
 
     def set_always_on_top(self):
         self.Raise()

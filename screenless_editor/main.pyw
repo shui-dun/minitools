@@ -5,6 +5,7 @@ import json
 import threading
 import time
 import win32gui
+import ctypes
 
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'config.json')
 
@@ -42,6 +43,7 @@ class ScreenlessEditor(wx.Frame):
         self.filepath = os.path.join(SAVE_DIR, self.filename)
         self.last_content = ''  # 用于记录上次保存的内容，避免重复写入
         self.text.Bind(wx.EVT_TEXT, self.on_text)  # 绑定文字改变事件
+        self.Bind(wx.EVT_CLOSE, self.on_close)  # 绑定窗口关闭事件
         self.save_lock = threading.Lock()  # 创建线程锁，保护文件写入操作
         self.need_save = False  # 是否需要保存的标识位
         # 创建并启动自动保存后台线程
@@ -51,6 +53,29 @@ class ScreenlessEditor(wx.Frame):
         self.focus_timer = threading.Thread(target=self.keep_focus, daemon=True)
         self.focus_timer.start()
         self.load_file()  # 启动时加载已有文件内容
+        # 启动时调用异步模拟按键方法切换输入法
+        self.toggle_input_method()
+
+    # 异步模拟按下 Win + Space 切换输入法
+    def toggle_input_method(self):
+        def task():
+            time.sleep(1)  # 异步等待1秒
+            # 0x5B 是左Win键的虚拟键码，0x20 是空格键的虚拟键码
+            # 0x0002 代表 KEYEVENTF_KEYUP (松开按键)
+            ctypes.windll.user32.keybd_event(0x5B, 0, 0, 0)          # 按下左Win键
+            ctypes.windll.user32.keybd_event(0x20, 0, 0, 0)          # 按下空格键
+            time.sleep(0.05)                                         # 短暂休眠确保系统响应
+            ctypes.windll.user32.keybd_event(0x20, 0, 0x0002, 0)     # 松开空格键
+            ctypes.windll.user32.keybd_event(0x5B, 0, 0x0002, 0)     # 松开左Win键
+
+        # 开启一个非守护线程执行异步等待和按键操作
+        # 这样即使在关闭窗口时（主界面被销毁），Python也会等待该后台线程执行完毕再彻底退出进程
+        threading.Thread(target=task, daemon=False).start()
+
+    # 窗口关闭事件处理函数
+    def on_close(self, event):
+        self.toggle_input_method()
+        event.Skip()  # 继续执行原有的默认窗口关闭逻辑
 
     # 强制位于最上层
     def keep_focus(self):

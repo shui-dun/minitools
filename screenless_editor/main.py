@@ -28,11 +28,11 @@ def today_filename(idx=1):
 class ScreenlessEditor(wx.Frame):
     def __init__(self):
         # 初始化窗口：无边框(NO_BORDER)、始终置顶(STAY_ON_TOP)
-        wx.Frame.__init__(self, None, title='', size=(300, 300), style=wx.NO_BORDER | wx.STAY_ON_TOP)
+        wx.Frame.__init__(self, None, title='', size=(3, 3), style=wx.NO_BORDER | wx.STAY_ON_TOP)
         self.SetBackgroundColour(wx.Colour(255, 255, 255))  # 设置窗口背景为白色
-        # 创建文本框：多行、无边框、禁止纵向滚动条、失去焦点时不隐藏选择内容
-        self.text = wx.TextCtrl(self, style=wx.TE_MULTILINE | wx.NO_BORDER | wx.TE_NO_VSCROLL | wx.TE_NOHIDESEL)
-        self.text.SetBackgroundColour(wx.Colour(0, 0, 0))  # 设置文本框背景为白色（实现隐形）
+        # 创建文本框：多行、无边框
+        self.text = wx.TextCtrl(self, style=wx.TE_MULTILINE | wx.NO_BORDER)
+        self.text.SetBackgroundColour(wx.Colour(255, 255, 255))  # 设置文本框背景为白色（实现隐形）
         self.text.SetForegroundColour(wx.Colour(255, 255, 255))  # 设置文字颜色为白色（打字也看不见）
         # 设置字体
         self.text.SetFont(wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))

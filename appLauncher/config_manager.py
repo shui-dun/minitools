@@ -1,12 +1,10 @@
 import os
 import json
-import sys
 
 class ConfigManager:
     def __init__(self, config_file=None):
         if config_file is None:
-            # 获取程序所在目录
-            self.config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
+            self.config_file = os.path.join(os.path.expanduser("~"), "app_launcher_config.json")
         else:
             self.config_file = config_file
             

@@ -1,1 +1,4 @@
-config.json
+app_launcher_config.json
+dist/
+build/
+main.spec

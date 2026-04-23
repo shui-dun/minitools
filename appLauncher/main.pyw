@@ -1,6 +1,4 @@
 import wx
-import os
-import json
 import subprocess
 import sys
 import shlex

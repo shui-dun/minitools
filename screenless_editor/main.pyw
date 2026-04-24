@@ -44,14 +44,19 @@ class ScreenlessEditor(wx.Frame):
         self.last_content = ''  # 用于记录上次保存的内容，避免重复写入
         self.text.Bind(wx.EVT_TEXT, self.on_text)  # 绑定文字改变事件
         self.Bind(wx.EVT_CLOSE, self.on_close)  # 绑定窗口关闭事件
-        self.save_lock = threading.Lock()  # 创建线程锁，保护文件写入操作
+        
         self.need_save = False  # 是否需要保存的标识位
-        # 创建并启动自动保存后台线程
-        self.save_timer = threading.Thread(target=self.auto_save, daemon=True)
-        self.save_timer.start()
+        
+        # 创建并启动自动保存定时器
+        self.save_timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.auto_save, self.save_timer)
+        self.save_timer.Start(1000)  # 每秒触发一次
+        
         # 强制位于最上层（保证键盘输入一直被它抓取）
-        self.focus_timer = threading.Thread(target=self.keep_focus, daemon=True)
-        self.focus_timer.start()
+        self.focus_timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.keep_focus, self.focus_timer)
+        self.focus_timer.Start(500)  # 每0.5秒触发一次
+        
         self.load_file()  # 启动时加载已有文件内容
         # 启动时调用异步模拟按键方法切换输入法
         self.toggle_input_method()
@@ -74,40 +79,36 @@ class ScreenlessEditor(wx.Frame):
 
     # 窗口关闭事件处理函数
     def on_close(self, event):
+        self.save_timer.Stop()  # 停止自动保存定时器
+        self.focus_timer.Stop() # 停止焦点定时器
         self.toggle_input_method()
         event.Skip()  # 继续执行原有的默认窗口关闭逻辑
 
     # 强制位于最上层
-    def keep_focus(self):
-        while True:
-            time.sleep(0.5)  # 每0.5秒检查一次
-            try:
-                hwnd = self.GetHandle()  # 获取当前窗口句柄
-                # 调用Win32 API强制将窗口带到前台
-                win32gui.SetForegroundWindow(hwnd)
-            except Exception:
-                pass
+    def keep_focus(self, event):
+        try:
+            hwnd = self.GetHandle()  # 获取当前窗口句柄
+            # 调用Win32 API强制将窗口带到前台
+            win32gui.SetForegroundWindow(hwnd)
+        except Exception:
+            pass
 
     # 当文字发生变化时
     def on_text(self, event):
         try:
-            with self.save_lock:
-                self.need_save = True  # 标记需要保存
+            self.need_save = True  # 标记需要保存
         except Exception as e:
             print(f"[文本变更异常] {e}")
         event.Skip()  # 允许事件传递
 
-    # 自动保存线程函数
-    def auto_save(self):
-        while True:
-            time.sleep(1)  # 每秒检查一次
-            try:
-                with self.save_lock:
-                    if self.need_save:  # 如果有新改动
-                        self.save_file()  # 执行保存
-                        self.need_save = False  # 重置标识位
-            except Exception as e:
-                print(f"[自动保存异常] {e}")
+    # 自动保存定时器处理函数
+    def auto_save(self, event):
+        try:
+            if self.need_save:  # 如果有新改动
+                self.save_file()  # 执行保存
+                self.need_save = False  # 重置标识位
+        except Exception as e:
+            print(f"[自动保存异常] {e}")
 
     # 执行写文件操作
     def save_file(self):

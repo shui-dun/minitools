@@ -90,18 +90,24 @@ class ScreenlessEditor(wx.Frame):
 
     # 当文字发生变化时
     def on_text(self, event):
-        with self.save_lock:
-            self.need_save = True  # 标记需要保存
+        try:
+            with self.save_lock:
+                self.need_save = True  # 标记需要保存
+        except Exception as e:
+            print(f"[文本变更异常] {e}")
         event.Skip()  # 允许事件传递
 
     # 自动保存线程函数
     def auto_save(self):
         while True:
             time.sleep(1)  # 每秒检查一次
-            with self.save_lock:
-                if self.need_save:  # 如果有新改动
-                    self.save_file()  # 执行保存
-                    self.need_save = False  # 重置标识位
+            try:
+                with self.save_lock:
+                    if self.need_save:  # 如果有新改动
+                        self.save_file()  # 执行保存
+                        self.need_save = False  # 重置标识位
+            except Exception as e:
+                print(f"[自动保存异常] {e}")
 
     # 执行写文件操作
     def save_file(self):

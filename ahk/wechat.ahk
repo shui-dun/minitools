@@ -31,6 +31,8 @@ MoveMouse(x, y)
 		WinMove, A, , 820, 0, 929, 1850
 	} else if (ScreenWidth = 3200 && ScreenHeight = 2000) {
 		WinMove, A, , 845, 0, 1483, 2200
+	} else if (ScreenWidth = 1440 && ScreenHeight = 2560) {
+		WinMove, A, , 154, 135, 1085, 2268
 	}
 	if (wechatIsMoving = 0)
     {

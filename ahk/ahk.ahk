@@ -12,3 +12,4 @@ Run, snippet.ahk
 #Include markdown.ahk
 #Include pdf.ahk
 #Include wechat.ahk
+#Include leidian.ahk

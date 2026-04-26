@@ -4,6 +4,8 @@
 ; 微信小程序中使用拖动效果
 Down::MoveMouse(0, -100)
 Up::MoveMouse(0, 100)
+WheelDown::MoveMouse(0, -100)
+WheelUp::MoveMouse(0, 100)
 Right::MoveMouse(-100, 0)
 Left::MoveMouse(100, 0)
 ; Space::Click  ; 空格键模拟鼠标左键点击(视频暂停/播放)，但该功能导致打字出现问题，暂时废弃
@@ -17,8 +19,8 @@ MoveMouse(x, y)
 	return
 }
 
-; 窗口全屏
-F9::
+; 窗口全屏并自动滑动
+^h::
 	; 获取屏幕分辨率
 	SysGet, ScreenWidth, 78
 	SysGet, ScreenHeight, 79
@@ -30,12 +32,7 @@ F9::
 	} else if (ScreenWidth = 3200 && ScreenHeight = 2000) {
 		WinMove, A, , 845, 0, 1483, 2200
 	}
-return
-
-; 自动滑动
-!f::
-{
-    if (wechatIsMoving = 0)
+	if (wechatIsMoving = 0)
     {
         wechatIsMoving := 1
         SetTimer, MoveUp, 9000
@@ -47,8 +44,7 @@ return
         SetTimer, MoveUp, Off
         TrayTip, 自动刷鼠标, 向上移动已停止!
     }
-    return
-}
+return
 
 MoveUp:
 {

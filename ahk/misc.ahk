@@ -1,9 +1,4 @@
-﻿; 右alt映射到右ctrl
-RAlt::RControl
-; copilot映射到printscreen
-<+<#F23::PrintScreen
-
-; 媒体控制快捷键
+﻿; 媒体控制快捷键
 F2::Send {Media_Play_Pause}
 F3::Send {Media_Prev}
 F4::Send {Media_Next}

@@ -27,3 +27,7 @@ Tab::
 	}
 return
 
+; 右alt映射到右ctrl
+RAlt::RControl
+; copilot映射到printscreen
+<+<#F23::PrintScreen

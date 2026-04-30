@@ -1,17 +1,48 @@
-; 雷电模拟器
+; 雷电模拟器相关设置
 #IfWinActive, ahk_exe dnplayer.exe
 
-; 拖动效果
-WheelDown::MoveMouseLeidian(0, -800)
-WheelUp::MoveMouseLeidian(0, 800)
+; 向上滚动滚轮：模拟从上 1/4 处匀速滑到下 1/4 处（通常对应内容向下拉）
+WheelUp::SwipeLeidian("down")
 
-MoveMouseLeidian(x, y)
+; 向下滚动滚轮：模拟从下 1/4 处匀速滑到上 1/4 处（通常对应内容向上拉）
+WheelDown::SwipeLeidian("up")
+
+SwipeLeidian(direction)
 {
-	Click, Down
-	MouseMove, x, y, 4, R
-	Click, Up
-	MouseMove, -x, -y, 0, R
-	return
+    ; 设置坐标模式为相对于当前激活窗口
+    CoordMode, Mouse, Window
+    
+    ; 保存当前鼠标位置
+    MouseGetPos, oldX, oldY
+    
+    ; 获取当前窗口的宽高
+    WinGetPos, , , W, H, A
+    
+    ; 计算关键坐标点
+    centerX := W / 2
+    
+    if (direction = "up") {
+        startY := H * 5 / 6
+        endY := 0
+    } else {
+        startY := H / 5
+        endY := H
+    }
+
+    ; --- 执行动作 ---
+    ; 1. 快速移动到起点
+    MouseMove, centerX, startY, 0
+    ; 2. 按下鼠标
+    Click, Down
+    ; 3. 匀速滑动到终点 (速度参数 10 可以根据需要调整，0最快，数值越大越慢越匀速)
+    MouseMove, centerX, endY, 9
+    ; 4. 松开鼠标
+    Click, Up
+    Sleep, 100  ; 等待动作完成，确保模拟效果自然
+    ; 5. 回到之前鼠标所在的地方
+    MouseMove, oldX, oldY, 0
+    
+    return
 }
 
 #IfWinActive

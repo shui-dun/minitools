@@ -38,7 +38,6 @@ SwipeLeidian(direction)
     MouseMove, centerX, endY, 9
     ; 4. 松开鼠标
     Click, Up
-    Sleep, 100  ; 等待动作完成，确保模拟效果自然
     ; 5. 回到之前鼠标所在的地方
     MouseMove, oldX, oldY, 0
     

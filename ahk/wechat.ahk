@@ -38,6 +38,7 @@ MoveMouse(x, y)
     {
         wechatIsMoving := 1
         SetTimer, MoveUp, 9000
+        ; 注意使用TrayTip时，文件编码必须是UTF-8 with BOM
         TrayTip, 自动刷鼠标, 向上移动已启动!
     }
     else

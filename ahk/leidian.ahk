@@ -1,4 +1,4 @@
-; 雷电模拟器相关设置
+﻿; 雷电模拟器相关设置
 #IfWinActive, ahk_exe dnplayer.exe
 
 ; 向上滚动滚轮：模拟从上 1/4 处匀速滑到下 1/4 处（通常对应内容向下拉）
@@ -42,6 +42,29 @@ SwipeLeidian(direction)
     ; 5. 回到之前鼠标所在的地方
     MouseMove, oldX, oldY, 0
     
+    return
+}
+
+; 自动滑动
+^l::
+	if (leidianIsMoving = 0)
+    {
+        leidianIsMoving := 1
+        SetTimer, LeidianMoveDown, 9000
+        ; 注意使用TrayTip时，文件编码必须是UTF-8 with BOM
+        TrayTip, 自动刷鼠标, 向上移动已启动!
+    }
+    else
+    {
+        leidianIsMoving := 0
+        SetTimer, LeidianMoveDown, Off
+        TrayTip, 自动刷鼠标, 向上移动已停止!
+    }
+return
+
+LeidianMoveDown:
+{
+    SwipeLeidian("up")
     return
 }
 

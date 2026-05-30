@@ -1,0 +1,12 @@
+[project]
+name = "screenless-editor"
+version = "0.1.0"
+description = "无界面编辑器 - 在桌面盲打记笔记，自动保存为 Markdown 文件"
+requires-python = ">=3.10"
+dependencies = [
+    "pywin32>=311",
+    "wxpython>=4.2.5",
+]
+
+[project.gui-scripts]
+screenless-editor = "main:main"

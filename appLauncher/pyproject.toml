@@ -8,6 +8,8 @@ dependencies = [
     "pyinstaller>=6.20.0",
     "wxpython>=4.2.5",
 ]
-
 [project.gui-scripts]
 applauncher = "main:run_app"
+
+[tool.setuptools]
+py-modules = ["main", "config_manager", "config_editor"]

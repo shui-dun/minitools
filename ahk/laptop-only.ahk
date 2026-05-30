@@ -2,7 +2,7 @@
 #SingleInstance Force ; 如果脚本已经在运行，则终止旧实例并启动新实例
 ; 鼠标中键和Tab切换到标题中含有Gemini的另一个窗口（优先切换到不同于当前窗口的）
 MButton::
-Tab::
+CapsLock::
 	WinGet, id, List,,, Program Manager
 	WinGet, current_id, ID, A
 	found := 0

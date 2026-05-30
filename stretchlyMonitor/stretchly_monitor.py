@@ -148,8 +148,11 @@ class App(wx.App):
         self.tbIcon = TaskBarIcon(config)
         return True
 
-if __name__ == "__main__":
-    # 先加载图标，显得流畅
+def main():
+    """程序入口：先加载图标显得流畅，然后杀掉旧实例并启动主循环"""
     app = App(False)
     kill_stretchly_monitor()
     app.MainLoop()
+
+if __name__ == "__main__":
+    main()

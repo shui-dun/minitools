@@ -1,0 +1,15 @@
+[project]
+name = "stretchlymonitor"
+version = "0.1.0"
+description = "监控 Stretchly 休息提醒，记录退出次数并与 Obsidian 习惯打卡关联"
+requires-python = ">=3.10"
+dependencies = [
+    "wxpython>=4.2",
+    "psutil>=5.9",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+stretchly-monitor = "stretchly_monitor:main"
+
+[tool.uv]

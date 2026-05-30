@@ -11,9 +11,9 @@ import yaml
 import ctypes
 
 def load_config():
-    config_path = os.path.join(os.path.dirname(__file__), "config.json")
+    config_path = os.path.join(os.path.expanduser("~"), ".stretchly-monitor-config.json")
     if not os.path.exists(config_path):
-        wx.MessageBox("缺少 config.json 文件，请根据 config.template.json 新建该文件", "配置错误", wx.OK | wx.ICON_ERROR)
+        wx.MessageBox(f"缺少配置文件，请根据 config.template.json 在用户目录下新建 {config_path}", "配置错误", wx.OK | wx.ICON_ERROR)
         sys.exit(1)
     with open(config_path, "r", encoding="utf-8") as f:
         return json.load(f)

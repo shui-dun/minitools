@@ -9,7 +9,7 @@ dependencies = [
     "pyyaml>=6.0",
 ]
 
-[project.scripts]
+[project.gui-scripts]
 stretchly-monitor = "stretchly_monitor:main"
 
 [tool.uv]

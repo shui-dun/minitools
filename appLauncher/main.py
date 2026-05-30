@@ -113,7 +113,10 @@ class AppLauncherFrame(wx.Frame):
         self.categories = self.config_manager.get_categories()
         self.update_list_box()
         
-if __name__ == "__main__":
+def run_app():
     app = wx.App()
     frame = AppLauncherFrame()
     app.MainLoop()
+
+if __name__ == "__main__":
+    run_app()

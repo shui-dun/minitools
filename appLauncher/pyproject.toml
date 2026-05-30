@@ -1,0 +1,13 @@
+[project]
+name = "applauncher"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pyinstaller>=6.20.0",
+    "wxpython>=4.2.5",
+]
+
+[project.gui-scripts]
+applauncher = "main:run_app"

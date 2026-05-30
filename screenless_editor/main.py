@@ -7,15 +7,15 @@ import time
 import win32gui
 import ctypes
 
-CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'config.json')
+CONFIG_PATH = os.path.join(os.path.expanduser('~'), '.screenless_editor.json')
 
-# 读取配置逻辑
-if os.path.exists(CONFIG_PATH):
-    with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
-        config = json.load(f)
-    SAVE_DIR = config.get('save_dir', os.getcwd())
-else:
-    SAVE_DIR = os.getcwd()  # 使用当前脚本运行目录作为保存目录
+if not os.path.exists(CONFIG_PATH):
+    raise FileNotFoundError(f"配置文件不存在: {CONFIG_PATH}")
+
+with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+    config = json.load(f)
+
+SAVE_DIR = config['save_dir']
 
 if not os.path.exists(SAVE_DIR):
     os.makedirs(SAVE_DIR)

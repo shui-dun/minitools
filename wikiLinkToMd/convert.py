@@ -13,8 +13,8 @@ import re
 import sys
 from pathlib import Path
 
-# 匹配 ![[Pasted image <文件名>]] 或 ![[Pasted image <文件名>|<尺寸>]]
-PATTERN = re.compile(r"!\[\[(Pasted image [^\]|]+)(?:\|[^\]]*)?\]\]")
+# 匹配 ![[<文件名>]] 或 ![[<文件名>|<别名/尺寸>]]
+PATTERN = re.compile(r"!\[\[([^\]|]+)(?:\|[^\]]*)?\]\]")
 
 
 def convert_link(match: re.Match) -> str:

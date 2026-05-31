@@ -23,24 +23,25 @@ def press_keyboard():
     # 松开 Alt
     win32api.keybd_event(win32con.VK_MENU, 0, win32con.KEYEVENTF_KEYUP, 0)
 
-gamepad_key1_pressed = False
-gamepad_key2_pressed = False
+def main():
+    gamepad_key1_pressed = False
+    gamepad_key2_pressed = False
 
-while True:
-    try:
-        events = get_gamepad()
-        for event in events:
-            if event.code == 'ABS_HAT0Y':  # 十字键上下
-                gamepad_key1_pressed = event.state == -1  # 1为下，-1为上，0为未按
-            if event.code == 'BTN_WEST':  # X
-                gamepad_key2_pressed = event.state == 1  # 1为按下，0为未按
+    while True:
+        try:
+            events = get_gamepad()
+            for event in events:
+                if event.code == 'ABS_HAT0Y':  # 十字键上下
+                    gamepad_key1_pressed = event.state == -1  # 1为下，-1为上，0为未按
+                if event.code == 'BTN_WEST':  # X
+                    gamepad_key2_pressed = event.state == 1  # 1为按下，0为未按
 
-            # 检查是否同时按下
-            if gamepad_key1_pressed and gamepad_key2_pressed:
-                press_keyboard()
-                print("已发送键盘按键")
-                gamepad_key1_pressed = False
-                gamepad_key2_pressed = False
-                break
-    except Exception as e: # 在手柄断开时仍能正常工作不退出
-        print(f"发生错误: {e}")
+                # 检查是否同时按下
+                if gamepad_key1_pressed and gamepad_key2_pressed:
+                    press_keyboard()
+                    print("已发送键盘按键")
+                    gamepad_key1_pressed = False
+                    gamepad_key2_pressed = False
+                    break
+        except Exception as e: # 在手柄断开时仍能正常工作不退出
+            print(f"发生错误: {e}")

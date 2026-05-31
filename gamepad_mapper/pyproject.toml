@@ -1,0 +1,16 @@
+[project]
+name = "gamepad-mapper"
+version = "0.1.0"
+description = "Gamepad to keyboard/mouse mapping tools and trainer automation"
+requires-python = ">=3.10"
+dependencies = [
+    "inputs",
+    "pywin32",
+]
+
+[project.scripts]
+gamepad-mapper = "gamepad_mapper:main"
+auto-flingtrainer = "auto_flingtrainer:main"
+
+[tool.setuptools]
+py-modules = ["gamepad_mapper", "auto_flingtrainer"]

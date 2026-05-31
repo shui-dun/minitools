@@ -22,6 +22,7 @@
 - [fullcpu](./fullcpu) 用 Go 语言编写的系统资源消耗工具,用来模拟高强度的 CPU、内存和 I/O 使用
 - [handright](./handright) 使用handright库，生成手写笔记
 - [fullScreenCheck](./fullScreenCheck) 当你运行全屏应用，例如全屏播放视频时，每隔一分钟，输入`'shift'+'ctrl'+'alt'+'.'`，使得Stretchly不要误以为你没有使用电脑
+- [wikiLinkToMd](./wikiLinkToMd) 将 Obsidian 风格的 `![[Pasted image xxx.png|size]]` 图片链接批量转换为标准 Markdown `![]()` 格式。
 - [mklinks](./mklinks) 如果需要频繁地将某些文件或文件夹创建符号链接到多个不同目录，那么这个工具可能会对你有所帮助。
 - [autoWechat](./autoWechat) 微信自动发消息（已废弃）
 - [handles](./handles) 持续监视一个进程占有的句柄

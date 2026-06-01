@@ -1,12 +1,30 @@
 import customtkinter as ctk
 import os
+import sys
 from tkinter import messagebox
+
+# 中文字体配置：Windows 用微软雅黑，其他平台用系统默认
+if sys.platform == 'win32':
+    FONT_FAMILY = "Microsoft YaHei"
+else:
+    FONT_FAMILY = None  # CustomTkinter 默认字体
+
+
+def make_font(size=13, weight="normal"):
+    """创建字体，自动使用适合中文的字体族"""
+    kwargs = {"size": size}
+    if FONT_FAMILY:
+        kwargs["family"] = FONT_FAMILY
+    if weight == "bold":
+        kwargs["weight"] = "bold"
+    return ctk.CTkFont(**kwargs)
+
 
 class ConfigEditor(ctk.CTkToplevel):
     def __init__(self, parent, config_manager):
         super().__init__(parent)
         self.title("配置编辑器")
-        self.geometry("800x500")
+        self.geometry("820x540")
 
         self.config_manager = config_manager
         self.result = None
@@ -23,27 +41,33 @@ class ConfigEditor(ctk.CTkToplevel):
         category_frame.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
         category_frame.grid_columnconfigure(1, weight=1)
 
-        ctk.CTkLabel(category_frame, text="选择分类：").grid(
+        ctk.CTkLabel(category_frame, text="选择分类：",
+                     font=make_font(size=13)).grid(
             row=0, column=0, padx=5, pady=5, sticky="w")
 
         self._category_values = self.config_manager.get_categories()
         self.category_choice = ctk.CTkOptionMenu(
             category_frame, values=self._category_values,
+            font=make_font(size=13),
             command=self.on_category_selected)
         self.category_choice.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
 
         ctk.CTkButton(category_frame, text="添加分类",
+                      font=make_font(size=13),
                       command=self.on_add_category).grid(
                           row=0, column=2, padx=5, pady=5)
         ctk.CTkButton(category_frame, text="重命名",
+                      font=make_font(size=13),
                       command=self.on_rename_category).grid(
                           row=0, column=3, padx=5, pady=5)
         ctk.CTkButton(category_frame, text="删除分类",
+                      font=make_font(size=13),
                       command=self.on_remove_category).grid(
                           row=0, column=4, padx=5, pady=5)
 
         # ---- App list label (row 1) ----
-        ctk.CTkLabel(self, text="该分类中的应用:").grid(
+        ctk.CTkLabel(self, text="该分类中的应用:",
+                     font=make_font(size=13)).grid(
             row=1, column=0, padx=5, pady=(0, 0), sticky="w")
 
         self.app_list_frame = ctk.CTkScrollableFrame(self)
@@ -56,10 +80,12 @@ class ConfigEditor(ctk.CTkToplevel):
         path_frame.grid(row=3, column=0, padx=5, pady=5, sticky="ew")
         path_frame.grid_columnconfigure(1, weight=1)
 
-        ctk.CTkLabel(path_frame, text="应用路径:").grid(
+        ctk.CTkLabel(path_frame, text="应用路径:",
+                     font=make_font(size=13)).grid(
             row=0, column=0, padx=5, pady=5, sticky="w")
 
-        self.path_text = ctk.CTkEntry(path_frame)
+        self.path_text = ctk.CTkEntry(path_frame,
+                                      font=make_font(size=13))
         self.path_text.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
 
         # ---- App button row (row 4) ----
@@ -69,9 +95,11 @@ class ConfigEditor(ctk.CTkToplevel):
         app_button_frame.grid_columnconfigure(1, weight=1)
 
         ctk.CTkButton(app_button_frame, text="添加应用",
+                      font=make_font(size=13),
                       command=self.on_add_app).grid(
                           row=0, column=0, padx=5, pady=5, sticky="ew")
         ctk.CTkButton(app_button_frame, text="删除应用",
+                      font=make_font(size=13),
                       command=self.on_remove_app).grid(
                           row=0, column=1, padx=5, pady=5, sticky="ew")
 
@@ -82,9 +110,11 @@ class ConfigEditor(ctk.CTkToplevel):
         bottom_frame.grid_columnconfigure(1, weight=1)
 
         ctk.CTkButton(bottom_frame, text="保存",
+                      font=make_font(size=13),
                       command=self.on_save).grid(
                           row=0, column=0, padx=5, pady=5, sticky="ew")
         ctk.CTkButton(bottom_frame, text="取消",
+                      font=make_font(size=13),
                       command=self.on_cancel).grid(
                           row=0, column=1, padx=5, pady=5, sticky="ew")
 
@@ -119,6 +149,7 @@ class ConfigEditor(ctk.CTkToplevel):
                     self.app_list_frame,
                     text=app,
                     anchor="w",
+                    font=make_font(size=13),
                     fg_color="transparent",
                     text_color=("gray10", "gray90"),
                     corner_radius=0,

@@ -6,11 +6,27 @@ from tkinter import messagebox
 from config_manager import ConfigManager
 from config_editor import ConfigEditor
 
+# 中文字体配置：Windows 用微软雅黑，其他平台用系统默认
+if sys.platform == 'win32':
+    FONT_FAMILY = "Microsoft YaHei"
+else:
+    FONT_FAMILY = None  # CustomTkinter 默认字体
+
+def make_font(size=13, weight="normal"):
+    """创建字体，自动使用适合中文的字体族"""
+    kwargs = {"size": size}
+    if FONT_FAMILY:
+        kwargs["family"] = FONT_FAMILY
+    if weight == "bold":
+        kwargs["weight"] = "bold"
+    return ctk.CTkFont(**kwargs)
+
+
 class AppLauncherFrame(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("应用启动器")
-        self.geometry("400x500")
+        self.geometry("420x520")
 
         self.config_manager = ConfigManager()
         self.categories = self.config_manager.get_categories()
@@ -23,8 +39,8 @@ class AppLauncherFrame(ctk.CTk):
 
         # Title label
         title_label = ctk.CTkLabel(self, text="一键启动器",
-                                   font=ctk.CTkFont(size=18, weight="bold"))
-        title_label.grid(row=0, column=0, padx=10, pady=10)
+                                   font=make_font(size=20, weight="bold"))
+        title_label.grid(row=0, column=0, padx=10, pady=(15, 10))
 
         self.list_frame = ctk.CTkScrollableFrame(self)
         self.list_frame.grid(row=1, column=0, padx=10, pady=(0, 10), sticky="nsew")
@@ -38,10 +54,12 @@ class AppLauncherFrame(ctk.CTk):
         button_frame.grid_columnconfigure(0, weight=1)
         button_frame.grid_columnconfigure(1, weight=1)
 
-        launch_button = ctk.CTkButton(button_frame, text="启动", command=self.on_launch)
+        launch_button = ctk.CTkButton(button_frame, text="启动", command=self.on_launch,
+                                      font=make_font(size=14))
         launch_button.grid(row=0, column=0, padx=(0, 5), pady=0, sticky="ew")
 
-        config_button = ctk.CTkButton(button_frame, text="配置", command=self.on_config)
+        config_button = ctk.CTkButton(button_frame, text="配置", command=self.on_config,
+                                      font=make_font(size=14))
         config_button.grid(row=0, column=1, padx=(5, 0), pady=0, sticky="ew")
 
         # Keyboard shortcuts: Ctrl+1 through Ctrl+9
@@ -60,6 +78,7 @@ class AppLauncherFrame(ctk.CTk):
                 self.list_frame,
                 text=text,
                 anchor="w",
+                font=make_font(size=14),
                 fg_color="transparent",
                 text_color=("gray10", "gray90"),
                 corner_radius=0,

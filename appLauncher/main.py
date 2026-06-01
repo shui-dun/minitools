@@ -6,21 +6,6 @@ from tkinter import messagebox
 from config_manager import ConfigManager
 from config_editor import ConfigEditor
 
-# 中文字体配置：Windows 用微软雅黑，其他平台用系统默认
-if sys.platform == 'win32':
-    FONT_FAMILY = "Microsoft YaHei"
-else:
-    FONT_FAMILY = None  # CustomTkinter 默认字体
-
-def make_font(size=13, weight="normal"):
-    """创建字体，自动使用适合中文的字体族"""
-    kwargs = {"size": size}
-    if FONT_FAMILY:
-        kwargs["family"] = FONT_FAMILY
-    if weight == "bold":
-        kwargs["weight"] = "bold"
-    return ctk.CTkFont(**kwargs)
-
 
 class AppLauncherFrame(ctk.CTk):
     def __init__(self):
@@ -37,9 +22,9 @@ class AppLauncherFrame(ctk.CTk):
         self.grid_rowconfigure(2, weight=0)
         self.grid_columnconfigure(0, weight=1)
 
-        # Title label
+        # Title label（标题需要更大更粗，单独指定）
         title_label = ctk.CTkLabel(self, text="一键启动器",
-                                   font=make_font(size=20, weight="bold"))
+                                   font=ctk.CTkFont(size=20, weight="bold"))
         title_label.grid(row=0, column=0, padx=10, pady=(15, 10))
 
         self.list_frame = ctk.CTkScrollableFrame(self)
@@ -54,12 +39,10 @@ class AppLauncherFrame(ctk.CTk):
         button_frame.grid_columnconfigure(0, weight=1)
         button_frame.grid_columnconfigure(1, weight=1)
 
-        launch_button = ctk.CTkButton(button_frame, text="启动", command=self.on_launch,
-                                      font=make_font(size=14))
+        launch_button = ctk.CTkButton(button_frame, text="启动", command=self.on_launch)
         launch_button.grid(row=0, column=0, padx=(0, 5), pady=0, sticky="ew")
 
-        config_button = ctk.CTkButton(button_frame, text="配置", command=self.on_config,
-                                      font=make_font(size=14))
+        config_button = ctk.CTkButton(button_frame, text="配置", command=self.on_config)
         config_button.grid(row=0, column=1, padx=(5, 0), pady=0, sticky="ew")
 
         # Keyboard shortcuts: Ctrl+1 through Ctrl+9
@@ -78,7 +61,6 @@ class AppLauncherFrame(ctk.CTk):
                 self.list_frame,
                 text=text,
                 anchor="w",
-                font=make_font(size=14),
                 fg_color="transparent",
                 text_color=("gray10", "gray90"),
                 corner_radius=0,
@@ -135,6 +117,13 @@ class AppLauncherFrame(ctk.CTk):
 def run_app():
     ctk.set_appearance_mode("System")
     ctk.set_default_color_theme("blue")
+
+    # 全局默认字体：Windows 用微软雅黑，告别宋体
+    if sys.platform == "win32":
+        ctk.ThemeManager.theme["CTkFont"]["family"] = "Microsoft YaHei"
+        ctk.ThemeManager.theme["CTkFont"]["size"] = 14
+    # macOS / Linux 保持主题自带字体即可
+
     app = AppLauncherFrame()
     app.mainloop()
 

@@ -237,9 +237,11 @@ class TextReplacerApp(wx.App):
         wx.MessageBox("替换完成", "提示", wx.OK | wx.ICON_INFORMATION)
 
 
-if __name__ == "__main__":
+def main():
     # 创建TextReplacerApp实例
     app = TextReplacerApp(False)
     # 开始应用程序的主事件循环
     app.MainLoop()
 
+if __name__ == "__main__":
+    main()

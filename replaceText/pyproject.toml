@@ -1,0 +1,15 @@
+[project]
+name = "replace-text"
+version = "1.0.0"
+description = "Replace text in files within a specified folder"
+requires-python = ">=3.8"
+dependencies = [
+    "wxpython>=4.2.1",
+    "pyinstaller>=5.13.0",
+]
+
+[project.gui-scripts]
+replace-text = "main:main"
+
+[tool.setuptools]
+py-modules = ["main"]

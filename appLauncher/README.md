@@ -5,8 +5,8 @@
 ## 使用方法
 
 ```
-pipenv install
-pipenv run python main.py
+uv sync
+uv run main.py
 ```
 
 ## 截图

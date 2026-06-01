@@ -1,122 +1,110 @@
-import wx
+import customtkinter as ctk
+import tkinter as tk
 import subprocess
 import sys
 import shlex
+from tkinter import messagebox
 from config_manager import ConfigManager
 from config_editor import ConfigEditor
 
-class AppLauncherFrame(wx.Frame):
+class AppLauncherFrame(ctk.CTk):
     def __init__(self):
-        super().__init__(None, title="应用启动器", size=(400, 500))
-        
+        super().__init__()
+        self.title("应用启动器")
+        self.geometry("400x500")
+
         self.config_manager = ConfigManager()
         self.categories = self.config_manager.get_categories()
-        
-        # 创建面板和垂直布局
-        panel = wx.Panel(self)
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-        
-        # 标题
-        title_label = wx.StaticText(panel, label="一键启动器")
-        title_label.SetFont(wx.Font(18, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD))
-        main_sizer.Add(title_label, 0, wx.ALL | wx.CENTER, 10)
-        
-        # 创建类别列表
-        self.list_box = wx.ListBox(panel, size=(-1, 300))
+
+        # Grid layout
+        self.grid_rowconfigure(0, weight=0)
+        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(2, weight=0)
+        self.grid_columnconfigure(0, weight=1)
+
+        # Title label
+        title_label = ctk.CTkLabel(self, text="一键启动器",
+                                   font=ctk.CTkFont(size=18, weight="bold"))
+        title_label.grid(row=0, column=0, padx=10, pady=10)
+
+        # Category listbox
+        self.list_box = tk.Listbox(self, height=15, exportselection=False,
+                                   font=("Microsoft YaHei UI", 14))
         self.update_list_box()
-        main_sizer.Add(self.list_box, 1, wx.ALL | wx.EXPAND, 10)
-        
-        # 按钮行
-        button_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        
-        # 启动按钮
-        launch_button = wx.Button(panel, label="启动")
-        button_sizer.Add(launch_button, 1, wx.RIGHT, 5)
-        
-        # 配置按钮
-        config_button = wx.Button(panel, label="配置")
-        button_sizer.Add(config_button, 1, wx.LEFT, 5)
-        
-        main_sizer.Add(button_sizer, 0, wx.ALL | wx.EXPAND, 10)
-        
-        panel.SetSizer(main_sizer)
-        
-        # 绑定事件
-        self.list_box.Bind(wx.EVT_LISTBOX_DCLICK, self.on_launch)
-        launch_button.Bind(wx.EVT_BUTTON, self.on_launch)
-        config_button.Bind(wx.EVT_BUTTON, self.on_config)
-        
-        # 绑定键盘事件
-        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_press)
-        
-        self.Centre()
-        self.Show()
-    
+        self.list_box.grid(row=1, column=0, padx=10, pady=(0, 10), sticky="nsew")
+
+        # Button row
+        button_frame = ctk.CTkFrame(self, fg_color="transparent")
+        button_frame.grid(row=2, column=0, padx=10, pady=(0, 10), sticky="ew")
+        button_frame.grid_columnconfigure(0, weight=1)
+        button_frame.grid_columnconfigure(1, weight=1)
+
+        launch_button = ctk.CTkButton(button_frame, text="启动", command=self.on_launch)
+        launch_button.grid(row=0, column=0, padx=(0, 5), pady=0, sticky="ew")
+
+        config_button = ctk.CTkButton(button_frame, text="配置", command=self.on_config)
+        config_button.grid(row=0, column=1, padx=(5, 0), pady=0, sticky="ew")
+
+        # Bind events
+        self.list_box.bind('<Double-Button-1>', self.on_launch)
+
+        # Keyboard shortcuts: Ctrl+1 through Ctrl+9
+        for i in range(1, 10):
+            self.bind(f'<Control-Key-{i}>', lambda e, idx=i-1: self.launch_by_index(idx))
+
     def update_list_box(self):
-        """更新列表框，添加序号（1-9）"""
-        self.list_box.Clear()
+        self.list_box.delete(0, tk.END)
         for i, category in enumerate(self.categories):
-            # 只为前9个项目添加序号
             if i < 9:
-                self.list_box.Append(f"{i+1}. {category}")
+                self.list_box.insert(tk.END, f"{i+1}. {category}")
             else:
-                self.list_box.Append(f"   {category}")
-    
-    def on_key_press(self, event):
-        """处理键盘按键事件"""
-        key_code = event.GetKeyCode()
-        is_ctrl = event.ControlDown()
-        
-        # 检查是否按下 Ctrl + 数字键 (1-9)
-        if is_ctrl and ord('1') <= key_code <= ord('9'):
-            index = key_code - ord('1')  # 将按键转为索引(0-8)
-            if index < len(self.categories):
-                # 选择并启动对应项目
-                self.list_box.SetSelection(index)
-                self.launch_selected_category()
-                return
-                
-        event.Skip()
-    
+                self.list_box.insert(tk.END, f"   {category}")
+
+    def launch_by_index(self, index):
+        if index < len(self.categories):
+            self.list_box.selection_clear(0, tk.END)
+            self.list_box.selection_set(index)
+            self.list_box.see(index)
+            self.launch_selected_category()
+
     def launch_selected_category(self):
-        """启动选中的类别"""
-        selection = self.list_box.GetSelection()
-        if selection != wx.NOT_FOUND:
-            category = self.categories[selection]  # 直接从列表获取类别名称
+        selection = self.list_box.curselection()
+        if selection:
+            idx = selection[0]
+            category = self.categories[idx]
             apps = self.config_manager.get_apps_for_category(category)
-            
+
             launch_success = True
             for app_command in apps:
                 try:
                     if sys.platform == 'win32':
-                        # Windows平台处理
                         subprocess.Popen(app_command, shell=True)
                     else:
-                        # Linux/Mac平台处理
                         args = shlex.split(app_command)
                         subprocess.Popen(args)
                 except Exception as e:
                     launch_success = False
-                    wx.MessageBox(f"无法启动应用 {app_command}: {str(e)}", "错误", wx.OK | wx.ICON_ERROR)
-            
-            # 如果所有应用都成功启动，则关闭窗口
+                    messagebox.showerror("错误", f"无法启动应用 {app_command}: {str(e)}")
+
             if launch_success:
-                self.Close()
-    
-    def on_launch(self, event):
+                self.destroy()
+
+    def on_launch(self, event=None):
         self.launch_selected_category()
-    
-    def on_config(self, event):
+
+    def on_config(self):
         config_editor = ConfigEditor(self, self.config_manager)
-        config_editor.ShowModal()
-        # 更新列表
+        config_editor.show_modal()
         self.categories = self.config_manager.get_categories()
         self.update_list_box()
-        
+
+
 def run_app():
-    app = wx.App()
-    frame = AppLauncherFrame()
-    app.MainLoop()
+    ctk.set_appearance_mode("System")
+    ctk.set_default_color_theme("blue")
+    app = AppLauncherFrame()
+    app.mainloop()
+
 
 if __name__ == "__main__":
     run_app()

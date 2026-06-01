@@ -11,6 +11,4 @@ pipenv run python main.py
 
 ## 截图
 
-![alt text](assets/image-1.png)
-
-![alt text](assets/image-2.png)
+![image-20260601212954018](assets/image-20260601212954018.png)

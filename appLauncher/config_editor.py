@@ -1,5 +1,4 @@
 import customtkinter as ctk
-import tkinter as tk
 import os
 from tkinter import messagebox
 
@@ -47,11 +46,10 @@ class ConfigEditor(ctk.CTkToplevel):
         ctk.CTkLabel(self, text="该分类中的应用:").grid(
             row=1, column=0, padx=5, pady=(0, 0), sticky="w")
 
-        # ---- App listbox (row 2) ----
-        self.app_listbox = tk.Listbox(self, height=10, exportselection=False,
-                                      font=("Microsoft YaHei UI", 14))
-        self.app_listbox.grid(row=2, column=0, padx=5, pady=5, sticky="nsew")
-        self.app_listbox.bind('<<ListboxSelect>>', self.on_app_selected)
+        self.app_list_frame = ctk.CTkScrollableFrame(self)
+        self.app_list_frame.grid(row=2, column=0, padx=5, pady=5, sticky="nsew")
+        self._app_buttons = []
+        self._selected_app_index = -1
 
         # ---- Path entry row (row 3) ----
         path_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -99,7 +97,6 @@ class ConfigEditor(ctk.CTkToplevel):
         return self.result
 
     def _get_category_selection_index(self):
-        """Return the selected index in category values, or -1 if none/empty."""
         if not self._category_values:
             return -1
         val = self.category_choice.get()
@@ -109,12 +106,40 @@ class ConfigEditor(ctk.CTkToplevel):
             return -1
 
     def update_app_list(self):
-        self.app_listbox.delete(0, tk.END)
+        for btn in self._app_buttons:
+            btn.destroy()
+        self._app_buttons.clear()
+        self._selected_app_index = -1
+
         sel = self._get_category_selection_index()
         if sel != -1:
             category = self._category_values[sel]
-            for app in self.config_manager.get_apps_for_category(category):
-                self.app_listbox.insert(tk.END, app)
+            for i, app in enumerate(self.config_manager.get_apps_for_category(category)):
+                btn = ctk.CTkButton(
+                    self.app_list_frame,
+                    text=app,
+                    anchor="w",
+                    fg_color="transparent",
+                    text_color=("gray10", "gray90"),
+                    corner_radius=0,
+                    command=lambda idx=i: self._on_app_click(idx)
+                )
+                btn.pack(fill="x", padx=0, pady=1)
+                self._app_buttons.append(btn)
+
+    def _on_app_click(self, index):
+        self._select_app_item(index)
+        if 0 <= index < len(self._app_buttons):
+            app_path = self._app_buttons[index].cget("text")
+            self.path_text.delete(0, "end")
+            self.path_text.insert(0, app_path)
+
+    def _select_app_item(self, index):
+        if 0 <= self._selected_app_index < len(self._app_buttons):
+            self._app_buttons[self._selected_app_index].configure(fg_color="transparent")
+        self._selected_app_index = index
+        if 0 <= index < len(self._app_buttons):
+            self._app_buttons[index].configure(fg_color=("gray75", "gray28"))
 
     def on_category_selected(self, value):
         self.update_app_list()
@@ -159,13 +184,6 @@ class ConfigEditor(ctk.CTkToplevel):
                         self.category_choice.set(new_name)
                         self.update_app_list()
 
-    def on_app_selected(self, event=None):
-        selection = self.app_listbox.curselection()
-        if selection:
-            app_path = self.app_listbox.get(selection[0])
-            self.path_text.delete(0, tk.END)
-            self.path_text.insert(0, app_path)
-
     def on_add_app(self):
         sel = self._get_category_selection_index()
         if sel != -1:
@@ -173,8 +191,8 @@ class ConfigEditor(ctk.CTkToplevel):
             app_path = self.path_text.get().strip()
             if app_path:
                 if self.config_manager.add_app_to_category(category, app_path):
-                    self.app_listbox.insert(tk.END, app_path)
-                    self.path_text.delete(0, tk.END)
+                    self.update_app_list()
+                    self.path_text.delete(0, "end")
                 else:
                     messagebox.showinfo("提示", "该应用已存在")
             else:
@@ -182,14 +200,13 @@ class ConfigEditor(ctk.CTkToplevel):
 
     def on_remove_app(self):
         category_idx = self._get_category_selection_index()
-        app_sel = self.app_listbox.curselection()
-        if category_idx != -1 and app_sel:
-            app_idx = app_sel[0]
+        if category_idx != -1 and self._selected_app_index != -1:
+            app_idx = self._selected_app_index
             category = self._category_values[category_idx]
-            app_path = self.app_listbox.get(app_idx)
+            app_path = self._app_buttons[app_idx].cget("text")
             if self.config_manager.remove_app_from_category(category, app_path):
-                self.app_listbox.delete(app_idx)
-                self.path_text.delete(0, tk.END)
+                self.update_app_list()
+                self.path_text.delete(0, "end")
 
     def on_save(self):
         if self.config_manager.save_config():

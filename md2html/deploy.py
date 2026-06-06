@@ -79,13 +79,7 @@ while read oldrev newrev ref; do
         git --work-tree="$WORK_TREE" --git-dir="$GIT_DIR" checkout -f
 
         cd "$WORK_TREE"
-
-        # 只在容器不存在时才创建；已存在则跳过（nginx 即时生效，无需重启）
-        if $DC ps --status running 2>/dev/null | grep -q .; then
-            echo "    容器已在运行，跳过 $DC 操作。"
-        else
-            echo "    容器未运行，执行 $DC up -d ..."
-            $DC up -d
+        $DC up -d
         fi
 
         echo ">>> 部署完成。"

@@ -1,13 +1,42 @@
 """
-处理 Markdown 文件的编排层：协调图片处理和 wikilink 处理。
+处理 Markdown 文件的编排层：协调图片处理、wikilink 处理和标签去除。
 """
 
 import os
+import re
 import shutil
 from pathlib import Path
 
 from image_processor import fix_image_links
 from wikilink_processor import fix_wikilinks
+
+
+# =============================================================================
+# 标签行去除（mkdocs会错误地将标签行当作标题处理，导致目录结构混乱）
+# =============================================================================
+
+# 匹配标签行：单个 # 后面紧跟非空格、非 # 的字符（与各级标题 # / ## / ### 区分）
+_TAG_LINE_RE = re.compile(r"^\s*#[^#\s].*$", re.MULTILINE)
+
+
+def strip_tag_lines(content: str) -> str:
+    """去除 Markdown 内容中的标签行。
+
+    - ``# 标题`` → 标题，保留
+    - ``#标签`` → 标签行，整行移除
+    """
+    return _TAG_LINE_RE.sub("", content)
+
+
+def strip_tag_lines_from_file(md_path: Path) -> None:
+    """读取 Markdown 文件，原地去除标签行。"""
+    try:
+        content = md_path.read_text(encoding="utf-8")
+    except Exception:
+        return
+    new_content = strip_tag_lines(content)
+    if new_content != content:
+        md_path.write_text(new_content, encoding="utf-8")
 
 
 # =============================================================================
@@ -52,8 +81,9 @@ def process_markdown_files(
             dst = docs_dir / rel
             dst.parent.mkdir(parents=True, exist_ok=True)
 
-            # --- 复制文件 + 修复图片链接 + 修复 wikilink ---
+            # --- 复制文件 + 去除标签行 + 修复图片链接 + 修复 wikilink ---
             shutil.copy2(src, dst)
+            strip_tag_lines_from_file(dst)
             fix_image_links(dst, image_table, used_images)
             fix_wikilinks(dst, note_table, rel)
             md_count += 1

@@ -43,6 +43,16 @@ body.homepage .md-sidebar {{
     background: rgba(255, 255, 255, 0.85);
 }}
 
+/* 首页桌面端隐藏左右导航栏（手机端保留汉堡菜单） */
+@media screen and (min-width: 76.25em) {{
+    body.homepage .md-sidebar--primary {{
+        display: none;
+    }}
+
+    body.homepage .md-sidebar--secondary {{
+        display: none;
+    }}
+}}
 """
     else:
         css_content = "/* 未配置首页背景图 */\n\n"

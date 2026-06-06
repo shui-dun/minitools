@@ -14,10 +14,8 @@ from deploy import (
     ensure_git_repo,
     git_commit_and_push,
     setup_server,
-    prepare_background,
-    write_extra_css,
-    write_extra_js,
 )
+from beautify import prepare_background, write_extra_css, write_extra_js
 
 
 # =============================================================================

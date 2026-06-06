@@ -14,6 +14,9 @@ from deploy import (
     ensure_git_repo,
     git_commit_and_push,
     setup_server,
+    prepare_background,
+    write_extra_css,
+    write_extra_js,
 )
 
 
@@ -99,6 +102,11 @@ def build_site(cfg: Config) -> None:
 
     # 第三步：复制被引用的图片
     copy_used_images(image_table, used_images, docs_dir / "assets")
+
+    # 第三步半：首页背景图片处理
+    bg_filename = prepare_background(notes_dir, docs_dir)
+    write_extra_css(docs_dir, bg_filename)
+    write_extra_js(docs_dir)
 
     # 第四步：生成 mkdocs.yml 并构建
     yml_path = generate_mkdocs_yml(cfg, output_dir)

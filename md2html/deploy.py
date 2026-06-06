@@ -212,7 +212,7 @@ def git_commit_and_push(output_dir: Path, server_remote: str) -> None:
 
     print(f"   推送到 {server_remote} ...")
     subprocess.run(
-        ["git", "-C", str(output_dir), "push", "-u", "origin", "master"],
+        ["git", "-C", str(output_dir), "push", "--force", "-u", "origin", "master"],
         check=True,
     )
 

@@ -1,0 +1,36 @@
+# 笔记目录的绝对路径。
+notes_dir = "C:\\note"
+
+# 生成网站的目录（该目录将作为 git 仓库推送到服务器）。
+output_dir = "C:\\note-site"
+
+# 网站标题，显示在页面头部和浏览器标签页。
+site_name = "我的笔记"
+
+# 需要忽略的目录/文件列表，会跳过这些目录及其所有子目录。
+ignore_dirs = [
+    ".git",
+    ".obsidian",
+]
+
+# 服务器的 git 远程地址，用于推送生成的网站。
+# 服务器上应有一个 bare git 仓库并配置 post-receive hook 实现自动部署。
+# 示例："ssh://root@192.168.1.100/opt/note-site.git"
+server_remote = ""
+
+# 服务器上部署网站的工作目录（docker compose 在此运行）。
+# 示例："/opt/note-html"
+server_work_tree = ""
+
+# MkDocs Material 主题配色方案（default / slate）。
+# 详见：https://squidfunk.github.io/mkdocs-material/setup/changing-the-colors/
+theme_palette = "default"
+
+# 网站默认语言（如 "zh"、"en"）。
+site_language = "zh"
+
+# Nginx 在 Docker 容器内的监听端口。
+nginx_port = 80
+
+# Docker 宿主机端口映射。
+docker_host_port = 8080

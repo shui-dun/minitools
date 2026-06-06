@@ -4,7 +4,7 @@
 
 ## 功能
 
-- **自动修复图片链接**——扫描笔记目录中所有图片文件，修复 Markdown 文件中的图片链接
+- **自动修复图片/笔记链接**——扫描笔记目录中所有图片/笔记文件，修复 Markdown 文件中的图片/笔记链接，同时支持wiki链接和md链接
 - **目录忽略**——可配置需要跳过目录列表（如 `.git`、`.obsidian`），其下所有子目录中的 .md 文件均不会生成 HTML。
 - **Docker + Nginx 部署**——自动生成 `nginx.conf`、`docker-compose.yml`，配合 `post-receive` hook 实现 push 即部署。
 

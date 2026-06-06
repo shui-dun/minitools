@@ -43,13 +43,15 @@ body.homepage .md-sidebar {{
     background: rgba(255, 255, 255, 0.85);
 }}
 
-/* 首页桌面端隐藏左右导航栏（手机端保留汉堡菜单） */
-@media screen and (min-width: 76.25em) {{
-    body.homepage .md-sidebar--primary {{
+/* 首页有背景图时隐藏侧边栏：右侧在 60em（面板出现时）隐藏，左侧在 76.25em（面板出现时）隐藏，低于断点时保留抽屉/汉堡菜单，不然手机汉堡菜单消失 */
+@media screen and (min-width: 60em) {{
+    body.homepage .md-sidebar--secondary {{
         display: none;
     }}
+}}
 
-    body.homepage .md-sidebar--secondary {{
+@media screen and (min-width: 76.25em) {{
+    body.homepage .md-sidebar--primary {{
         display: none;
     }}
 }}

@@ -5,7 +5,7 @@ description = "Convert Markdown notes to a static HTML site with MkDocs Material
 requires-python = ">=3.11"
 dependencies = [
     "mkdocs==1.6.1",
-    "mkdocs-material==9.7.6",
+    "mkdocs-material==9.7.6", # 我有一些根据宽度隐藏侧边栏的自定义样式，担心版本不同会导致样式失效，所以锁定版本
     "pyinstaller>=6.20.0",
 ]
 

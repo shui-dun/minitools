@@ -42,6 +42,15 @@ md2html
 
 以后笔记有更新，也只用运行这个命令就行
 
+## 打包为 exe
+
+```bash
+uv run pyinstaller --collect-all material --copy-metadata mkdocs-material --collect-all mkdocs --copy-metadata mkdocs --collect-all pymdownx --copy-metadata pymdown-extensions -F md2html.py
+```
+
+否则 `material` 等东西没有被打包（因为没有import）
+
+
 ## 单测
 
 ```bash

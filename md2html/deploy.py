@@ -80,7 +80,6 @@ while read oldrev newrev ref; do
 
         cd "$WORK_TREE"
         $DC up -d
-        fi
 
         echo ">>> 部署完成。"
     fi
@@ -97,6 +96,8 @@ def generate_mkdocs_yml(cfg: Config, output_dir: Path) -> Path:
     """在 output_dir 中生成 mkdocs.yml。"""
     lines = [
         f"site_name: {cfg.site_name}",
+        "",
+        "use_directory_urls: false",
         "",
         "theme:",
         "  name: material",

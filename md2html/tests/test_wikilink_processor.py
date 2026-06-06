@@ -124,7 +124,7 @@ class TestFixWikilinks:
         fix_wikilinks(md, table, Path("index.md"))
 
         result = md.read_text(encoding="utf-8")
-        assert "[Note A](Note A)" in result
+        assert "[Note A](Note A.md)" in result
 
     def test_wikilink_with_alias(self, tmp_notes_dir):
         """[[Note|别名]] → [别名](Note)。"""
@@ -135,7 +135,7 @@ class TestFixWikilinks:
         fix_wikilinks(md, table, Path("Note A.md"))
 
         result = md.read_text(encoding="utf-8")
-        assert "[B笔记](Note B)" in result
+        assert "[B笔记](Note B.md)" in result
 
     def test_wikilink_with_anchor(self, tmp_notes_dir):
         """[[Note#标题]] → [Note#标题](Note#标题)。"""
@@ -146,7 +146,7 @@ class TestFixWikilinks:
         fix_wikilinks(md, table, Path("Note B.md"))
 
         result = md.read_text(encoding="utf-8")
-        assert "[Note A#简介](Note A#简介)" in result
+        assert "[Note A#简介](Note A.md#简介)" in result
 
     def test_wikilink_with_anchor_and_alias(self, tmp_notes_dir):
         """[[Note#标题|别名]] → [别名](Note#标题)。"""
@@ -158,7 +158,7 @@ class TestFixWikilinks:
 
         result = md.read_text(encoding="utf-8")
         # Deep Note.md 在 subdir/，Note A.md 在根目录，相对路径为 ../Note A
-        assert "[安装说明](../Note A#安装)" in result
+        assert "[安装说明](../Note A.md#安装)" in result
 
     def test_wikilink_not_found(self, tmp_notes_dir, capsys):
         """不存在的笔记保留原文并打印警告。"""
@@ -183,7 +183,7 @@ class TestFixWikilinks:
         fix_wikilinks(md, table, Path("subdir/Note C.md"))
 
         result = md.read_text(encoding="utf-8")
-        assert "[Note A](../Note A)" in result
+        assert "[Note A](../Note A.md)" in result
 
     def test_image_wikilink_not_affected(self, tmp_notes_dir):
         """

@@ -40,6 +40,8 @@ md2html --setup-server
 md2html
 ```
 
+以后笔记有更新，也只用运行这个命令就行
+
 ## 单测
 
 ```bash

@@ -96,9 +96,6 @@ def fix_wikilinks(
         target_rel = note_table[note_name]
         link_path = _compute_relative_link(md_rel, target_rel)
 
-        # 去掉 .md 扩展名——MkDocs 内部链接不需要扩展名
-        if link_path.endswith(".md"):
-            link_path = link_path[:-3]
 
         # 锚点追加
         if anchor:

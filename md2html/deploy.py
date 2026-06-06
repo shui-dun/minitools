@@ -129,9 +129,31 @@ body.homepage .md-main {{
 body.homepage .md-sidebar {{
     background: rgba(255, 255, 255, 0.85);
 }}
+
 """
     else:
-        css_content = "/* 未配置首页背景图 */\n"
+        css_content = "/* 未配置首页背景图 */\n\n"
+
+    # grid cards 卡片样式（白色圆角 + 悬停浮起）
+    css_content += """\
+/* 首页卡片网格：白色圆角卡片，悬停浮起 */
+.md-typeset .grid.cards > ul > li,
+.md-typeset .grid.cards > ol > li {
+    display: block;
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    padding: 1.2rem;
+    cursor: pointer;
+    transition: box-shadow 0.2s, transform 0.15s;
+}
+
+.md-typeset .grid.cards > ul > li:hover,
+.md-typeset .grid.cards > ol > li:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+"""
 
     (stylesheets_dir / "extra.css").write_text(css_content, encoding="utf-8")
 
@@ -149,6 +171,23 @@ def write_extra_js(docs_dir: Path) -> None:
     if (isHome) {
         document.body.classList.add('homepage');
     }
+
+    /* 让首页 grid cards 整卡可点击 */
+    document.addEventListener('DOMContentLoaded', function () {
+        var cards = document.querySelectorAll('.grid.cards li');
+        cards.forEach(function (card) {
+            var link = card.querySelector('a');
+            if (!link) return;
+            card.addEventListener('click', function (e) {
+                // 如果用户正在选中文字，不跳转
+                var sel = window.getSelection();
+                if (sel && sel.toString().length > 0) return;
+                // 如果点击的是卡片内的其他链接，不拦截
+                if (e.target.closest('a') && e.target.closest('a') !== link) return;
+                link.click();
+            });
+        });
+    });
 })();
 """
     (js_dir / "extra.js").write_text(js_content, encoding="utf-8")
@@ -194,6 +233,8 @@ def generate_mkdocs_yml(cfg: Config, output_dir: Path) -> Path:
         "",
         "markdown_extensions:",
         "  - admonition",
+        "  - attr_list",
+        "  - md_in_html",
         "  - pymdownx.highlight",
         "  - pymdownx.superfences",
         "  - pymdownx.tasklist:",

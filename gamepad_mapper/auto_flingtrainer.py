@@ -71,19 +71,10 @@ def main():
 	press_ctrl_a()
 	# 输入0.7（主键盘区）
 	input_main_keyboard_07()
-	# 按3次tab
-	for _ in range(3):
-		press_key(VK_TAB)
-	# ctrl+a
-	press_ctrl_a()
-	# 输入0.7（主键盘区）
-	input_main_keyboard_07()
 	# 输入小键盘区的.
 	input_numpad_dot()
 	# 输入小键盘区的+
 	input_numpad_add()
-	# 输入ctrl+小键盘区的2
-	input_ctrl_numpad_2()
 
 if __name__ == "__main__":
 	main()

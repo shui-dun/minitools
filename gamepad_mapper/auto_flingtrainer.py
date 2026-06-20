@@ -75,6 +75,8 @@ def main():
 	input_numpad_dot()
 	# 输入小键盘区的+
 	input_numpad_add()
+	# 输入ctrl+小键盘区的2
+	input_ctrl_numpad_2()
 
 if __name__ == "__main__":
 	main()

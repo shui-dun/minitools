@@ -19,3 +19,6 @@ return
 	SendInput {Space}
 Return
 
+; 手柄键鼠映射加强
+; win+w -> m
+#w::Send m

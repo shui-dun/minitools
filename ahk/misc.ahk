@@ -20,5 +20,7 @@ return
 Return
 
 ; 手柄键鼠映射加强
-; win+w -> m
+; 静音：win+w -> m
 #w::Send m
+; 新建标签页：win+f4 -> ctrl+t
+#f4::Send ^t

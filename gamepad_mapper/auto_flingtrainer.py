@@ -52,6 +52,14 @@ def input_ctrl_numpad_2():
 	win32api.keybd_event(VK_CONTROL, 0, win32con.KEYEVENTF_KEYUP, 0)
 	time.sleep(0.1)
 
+def input_alt_numpad_2():
+	win32api.keybd_event(win32con.VK_MENU, 0, 0, 0)  # Alt键
+	win32api.keybd_event(VK_NUMPAD2, 0, 0, 0)
+	time.sleep(0.1)
+	win32api.keybd_event(VK_NUMPAD2, 0, win32con.KEYEVENTF_KEYUP, 0)
+	win32api.keybd_event(win32con.VK_MENU, 0, win32con.KEYEVENTF_KEYUP, 0)  # Alt键释放
+	time.sleep(0.1)
+
 def main():
 	# 启动 "C:\Users\shuidun\Desktop\Shin Megami Tensei V Vengeance v1.0-v1.0.3 Plus 31 Trainer.exe"
 	trainer_path = r"C:\Users\shuidun\Desktop\Shin Megami Tensei V Vengeance v1.0-v1.0.3 Plus 31 Trainer.exe"
@@ -77,6 +85,8 @@ def main():
 	input_numpad_add()
 	# 输入ctrl+小键盘区的2
 	input_ctrl_numpad_2()
+	# 输入alt+小键盘区的2
+	input_alt_numpad_2()
 
 if __name__ == "__main__":
 	main()

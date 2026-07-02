@@ -6,22 +6,17 @@ import win32con
 import time
 
 def press_keyboard():
-    # 按下 Alt
-    win32api.keybd_event(win32con.VK_MENU, 0, 0, 0)
-    time.sleep(0.05)
-    # 按下 8
-    win32api.keybd_event(win32con.VK_NUMPAD8, 0, 0, 0)
+    # # 按下 Alt
+    # win32api.keybd_event(win32con.VK_MENU, 0, 0, 0)
+    # time.sleep(0.05)
+    # 按下 7
+    win32api.keybd_event(win32con.VK_NUMPAD7, 0, 0, 0)
     time.sleep(0.2)
-    # 松开 8
-    win32api.keybd_event(win32con.VK_NUMPAD8, 0, win32con.KEYEVENTF_KEYUP, 0)
-    time.sleep(0.05)
-    # 按下 9
-    win32api.keybd_event(win32con.VK_NUMPAD9, 0, 0, 0)
-    time.sleep(0.2)
-    # 松开 9
-    win32api.keybd_event(win32con.VK_NUMPAD9, 0, win32con.KEYEVENTF_KEYUP, 0)
-    # 松开 Alt
-    win32api.keybd_event(win32con.VK_MENU, 0, win32con.KEYEVENTF_KEYUP, 0)
+    # 松开 7
+    win32api.keybd_event(win32con.VK_NUMPAD7, 0, win32con.KEYEVENTF_KEYUP, 0)
+    # time.sleep(0.05)
+    # # 松开 Alt
+    # win32api.keybd_event(win32con.VK_MENU, 0, win32con.KEYEVENTF_KEYUP, 0)
 
 def main():
     gamepad_key1_pressed = False
@@ -33,7 +28,7 @@ def main():
             for event in events:
                 if event.code == 'ABS_HAT0Y':  # 十字键上下
                     gamepad_key1_pressed = event.state == -1  # 1为下，-1为上，0为未按
-                if event.code == 'BTN_WEST':  # X
+                if event.code == 'BTN_SOUTH':  # A键
                     gamepad_key2_pressed = event.state == 1  # 1为按下，0为未按
 
                 # 检查是否同时按下

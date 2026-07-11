@@ -10,7 +10,8 @@ dependencies = [
 
 [project.scripts]
 gamepad-mapper = "gamepad_mapper:main"
+gamepad-mapper2 = "gamepad_mapper2:main"
 auto-flingtrainer = "auto_flingtrainer:main"
 
 [tool.setuptools]
-py-modules = ["gamepad_mapper", "auto_flingtrainer"]
+py-modules = ["gamepad_mapper", "gamepad_mapper2", "auto_flingtrainer"]

@@ -285,6 +285,8 @@ def _run_pipeline(
     else:
         click.echo("  正在生成整书摘要...")
         front_matter = reader.get_front_matter_text(config.chunk.book_summary_chars * 3)
+        # 把书名显式传入，避免 AI 从正文中猜错书名
+        front_matter = f"书名：《{reader.title}》\n\n{front_matter}"
         summary = interpreter.generate_summary(front_matter)
         click.echo(f"  整书摘要（{len(summary)} 字）已生成。")
 

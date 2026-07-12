@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(*)",
+      "Edit(c:/Users/shuidun/f/code/minitools/**)",
+      "Write(c:/Users/shuidun/f/code/minitools/**)",
+      "Read(c:/Users/shuidun/f/code/minitools/**)",
+      "Glob(c:/Users/shuidun/f/code/minitools/**)",
+      "Grep(c:/Users/shuidun/f/code/minitools/**)"
+    ],
+    "defaultMode": "dontAsk"
+  }
+}

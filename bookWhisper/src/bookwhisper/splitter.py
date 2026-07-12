@@ -158,6 +158,10 @@ class ChapterSplitter:
         """将超长段落按句子边界切分为多个子块。
 
         中文句子分隔符：。！？
+        对于单个句子超出 max_chars 的极端情况，在 max_chars 处强制截断。
+
+        注意：每个子块内部的句子在 _build_sections 中会用 \\n\\n 连接，
+        所以贪心组装时需为每个句子间预留 +2 字符的分隔符空间。
         """
         # 按句子分隔符切分
         sentences: list[str] = []
@@ -170,20 +174,33 @@ class ChapterSplitter:
         if current.strip():
             sentences.append(current)
 
-        # 贪心组装
+        # 对于超长句子，强制按 max_chars 切分（预留分隔符空间）
+        effective_max = self._max_chars - 2
+        all_fragments: list[str] = []
+        for sent in sentences:
+            if len(sent) > self._max_chars:
+                # 每个片段需要能在加上分隔符后不超过限制
+                for pos in range(0, len(sent), effective_max):
+                    all_fragments.append(sent[pos:pos + effective_max])
+            else:
+                all_fragments.append(sent)
+
+        # 贪心组装（为每个句子间预留 +2 字符的分隔符）
         chunks: list[list[str]] = []
         current_chunk: list[str] = []
         current_len = 0
 
-        for sent in sentences:
-            sent_len = len(sent)
-            if current_len + sent_len > self._max_chars and current_chunk:
+        for frag in all_fragments:
+            frag_len = len(frag)
+            # 第一个句子不需要分隔符，后续每个句子需要 +2
+            sep = 2 if current_chunk else 0
+            if current_len + frag_len + sep > self._max_chars and current_chunk:
                 chunks.append(current_chunk)
-                current_chunk = [sent]
-                current_len = sent_len
+                current_chunk = [frag]
+                current_len = frag_len
             else:
-                current_chunk.append(sent)
-                current_len += sent_len
+                current_chunk.append(frag)
+                current_len += frag_len + sep
 
         if current_chunk:
             chunks.append(current_chunk)

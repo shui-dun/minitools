@@ -16,12 +16,18 @@ from bookwhisper.converter import (
 class TestFormatConverter:
     """格式转换测试。"""
 
-    def test_epub_pass_through(self, sample_epub_path: Path) -> None:
-        """EPUB 格式应直接透传。"""
+    def test_epub_pass_through_real(self, real_epub_path: Path) -> None:
+        """真实 EPUB 格式应直接透传。"""
+        converter = FormatConverter()
+        result = converter.convert(real_epub_path)
+        assert result == real_epub_path.resolve()
+        assert result.suffix == ".epub"
+
+    def test_epub_pass_through_synthetic(self, sample_epub_path: Path) -> None:
+        """合成 EPUB 也正确透传。"""
         converter = FormatConverter()
         result = converter.convert(sample_epub_path)
         assert result == sample_epub_path
-        assert result.suffix == ".epub"
 
     def test_unsupported_format(self, tmp_path: Path) -> None:
         """不支持的格式应抛出 ConversionError。"""
@@ -37,8 +43,16 @@ class TestFormatConverter:
         with pytest.raises(ConversionError, match="文件不存在"):
             converter.convert("/nonexistent/file.epub")
 
+    def test_file_not_found_relative(self, tmp_path: Path) -> None:
+        """相对路径的不存在文件也应抛出错误。"""
+        converter = FormatConverter()
+        nonexistent = tmp_path / "does_not_exist.epub"
+        with pytest.raises(ConversionError, match="文件不存在"):
+            converter.convert(nonexistent)
+
     def test_supported_formats_list(self) -> None:
-        """支持的格式列表应包含 EPUB、MOBI、AZW3。"""
+        """支持的格式列表应包含 EPUB、MOBI、AZW3、AZW。"""
         assert ".epub" in SUPPORTED_INPUT_FORMATS
         assert ".mobi" in SUPPORTED_INPUT_FORMATS
         assert ".azw3" in SUPPORTED_INPUT_FORMATS
+        assert ".azw" in SUPPORTED_INPUT_FORMATS

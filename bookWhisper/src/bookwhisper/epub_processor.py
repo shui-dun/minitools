@@ -256,13 +256,20 @@ class EpubReader:
 class EpubWriter:
     """将解读后的文本写回 EPUB，保留原书结构。"""
 
-    def __init__(self, original_book: epub.EpubBook) -> None:
+    def __init__(
+        self,
+        original_book: epub.EpubBook,
+        chapters: list[Chapter] | None = None,
+    ) -> None:
         """初始化。
 
         Args:
             original_book: 原书的 ebooklib EpubBook 对象。
+            chapters: 从 EpubReader 获取的章节列表，用于准确匹配章节序号。
+                      传入后 write() 通过 spine idref 精确匹配，而非靠正则猜测。
         """
         self._original = original_book
+        self._chapters = chapters
         # 确保 title 是字符串（有些 EPUB 的 title 是列表）
         if isinstance(self._original.title, (list, tuple)):
             self._original.title = " ".join(str(t) for t in self._original.title)
@@ -292,14 +299,23 @@ class EpubWriter:
             item.get_id(): item for item in self._original.get_items()
         }
 
+        # 构建 spine_id → chapter_index 精确映射（使用 chapters 中的 item_id）
+        spine_to_chapter: dict[str, int] = {}
+        if self._chapters:
+            for ch in self._chapters:
+                spine_to_chapter[ch.item_id] = ch.index
+
         updated_count = 0
         for spine_id, _linear in spine:
             item = id_to_item.get(spine_id)
             if item is None or item.get_type() != ebooklib.ITEM_DOCUMENT:
                 continue
 
-            # 查找该 spine 项对应的章节序号
-            chapter_idx = self._find_chapter_index(item)
+            # 优先通过 chapters 精确匹配，回退到正则猜测
+            if self._chapters:
+                chapter_idx = spine_to_chapter.get(spine_id)
+            else:
+                chapter_idx = self._find_chapter_index(item)
 
             if chapter_idx is not None and chapter_idx in chapter_results:
                 interpreted_text = chapter_results[chapter_idx]

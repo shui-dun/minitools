@@ -2,7 +2,8 @@
 
 提供各模块测试所需的：
 - 临时目录
-- 测试用 EPUB（手工构造，2 章，内容可控）
+- 真实 EPUB（金枝，73 章，约 64 万字符）
+- 测试用合成 EPUB（2 章，内容可控，用于边界条件测试）
 - 配置对象
 """
 
@@ -14,6 +15,9 @@ from pathlib import Path
 import pytest
 from ebooklib import epub
 
+# 真实测试用书路径
+_REAL_EPUB_PATH = Path(__file__).parent / "data" / "金枝.epub"
+
 
 @pytest.fixture
 def tmp_dir() -> Path:
@@ -22,9 +26,34 @@ def tmp_dir() -> Path:
         yield Path(d)
 
 
+# ==================== 真实 EPUB fixture ====================
+
+
+@pytest.fixture(scope="session")
+def real_epub_path() -> Path:
+    """真实 EPUB 书籍《金枝》（73 章，约 64 万字符）。
+
+    用于集成测试，验证代码对真实电子书的处理能力。
+    """
+    if not _REAL_EPUB_PATH.exists():
+        pytest.skip(f"真实测试 EPUB 不存在: {_REAL_EPUB_PATH}")
+    return _REAL_EPUB_PATH
+
+
+@pytest.fixture(scope="session")
+def real_reader(real_epub_path: Path):
+    """基于真实 EPUB 的 EpubReader 实例（session 级别，避免重复解析）。"""
+    from bookwhisper.epub_processor import EpubReader
+
+    return EpubReader(real_epub_path)
+
+
+# ==================== 合成 EPUB fixture（用于边界测试） ====================
+
+
 @pytest.fixture
 def sample_epub_path(tmp_dir: Path) -> Path:
-    """构造一个简单的测试 EPUB（2 章）。
+    """构造一个简单的测试 EPUB（2 章），用于边界条件测试。
 
     第 1 章：短章节（约 150 字符）
     第 2 章：长章节（约 800 字符，用于测试切分）
@@ -66,7 +95,6 @@ def sample_epub_path(tmp_dir: Path) -> Path:
         file_name="chapter_002.xhtml",
         lang="zh",
     )
-    # 构造约 800 字符的章节
     long_text = "第二章 深度分析\n\n"
     long_text += "值得注意的是，在相当多的学术话语场域中，哈贝马斯所提出的交往理性这一概念，在某种意义上可以被视为是对韦伯目的理性批判性重构的理论尝试。\n\n"
     long_text += "学术界对此展开了热烈讨论。有学者认为，这种解读过于简单化，未能充分考虑到历史语境的影响。然而，另一些研究者则指出，如果我们从更宏观的视角来看待这个问题，就会发现哈贝马斯的理论创新恰恰在于他将语言学转向引入了批判理论的传统之中。\n\n"
@@ -96,7 +124,7 @@ def sample_epub_path(tmp_dir: Path) -> Path:
 
 @pytest.fixture
 def sample_config():
-    """创建测试用的 AppConfig。"""
+    """创建测试用的 AppConfig（全部默认值）。"""
     from bookwhisper.config import AppConfig
 
     return AppConfig()

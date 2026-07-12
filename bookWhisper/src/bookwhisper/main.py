@@ -355,7 +355,7 @@ def _rebuild_epub(
     book_stem = Path(reader._path).stem  # type: ignore[attr-defined]
     output_name = f"{book_stem}{config.output.suffix}.epub"
 
-    writer = EpubWriter(reader.book)
+    writer = EpubWriter(reader.book, reader.chapters)
     output_path = writer.write(
         output_dir / output_name,
         chapter_results,

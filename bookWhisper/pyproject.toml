@@ -1,7 +1,7 @@
 [project]
 name = "bookwhisper"
 version = "0.1.0"
-description = "AI 解读书籍，输出口语化 EPUB，可导入微信读书朗读"
+description = "AI 解读书籍"
 requires-python = ">=3.10"
 dependencies = [
     "openai>=1.0",           # DeepSeek API（OpenAI 兼容）

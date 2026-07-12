@@ -1,0 +1,38 @@
+[project]
+name = "bookwhisper"
+version = "0.1.0"
+description = "AI 解读书籍，输出口语化 EPUB，可导入微信读书朗读"
+requires-python = ">=3.10"
+dependencies = [
+    "openai>=1.0",           # DeepSeek API（OpenAI 兼容）
+    "ebooklib>=0.18",        # EPUB 读取/写入
+    "beautifulsoup4>=4.12",  # HTML 解析（EPUB 内部是 HTML）
+    "tiktoken>=0.7",         # Token 计数
+    "pyyaml>=6.0",           # 配置文件解析
+    "click>=8.0",            # CLI 框架
+    "tqdm>=4.0",             # 进度条
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "pytest-asyncio>=0.24",
+]
+
+[project.scripts]
+bookwhisper = "bookwhisper.main:cli"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.1.0",
+]

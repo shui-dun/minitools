@@ -3,6 +3,8 @@
 提供各模块测试所需的：
 - 临时目录
 - 真实 EPUB（金枝，73 章，约 64 万字符）
+- 真实 MOBI（精神现象学(上册)，用于格式转换测试）
+- 真实 AZW3（阿奎那政治著作选，用于格式转换测试）
 - 测试用合成 EPUB（2 章，内容可控，用于边界条件测试）
 - 配置对象
 """
@@ -17,6 +19,8 @@ from ebooklib import epub
 
 # 真实测试用书路径
 _REAL_EPUB_PATH = Path(__file__).parent / "data" / "金枝.epub"
+_REAL_MOBI_PATH = Path(__file__).parent / "data" / "精神现象学(上册) (汉译世界学术名著丛书) - 黑格尔.mobi"
+_REAL_AZW3_PATH = Path(__file__).parent / "data" / "阿奎那政治著作选 (汉译世界学术名著丛书) - 阿奎那.azw3"
 
 
 @pytest.fixture
@@ -38,6 +42,28 @@ def real_epub_path() -> Path:
     if not _REAL_EPUB_PATH.exists():
         pytest.skip(f"真实测试 EPUB 不存在: {_REAL_EPUB_PATH}")
     return _REAL_EPUB_PATH
+
+
+@pytest.fixture(scope="session")
+def real_mobi_path() -> Path:
+    """真实 MOBI 书籍《精神现象学(上册)》（约 1.9 MB）。
+
+    用于测试 MOBI 格式的识别和转换功能。
+    """
+    if not _REAL_MOBI_PATH.exists():
+        pytest.skip(f"真实测试 MOBI 不存在: {_REAL_MOBI_PATH}")
+    return _REAL_MOBI_PATH
+
+
+@pytest.fixture(scope="session")
+def real_azw3_path() -> Path:
+    """真实 AZW3 书籍《阿奎那政治著作选》（约 0.5 MB）。
+
+    用于测试 AZW3 格式的识别和转换功能。
+    """
+    if not _REAL_AZW3_PATH.exists():
+        pytest.skip(f"真实测试 AZW3 不存在: {_REAL_AZW3_PATH}")
+    return _REAL_AZW3_PATH
 
 
 @pytest.fixture(scope="session")

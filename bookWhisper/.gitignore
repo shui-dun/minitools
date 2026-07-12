@@ -2,3 +2,7 @@
 .venv/
 output/
 *.egg-info/
+
+# 测试过程中由 Calibre 转换生成的 EPUB（原始 MOBI/AZW3 的同名 EPUB）
+tests/data/*.epub
+!tests/data/金枝.epub

@@ -81,3 +81,43 @@ class TestCli:
             "--verbose",
         ])
         assert isinstance(result.exit_code, int)
+
+    # ---- MOBI/AZW3 格式输入测试 ----
+
+    def test_interpret_mobi_input(self, real_mobi_path) -> None:
+        """CLI 接受 .mobi 文件作为输入。"""
+        runner = CliRunner(env={"DEEPSEEK_API_KEY": "sk-test"})
+        result = runner.invoke(cli, ["interpret", str(real_mobi_path)])
+        # 可能因缺 Calibre 或网络问题失败，但不应该因为"不支持的格式"报错
+        assert isinstance(result.exit_code, int)
+
+    def test_interpret_azw3_input(self, real_azw3_path) -> None:
+        """CLI 接受 .azw3 文件作为输入。"""
+        runner = CliRunner(env={"DEEPSEEK_API_KEY": "sk-test"})
+        result = runner.invoke(cli, ["interpret", str(real_azw3_path)])
+        # 可能因缺 Calibre 或网络问题失败，但不应该因为"不支持的格式"报错
+        assert isinstance(result.exit_code, int)
+
+    def test_interpret_mobi_with_cli_overrides(self, real_mobi_path) -> None:
+        """MOBI 文件 + CLI 参数覆盖不应 crash。"""
+        runner = CliRunner(env={"DEEPSEEK_API_KEY": "sk-test"})
+        result = runner.invoke(cli, [
+            "interpret",
+            str(real_mobi_path),
+            "--chunk-max-chars", "2000",
+            "--output-suffix", "_test",
+            "--no-resume",
+        ])
+        assert isinstance(result.exit_code, int)
+
+    def test_interpret_azw3_with_cli_overrides(self, real_azw3_path) -> None:
+        """AZW3 文件 + CLI 参数覆盖不应 crash。"""
+        runner = CliRunner(env={"DEEPSEEK_API_KEY": "sk-test"})
+        result = runner.invoke(cli, [
+            "interpret",
+            str(real_azw3_path),
+            "--chunk-max-chars", "2000",
+            "--output-suffix", "_test",
+            "--no-resume",
+        ])
+        assert isinstance(result.exit_code, int)

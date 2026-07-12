@@ -119,7 +119,7 @@ class DeepSeekInterpreter:
         Args:
             section: 要解读的章节块。
             book_summary: 整书摘要，注入到每次请求的上下文中。
-            previous_text: 同一章内上一块原文的末尾内容，用于保持解读连贯性。
+            previous_text: 同一章内上一块的解读结果，用于保持解读连贯性。
 
         Returns:
             ChapterResult 解读结果。
@@ -184,7 +184,7 @@ class DeepSeekInterpreter:
             section: 要解读的章节块。
             book_summary: 整书摘要。
             max_retries: 最大重试次数。
-            previous_text: 同一章内上一块原文的末尾内容，用于保持解读连贯性。
+            previous_text: 同一章内上一块的解读结果，用于保持解读连贯性。
 
         Returns:
             ChapterResult 解读结果。

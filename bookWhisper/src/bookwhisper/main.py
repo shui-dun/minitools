@@ -299,19 +299,19 @@ def _run_pipeline(
     success_count = 0
     skip_count = 0
 
-    # 跟踪上一块原文，用于同章内上下文传递
+    # 跟踪上一块的解读结果，用于同章内上下文传递
     prev_chapter_index = -1
-    prev_section_text = ""
+    prev_interpreted_text = ""
 
     pbar = tqdm(sections, desc="解读进度", unit="块")
     for section in pbar:
         section_id = section.id
 
         # 构建前文上下文（仅同章内传递，跨章重置）
-        if section.chapter_index == prev_chapter_index and prev_section_text:
-            # 取上一块原文末尾 1000 字，保持连贯性
-            tail_len = min(len(prev_section_text), 1000)
-            previous_context = prev_section_text[-tail_len:]
+        if section.chapter_index == prev_chapter_index and prev_interpreted_text:
+            # 取上一块解读结果的末尾 1000 字
+            tail_len = min(len(prev_interpreted_text), 1000)
+            previous_context = prev_interpreted_text[-tail_len:]
         else:
             previous_context = ""
 
@@ -324,10 +324,10 @@ def _run_pipeline(
                 if ch_idx not in all_results:
                     all_results[ch_idx] = []
                 all_results[ch_idx].append(cached)
+                # 用已缓存的解读结果更新上下文
+                prev_interpreted_text = cached.interpreted_text
             skip_count += 1
-            # 即使跳过，也要更新上下文跟踪，保证后续块的连贯性
             prev_chapter_index = section.chapter_index
-            prev_section_text = section.text
             pbar.set_postfix({"跳过": skip_count, "完成": success_count})
             continue
 
@@ -353,7 +353,7 @@ def _run_pipeline(
 
         # 更新上下文跟踪
         prev_chapter_index = section.chapter_index
-        prev_section_text = section.text
+        prev_interpreted_text = result.interpreted_text
 
         pbar.set_postfix({"跳过": skip_count, "完成": success_count})
 

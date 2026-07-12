@@ -16,7 +16,7 @@ class TestAppConfigDefaults:
 
     def test_default_config(self) -> None:
         config = AppConfig()
-        assert config.deepseek.model == "deepseek-chat"
+        assert config.deepseek.model == "deepseek-v4-pro"
         assert config.deepseek.temperature == 0.3
         assert config.chunk.max_chars == 3000
         assert config.chunk.book_summary_chars == 500
@@ -53,11 +53,11 @@ class TestApplyCliOverrides:
     def test_override_multiple(self) -> None:
         config = AppConfig()
         config.apply_cli_overrides({
-            "deepseek.model": "deepseek-chat",
+            "deepseek.model": "deepseek-v4-pro",
             "chunk.max_chars": "1500",
             "output.dir": "/tmp/out",
         })
-        assert config.deepseek.model == "deepseek-chat"
+        assert config.deepseek.model == "deepseek-v4-pro"
         assert config.chunk.max_chars == 1500
         assert config.output.dir == "/tmp/out"
 
@@ -84,7 +84,7 @@ class TestAsNestedDict:
         config = AppConfig()
         d = config.as_nested_dict()
         assert "deepseek" in d
-        assert d["deepseek"]["model"] == "deepseek-chat"
+        assert d["deepseek"]["model"] == "deepseek-v4-pro"
         assert d["chunk"]["max_chars"] == 3000
         assert d["output"]["dir"] == "./output"
 
@@ -112,23 +112,34 @@ output:
 
     def test_load_env_var_interpolation(self, tmp_path: Path) -> None:
         os.environ["TEST_API_KEY"] = "sk-test-12345"
-        yaml_path = tmp_path / "config.yaml"
-        yaml_path.write_text("""
+        # 避免真实 DEEPSEEK_API_KEY 干扰测试
+        old_deepseek_key = os.environ.pop("DEEPSEEK_API_KEY", None)
+        try:
+            yaml_path = tmp_path / "config.yaml"
+            yaml_path.write_text("""
 deepseek:
   api_key: "${TEST_API_KEY}"
 """, encoding="utf-8")
 
-        config = load_config(yaml_path)
-        assert config.deepseek.api_key == "sk-test-12345"
-        del os.environ["TEST_API_KEY"]
+            config = load_config(yaml_path)
+            assert config.deepseek.api_key == "sk-test-12345"
+        finally:
+            del os.environ["TEST_API_KEY"]
+            if old_deepseek_key:
+                os.environ["DEEPSEEK_API_KEY"] = old_deepseek_key
 
     def test_env_var_override(self) -> None:
-        os.environ["DEEPSEEK_API_KEY"] = "sk-env-override"
-        config = load_config()
-        assert config.deepseek.api_key == "sk-env-override"
-        del os.environ["DEEPSEEK_API_KEY"]
+        old_key = os.environ.pop("DEEPSEEK_API_KEY", None)
+        try:
+            os.environ["DEEPSEEK_API_KEY"] = "sk-env-override"
+            config = load_config()
+            assert config.deepseek.api_key == "sk-env-override"
+        finally:
+            del os.environ["DEEPSEEK_API_KEY"]
+            if old_key:
+                os.environ["DEEPSEEK_API_KEY"] = old_key
 
     def test_load_nonexistent_yaml(self) -> None:
         """不存在的 YAML 文件不应报错，使用默认值。"""
         config = load_config("/nonexistent/path.yaml")
-        assert config.deepseek.model == "deepseek-chat"
+        assert config.deepseek.model == "deepseek-v4-pro"

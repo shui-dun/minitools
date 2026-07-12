@@ -1,0 +1,21 @@
+# bookWhisper 配置文件模板
+# 复制到家目录并修改：
+#   cp config.template.yaml ~/.bookwhisper.yaml
+#
+# 程序启动会自动加载 ~/.bookwhisper.yaml（如果存在）。
+# 也可以通过 --config 指定其他路径。
+
+deepseek:
+  # API Key，支持环境变量 ${DEEPSEEK_API_KEY}
+  api_key: "${DEEPSEEK_API_KEY}"
+  model: "deepseek-v4-pro"
+  base_url: "https://api.deepseek.com"
+  temperature: 0.3
+
+chunk:
+  max_chars: 3000               # 单块最大中文字符数
+  book_summary_chars: 500        # 整书摘要最大字数
+
+output:
+  dir: "./output"                # 输出目录
+  suffix: "_interpreted"         # 输出文件名后缀

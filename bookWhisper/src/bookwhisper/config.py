@@ -22,7 +22,7 @@ class DeepSeekConfig:
     """DeepSeek API 配置。"""
 
     api_key: str = ""
-    model: str = "deepseek-chat"
+    model: str = "deepseek-v4-pro"
     base_url: str = "https://api.deepseek.com"
     temperature: float = 0.3
     max_tokens: int = 4096
@@ -126,10 +126,18 @@ def _deep_update(base: dict, override: dict) -> dict:
     return result
 
 
+# 默认配置文件路径（家目录）
+DEFAULT_CONFIG_PATH = Path.home() / ".bookwhisper.yaml"
+
+
 def load_config(config_path: str | Path | None = None) -> AppConfig:
     """加载配置。
 
     优先级：默认值 < 配置文件 < 环境变量
+
+    配置文件查找顺序：
+    1. 显式指定的 --config 路径
+    2. 家目录 ~/.bookwhisper.yaml（如果存在）
 
     Args:
         config_path: YAML 配置文件路径，可选。
@@ -139,19 +147,25 @@ def load_config(config_path: str | Path | None = None) -> AppConfig:
     """
     config = AppConfig()
 
-    # 1. 加载 YAML 配置文件
-    if config_path is not None:
-        import yaml
+    import yaml
 
-        path = Path(config_path)
+    # 确定要加载的配置文件路径
+    paths_to_try: list[Path] = []
+    if config_path is not None:
+        paths_to_try.append(Path(config_path))
+    paths_to_try.append(DEFAULT_CONFIG_PATH)
+
+    # 加载第一个存在的配置文件
+    for path in paths_to_try:
         if path.exists():
             raw = path.read_text(encoding="utf-8")
             raw = _resolve_env_vars(raw)
             file_data = yaml.safe_load(raw)
             if file_data and isinstance(file_data, dict):
                 _apply_dict_to_config(file_data, config)
+            break  # 只加载第一个找到的配置文件
 
-    # 2. 环境变量覆盖（仅 api_key 这种敏感字段）
+    # 环境变量覆盖（仅 api_key 这种敏感字段）
     env_api_key = os.environ.get("DEEPSEEK_API_KEY")
     if env_api_key:
         config.deepseek.api_key = env_api_key

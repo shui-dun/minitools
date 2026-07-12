@@ -100,7 +100,7 @@ def cli() -> None:
 @click.option(
     "--deepseek-model",
     default=None,
-    help="DeepSeek 模型名（默认: deepseek-chat）。",
+    help="DeepSeek 模型名（默认: deepseek-v4-pro）。",
 )
 @click.option(
     "--deepseek-base-url",

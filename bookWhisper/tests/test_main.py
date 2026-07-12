@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import os
+
+import pytest
 from click.testing import CliRunner
 
+from bookwhisper.config import DEFAULT_CONFIG_PATH
 from bookwhisper.main import cli
 
 
@@ -30,12 +34,16 @@ class TestCli:
         assert result.exit_code == 0
         assert "INPUT_FILE" in result.output
 
+    @pytest.mark.skipif(
+        DEFAULT_CONFIG_PATH.exists() or "DEEPSEEK_API_KEY" in os.environ,
+        reason="系统已配置 DeepSeek API Key，测试无 key 场景无意义",
+    )
     def test_interpret_no_api_key(self, sample_epub_path) -> None:
-        """没有 API key 时应报错退出。"""
-        runner = CliRunner(env={})  # 不设 DEEPSEEK_API_KEY
+        """没有 API key 时应报错退出（仅在未配置 API key 的环境中运行）。"""
+        runner = CliRunner(env={})
         result = runner.invoke(cli, ["interpret", str(sample_epub_path)])
         assert result.exit_code != 0
-        assert "API Key" in result.output or "DEEPSEEK_API_KEY" in result.output
+        assert "API Key" in result.output
 
     def test_interpret_with_env_api_key(self, sample_epub_path) -> None:
         """有 API key 时不应因缺 key 退出（但可能因网络问题报其他错）。"""
@@ -56,7 +64,6 @@ class TestCli:
             "--no-resume",
         ])
         # 可能因网络问题报错，但不应 crash
-        # exit_code 只是验证不会崩溃
         assert isinstance(result.exit_code, int)
 
     def test_interpret_file_not_found(self) -> None:

@@ -104,6 +104,50 @@ class TestInterpreterSection:
         assert result.interpreted_chars > 0
 
 
+class TestPreviousContext:
+    """前文上下文传递测试。"""
+
+    @patch("bookwhisper.interpreter.OpenAI")
+    def test_previous_text_included_in_message(
+        self, mock_openai_cls, interpreter_config, mock_openai_response, sample_section
+    ):
+        """传入 previous_text 时应出现在 user message 中。"""
+        mock_client = MagicMock()
+        mock_client.chat.completions.create.return_value = mock_openai_response
+        mock_openai_cls.return_value = mock_client
+
+        interpreter = DeepSeekInterpreter(interpreter_config)
+        interpreter.interpret_section(
+            sample_section, "整书摘要", previous_text="前一段的末尾内容..."
+        )
+
+        # 取出实际发送给 API 的 messages
+        call_args = mock_client.chat.completions.create.call_args
+        messages = call_args.kwargs["messages"]
+
+        # 找到 user message
+        user_msg = next(m["content"] for m in messages if m["role"] == "user")
+        assert "【前文回顾】" in user_msg
+        assert "前一段的末尾内容..." in user_msg
+
+    @patch("bookwhisper.interpreter.OpenAI")
+    def test_no_previous_text_when_empty(
+        self, mock_openai_cls, interpreter_config, mock_openai_response, sample_section
+    ):
+        """不传 previous_text 时不应出现前文回顾标记。"""
+        mock_client = MagicMock()
+        mock_client.chat.completions.create.return_value = mock_openai_response
+        mock_openai_cls.return_value = mock_client
+
+        interpreter = DeepSeekInterpreter(interpreter_config)
+        interpreter.interpret_section(sample_section, "整书摘要")
+
+        call_args = mock_client.chat.completions.create.call_args
+        messages = call_args.kwargs["messages"]
+        user_msg = next(m["content"] for m in messages if m["role"] == "user")
+        assert "【前文回顾】" not in user_msg
+
+
 class TestRetryLogic:
     """重试逻辑测试。"""
 

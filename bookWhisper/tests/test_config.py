@@ -18,8 +18,8 @@ class TestAppConfigDefaults:
         config = AppConfig()
         assert config.deepseek.model == "deepseek-v4-pro"
         assert config.deepseek.temperature == 0.3
-        assert config.chunk.max_chars == 3000
-        assert config.chunk.book_summary_chars == 500
+        assert config.chunk.max_chars == 15000
+        assert config.chunk.book_summary_chars == 800
         assert config.output.dir == "./output"
         assert config.output.suffix == "_interpreted"
         assert config.resume is True
@@ -85,7 +85,7 @@ class TestAsNestedDict:
         d = config.as_nested_dict()
         assert "deepseek" in d
         assert d["deepseek"]["model"] == "deepseek-v4-pro"
-        assert d["chunk"]["max_chars"] == 3000
+        assert d["chunk"]["max_chars"] == 15000
         assert d["output"]["dir"] == "./output"
 
 

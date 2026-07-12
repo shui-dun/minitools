@@ -127,13 +127,13 @@ def cli() -> None:
     "--chunk-max-chars",
     type=int,
     default=None,
-    help="单块最大字符数（默认: 3000）。",
+    help="单块最大字符数（默认: 15000）。",
 )
 @click.option(
     "--chunk-book-summary-chars",
     type=int,
     default=None,
-    help="整书摘要最大字数（默认: 500）。",
+    help="整书摘要最大字数（默认: 800）。",
 )
 @click.option(
     "--max-retries",
@@ -297,9 +297,21 @@ def _run_pipeline(
     success_count = 0
     skip_count = 0
 
+    # 跟踪上一块原文，用于同章内上下文传递
+    prev_chapter_index = -1
+    prev_section_text = ""
+
     pbar = tqdm(sections, desc="解读进度", unit="块")
     for section in pbar:
         section_id = section.id
+
+        # 构建前文上下文（仅同章内传递，跨章重置）
+        if section.chapter_index == prev_chapter_index and prev_section_text:
+            # 取上一块原文末尾 1000 字，保持连贯性
+            tail_len = min(len(prev_section_text), 1000)
+            previous_context = prev_section_text[-tail_len:]
+        else:
+            previous_context = ""
 
         # 检查是否已完成
         if config.resume and checkpoint.is_done(section_id):
@@ -311,6 +323,9 @@ def _run_pipeline(
                     all_results[ch_idx] = []
                 all_results[ch_idx].append(cached)
             skip_count += 1
+            # 即使跳过，也要更新上下文跟踪，保证后续块的连贯性
+            prev_chapter_index = section.chapter_index
+            prev_section_text = section.text
             pbar.set_postfix({"跳过": skip_count, "完成": success_count})
             continue
 
@@ -320,6 +335,7 @@ def _run_pipeline(
                 section,
                 summary,
                 max_retries=config.max_retries,
+                previous_text=previous_context,
             )
         except InterpretError as e:
             click.echo(f"\n解读失败: {section_id}: {e.message}", err=True)
@@ -332,6 +348,11 @@ def _run_pipeline(
             all_results[ch_idx] = []
         all_results[ch_idx].append(result)
         success_count += 1
+
+        # 更新上下文跟踪
+        prev_chapter_index = section.chapter_index
+        prev_section_text = section.text
+
         pbar.set_postfix({"跳过": skip_count, "完成": success_count})
 
     pbar.close()

@@ -112,12 +112,14 @@ class DeepSeekInterpreter:
         self,
         section: Section,
         book_summary: str,
+        previous_text: str = "",
     ) -> ChapterResult:
         """解读单个章节块。
 
         Args:
             section: 要解读的章节块。
             book_summary: 整书摘要，注入到每次请求的上下文中。
+            previous_text: 同一章内上一块原文的末尾内容，用于保持解读连贯性。
 
         Returns:
             ChapterResult 解读结果。
@@ -135,7 +137,7 @@ class DeepSeekInterpreter:
         )
 
         # 构建消息
-        user_content = self._build_user_content(section, book_summary)
+        user_content = self._build_user_content(section, book_summary, previous_text)
 
         messages: list[dict[str, str]] = [
             {"role": "system", "content": SYSTEM_PROMPT},
@@ -174,6 +176,7 @@ class DeepSeekInterpreter:
         section: Section,
         book_summary: str,
         max_retries: int = 3,
+        previous_text: str = "",
     ) -> ChapterResult:
         """带重试的章节解读。
 
@@ -181,6 +184,7 @@ class DeepSeekInterpreter:
             section: 要解读的章节块。
             book_summary: 整书摘要。
             max_retries: 最大重试次数。
+            previous_text: 同一章内上一块原文的末尾内容，用于保持解读连贯性。
 
         Returns:
             ChapterResult 解读结果。
@@ -192,7 +196,7 @@ class DeepSeekInterpreter:
 
         for attempt in range(max_retries + 1):
             try:
-                return self.interpret_section(section, book_summary)
+                return self.interpret_section(section, book_summary, previous_text)
             except InterpretError as e:
                 last_error = e
                 if not e.retryable:
@@ -262,12 +266,21 @@ class DeepSeekInterpreter:
             raise InterpretError(f"{error_name}: {e}", retryable=is_retryable) from e
 
     @staticmethod
-    def _build_user_content(section: Section, book_summary: str) -> str:
+    def _build_user_content(
+        section: Section, book_summary: str, previous_text: str = ""
+    ) -> str:
         """构建发送给 LLM 的用户消息。
 
-        包含：整书摘要 + 章节上下文标签 + 章节文本。
+        包含：前文回顾 + 整书摘要 + 章节上下文标签 + 章节文本。
         """
         parts: list[str] = []
+
+        if previous_text:
+            parts.append(
+                f"【前文回顾】\n"
+                f"以下是紧接在本段之前的内容，请确保解读的连贯性，"
+                f"避免重复解释已经出现过的术语：\n{previous_text}"
+            )
 
         if book_summary:
             parts.append(f"【整书摘要】\n{book_summary}")

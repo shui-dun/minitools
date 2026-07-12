@@ -25,15 +25,15 @@ class DeepSeekConfig:
     model: str = "deepseek-v4-pro"
     base_url: str = "https://api.deepseek.com"
     temperature: float = 0.3
-    max_tokens: int = 4096
+    max_tokens: int = 8192
 
 
 @dataclass
 class ChunkConfig:
     """文本分块配置。"""
 
-    max_chars: int = 3000
-    book_summary_chars: int = 500
+    max_chars: int = 15000
+    book_summary_chars: int = 800
     chapter_summary_chars: int = 100
 
 

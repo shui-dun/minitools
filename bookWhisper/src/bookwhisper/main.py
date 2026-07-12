@@ -69,6 +69,16 @@ def _build_cli_overrides(
     return overrides
 
 
+def _parse_chapter_index(chapter_id: str) -> int:
+    """从 section ID 中提取章节序号。
+
+    "chapter_000" → 0
+    "chapter_002_section_0" → 2
+    """
+    parts = chapter_id.split("_")
+    return int(parts[1])
+
+
 # ============================== CLI ==============================
 
 
@@ -293,6 +303,13 @@ def _run_pipeline(
 
         # 检查是否已完成
         if config.resume and checkpoint.is_done(section_id):
+            # 从 checkpoint 恢复已解读的文本
+            cached = checkpoint.get_result(section_id)
+            if cached is not None:
+                ch_idx = section.chapter_index
+                if ch_idx not in all_results:
+                    all_results[ch_idx] = []
+                all_results[ch_idx].append(cached)
             skip_count += 1
             pbar.set_postfix({"跳过": skip_count, "完成": success_count})
             continue
@@ -342,15 +359,31 @@ def _rebuild_epub(
     click.echo("\n正在生成 EPUB...")
 
     if chapter_results is None:
-        # 从 checkpoint 恢复：需要重新读取解读结果
-        # 注意：当前 checkpoint 只存状态，不存完整结果文本。
-        # 如果所有章节已完成且没有文本，说明只是状态检查，无法重建。
-        book_summary = checkpoint.get_book_summary()
-        if book_summary:
-            click.echo("  所有章节已完成，使用 checkpoint 状态确认。")
-        click.echo("  警告：checkpoint 中未保存完整解读文本，无法重建 EPUB。")
-        click.echo("  如需重新生成 EPUB，请确保保留了解读结果。")
-        return
+        # 从 checkpoint 恢复完整解读结果
+        all_saved = checkpoint.get_all_results()
+        if not all_saved:
+            click.echo("  警告：checkpoint 中未保存完整解读文本，无法重建 EPUB。")
+            click.echo("  请重新运行解读（使用 --no-resume 可强制重新解读所有章节）。")
+            return
+
+        # 按章节序号合并多段结果
+        chapter_results = {}
+        for ch_id, result in sorted(all_saved.items()):
+            ch_idx = _parse_chapter_index(ch_id)
+            if ch_idx not in chapter_results:
+                chapter_results[ch_idx] = []
+            chapter_results[ch_idx].append(result)
+
+        # 合并同章节的多段文本
+        merged_results: dict[int, str] = {}
+        for ch_idx, results in sorted(chapter_results.items()):
+            merged = "\n\n".join(
+                r.interpreted_text for r in sorted(results, key=lambda r: r.chapter_id)
+            )
+            merged_results[ch_idx] = merged
+
+        chapter_results = merged_results
+        click.echo(f"  从 checkpoint 恢复了 {len(chapter_results)} 个章节的解读文本。")
 
     book_stem = Path(reader._path).stem  # type: ignore[attr-defined]
     output_name = f"{book_stem}{config.output.suffix}.epub"

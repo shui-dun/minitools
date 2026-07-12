@@ -18,8 +18,18 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-# checkpoint 文件名
-CHECKPOINT_FILENAME = ".bookwhisper_checkpoint.json"
+# checkpoint 文件名模板：{book_stem} 会替换为书籍文件名（不含扩展名）
+CHECKPOINT_FILENAME = ".bookwhisper_checkpoint.json"  # 旧版兼容
+CHECKPOINT_FILE_PATTERN = ".bookwhisper_{book_stem}.checkpoint.json"
+
+
+def checkpoint_path_for(work_dir: Path, book_path: Path) -> Path:
+    """为指定书籍生成唯一的 checkpoint 文件路径。
+
+    同目录下不同书籍的 checkpoint 互不干扰，支持并行处理。
+    """
+    book_stem = book_path.stem
+    return work_dir / CHECKPOINT_FILE_PATTERN.format(book_stem=book_stem)
 
 
 @dataclass
@@ -57,7 +67,7 @@ class CheckpointManager:
         """
         self._work_dir = work_dir
         self._book_path = book_path
-        self._checkpoint_path = work_dir / CHECKPOINT_FILENAME
+        self._checkpoint_path = checkpoint_path_for(work_dir, book_path)
 
         # 计算输入文件的 SHA256 作为 book_id
         self._book_id = self._compute_hash(book_path)
@@ -78,11 +88,11 @@ class CheckpointManager:
         return entry is not None and entry.get("status") == "failed"
 
     def mark_done(self, chapter_id: str, result: ChapterResult) -> None:
-        """标记章节解读成功，立即写入文件。
+        """标记章节解读成功，立即写入文件（含完整解读文本）。
 
         Args:
             chapter_id: 章节唯一标识。
-            result: 解读结果。
+            result: 解读结果（包含 interpreted_text）。
         """
         completed = self._data.setdefault("completed_chapters", {})
         completed[chapter_id] = {
@@ -90,10 +100,11 @@ class CheckpointManager:
             "completed_at": datetime.now(timezone.utc).isoformat(),
             "original_chars": result.original_chars,
             "interpreted_chars": result.interpreted_chars,
+            "interpreted_text": result.interpreted_text,
             "api_calls": completed.get(chapter_id, {}).get("api_calls", 0) + 1,
         }
         self._flush()
-        logger.info("第 %s 章解读完成 ✓", chapter_id)
+        logger.info("第 %s 章解读完成 ✓（%d 字）", chapter_id, len(result.interpreted_text))
 
     def mark_failed(self, chapter_id: str, error: str) -> None:
         """标记章节解读失败，记录重试次数。
@@ -113,6 +124,41 @@ class CheckpointManager:
         }
         self._flush()
         logger.warning("第 %s 章解读失败（第 %d 次重试）: %s", chapter_id, retry_count, error)
+
+    def get_result(self, chapter_id: str) -> ChapterResult | None:
+        """获取已完成章节的完整解读结果（含文本）。
+
+        Args:
+            chapter_id: 章节唯一标识。
+
+        Returns:
+            ChapterResult（含 interpreted_text），若不存在或未完成则返回 None。
+        """
+        entry = self._data.get("completed_chapters", {}).get(chapter_id)
+        if entry is None or entry.get("status") != "done":
+            return None
+        if "interpreted_text" not in entry:
+            # 旧版 checkpoint：只存了状态，没有文本
+            return None
+        return ChapterResult(
+            chapter_id=chapter_id,
+            original_chars=entry["original_chars"],
+            interpreted_chars=entry["interpreted_chars"],
+            interpreted_text=entry["interpreted_text"],
+        )
+
+    def get_all_results(self) -> dict[str, ChapterResult]:
+        """获取所有已完成章节的完整解读结果。
+
+        Returns:
+            {chapter_id: ChapterResult} 字典，每个结果包含完整 interpreted_text。
+        """
+        results: dict[str, ChapterResult] = {}
+        for ch_id in self._data.get("completed_chapters", {}):
+            result = self.get_result(ch_id)
+            if result is not None:
+                results[ch_id] = result
+        return results
 
     def get_pending(self) -> list[str]:
         """获取尚未完成的章节 ID 列表（包括需要重试的 failed 章节）。"""

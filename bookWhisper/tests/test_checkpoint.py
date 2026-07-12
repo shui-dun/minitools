@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from bookwhisper.checkpoint import ChapterResult, CheckpointManager, CHECKPOINT_FILENAME
+from bookwhisper.checkpoint import ChapterResult, CheckpointManager, checkpoint_path_for
 
 
 class TestCheckpointManager:
@@ -15,7 +15,7 @@ class TestCheckpointManager:
     def test_new_checkpoint(self, tmp_path: Path, sample_epub_path: Path) -> None:
         """首次运行应创建新 checkpoint。"""
         cpm = CheckpointManager(tmp_path, sample_epub_path)
-        checkpoint_file = tmp_path / CHECKPOINT_FILENAME
+        checkpoint_file = checkpoint_path_for(tmp_path, sample_epub_path)
         assert checkpoint_file.exists()
 
     def test_is_done_false_initially(self, tmp_path: Path, sample_epub_path: Path) -> None:
@@ -104,7 +104,7 @@ class TestCheckpointManager:
 
     def test_corrupted_checkpoint(self, tmp_path: Path, sample_epub_path: Path) -> None:
         """损坏的 checkpoint 不应崩溃，应重建新文件。"""
-        checkpoint_file = tmp_path / CHECKPOINT_FILENAME
+        checkpoint_file = checkpoint_path_for(tmp_path, sample_epub_path)
         checkpoint_file.write_text("this is not valid json", encoding="utf-8")
 
         # 不应崩溃
@@ -132,3 +132,78 @@ class TestCheckpointManager:
         assert "chapter_000" in failed
         assert "chapter_002" in failed
         assert "chapter_001" not in failed
+
+    def test_interpreted_text_persisted(self, tmp_path: Path, sample_epub_path: Path) -> None:
+        """解读文本应随 mark_done 持久化，并通过 get_result 恢复。"""
+        cpm1 = CheckpointManager(tmp_path, sample_epub_path)
+        sample_text = "这是 AI 解读后的章节文本，包含口语化转写内容。"
+        cpm1.mark_done(
+            "chapter_000",
+            ChapterResult(
+                chapter_id="chapter_000",
+                original_chars=100,
+                interpreted_chars=50,
+                interpreted_text=sample_text,
+            ),
+        )
+
+        # 重新加载 checkpoint
+        cpm2 = CheckpointManager(tmp_path, sample_epub_path)
+        result = cpm2.get_result("chapter_000")
+
+        assert result is not None
+        assert result.interpreted_text == sample_text
+        assert result.original_chars == 100
+        assert result.interpreted_chars == 50
+        assert result.chapter_id == "chapter_000"
+
+    def test_get_all_results(self, tmp_path: Path, sample_epub_path: Path) -> None:
+        """get_all_results 应返回所有已完成章节的完整文本。"""
+        cpm = CheckpointManager(tmp_path, sample_epub_path)
+        cpm.set_total_chapters(3)
+
+        cpm.mark_done("chapter_000", ChapterResult("chapter_000", 100, 80, "文本零"))
+        cpm.mark_done("chapter_001", ChapterResult("chapter_001", 200, 150, "文本一"))
+        cpm.mark_failed("chapter_002", "Timeout")  # 失败的不会被返回
+
+        all_results = cpm.get_all_results()
+        assert len(all_results) == 2
+        assert "chapter_000" in all_results
+        assert "chapter_001" in all_results
+        assert "chapter_002" not in all_results  # 失败的不算完成
+        assert all_results["chapter_000"].interpreted_text == "文本零"
+        assert all_results["chapter_001"].interpreted_text == "文本一"
+
+    def test_old_checkpoint_without_text(self, tmp_path: Path, sample_epub_path: Path) -> None:
+        """旧版 checkpoint（没有 interpreted_text 字段）应返回 None，不会崩溃。"""
+        import json
+
+        # 手动构造旧版格式的 checkpoint
+        old_data = {
+            "book_id": CheckpointManager._compute_hash(sample_epub_path),
+            "book_title": "test",
+            "input_hash": CheckpointManager._compute_hash(sample_epub_path),
+            "total_chapters": 1,
+            "completed_chapters": {
+                "chapter_000": {
+                    "status": "done",
+                    "completed_at": "2026-01-01T00:00:00+00:00",
+                    "original_chars": 100,
+                    "interpreted_chars": 80,
+                    "api_calls": 1,
+                    # 注意：没有 interpreted_text 字段（旧版格式）
+                }
+            },
+            "created_at": "2026-01-01T00:00:00+00:00",
+            "updated_at": "2026-01-01T00:00:00+00:00",
+        }
+        checkpoint_file = checkpoint_path_for(tmp_path, sample_epub_path)
+        checkpoint_file.write_text(json.dumps(old_data, ensure_ascii=False), encoding="utf-8")
+
+        cpm = CheckpointManager(tmp_path, sample_epub_path)
+        # is_done 仍然返回 True（状态是完成的）
+        assert cpm.is_done("chapter_000")
+        # 但 get_result 返回 None（因为没有文本）
+        assert cpm.get_result("chapter_000") is None
+        # get_all_results 也不会包含这个章节
+        assert len(cpm.get_all_results()) == 0

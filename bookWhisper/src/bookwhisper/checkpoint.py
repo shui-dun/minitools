@@ -220,12 +220,13 @@ class CheckpointManager:
             try:
                 raw = self._checkpoint_path.read_text(encoding="utf-8")
                 data = json.loads(raw)
-                # 校验 book_id：如果输入文件变了，自动创建新 checkpoint
-                if data.get("book_id") != self._book_id:
-                    logger.info(
-                        "检测到输入文件已变更（book_id 不匹配），创建新 checkpoint"
-                    )
-                    return self._create_new()
+                # 书籍的阅读进度变化时，其文件会发生变化，因此不再校验 book_id，避免误判
+                # # 校验 book_id：如果输入文件变了，自动创建新 checkpoint
+                # if data.get("book_id") != self._book_id:
+                #     logger.info(
+                #         "检测到输入文件已变更（book_id 不匹配），创建新 checkpoint"
+                #     )
+                #     return self._create_new()
                 logger.info(
                     "加载已有 checkpoint: %d/%d 章已完成",
                     sum(1 for e in data.get("completed_chapters", {}).values() if e.get("status") == "done"),

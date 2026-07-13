@@ -73,6 +73,46 @@ class TestInterpreterSummary:
         assert summary == "缓存的摘要"
         mock_client.chat.completions.create.assert_not_called()
 
+    @patch("bookwhisper.interpreter.OpenAI")
+    def test_generate_summary_with_retry(
+        self, mock_openai_cls, interpreter_config, mock_openai_response
+    ):
+        """generate_summary_with_retry 调用成功。"""
+        mock_client = MagicMock()
+        mock_client.chat.completions.create.return_value = mock_openai_response
+        mock_openai_cls.return_value = mock_client
+
+        interpreter = DeepSeekInterpreter(interpreter_config)
+        summary = interpreter.generate_summary_with_retry("前言内容。", max_retries=2)
+
+        assert summary == "这是解读后的文本内容。"
+
+    @patch("bookwhisper.interpreter.OpenAI")
+    def test_generate_summary_retry_on_error(
+        self, mock_openai_cls, interpreter_config
+    ):
+        """摘要生成失败应重试。"""
+        mock_client = MagicMock()
+        call_count = [0]
+
+        def side_effect(*args, **kwargs):
+            call_count[0] += 1
+            if call_count[0] < 2:
+                raise ConnectionError("网络错误")
+            mock = MagicMock()
+            mock.choices = [MagicMock()]
+            mock.choices[0].message.content = "重试后成功。"
+            return mock
+
+        mock_client.chat.completions.create.side_effect = side_effect
+        mock_openai_cls.return_value = mock_client
+
+        interpreter = DeepSeekInterpreter(interpreter_config)
+        summary = interpreter.generate_summary_with_retry("前言内容。", max_retries=3)
+
+        assert call_count[0] == 2  # 1 次失败 + 1 次成功
+        assert summary == "重试后成功。"
+
 
 class TestInterpreterSection:
     """章节解读测试。"""

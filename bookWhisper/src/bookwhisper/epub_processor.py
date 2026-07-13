@@ -2,7 +2,7 @@
 
 基于 ebooklib + BeautifulSoup 实现：
 - EpubReader：读取 EPUB，提取章节结构和正文文本
-- EpubWriter：用解读后的文本替换原章节内容，保留插图/CSS/元数据/ToC
+- EpubWriter：创建新的 EPUB，继承原书元数据和封面图，使用解读后的章节文本
 """
 
 from __future__ import annotations
@@ -254,19 +254,21 @@ class EpubReader:
 # ---- EpubWriter ----
 
 class EpubWriter:
-    """将解读后的文本写回 EPUB，保留原书结构。"""
+    """用解读后的文本创建全新的 EPUB，仅继承原书的元数据和封面图。
+    章节标题使用 EpubReader 已正确解析的 Chapter.title，
+    章节内容从 chapter_results（来自缓存/checkpoint）读取。
+    """
 
     def __init__(
         self,
         original_book: epub.EpubBook,
-        chapters: list[Chapter] | None = None,
+        chapters: list[Chapter],
     ) -> None:
         """初始化。
 
         Args:
-            original_book: 原书的 ebooklib EpubBook 对象。
-            chapters: 从 EpubReader 获取的章节列表，用于准确匹配章节序号。
-                      传入后 write() 通过 spine idref 精确匹配，而非靠正则猜测。
+            original_book: 原书的 ebooklib EpubBook 对象，用于提取元数据和封面图。
+            chapters: 从 EpubReader 获取的章节列表，提供正确的章节标题。
         """
         self._original = original_book
         self._chapters = chapters
@@ -280,7 +282,7 @@ class EpubWriter:
         chapter_results: dict[int, str],  # chapter_index → interpreted_text
         title_suffix: str = "（解读版）",
     ) -> Path:
-        """将解读后的章节内容写入新 EPUB。
+        """将解读后的章节内容写入全新的 EPUB 文件。
 
         Args:
             output_path: 输出文件路径。
@@ -293,135 +295,261 @@ class EpubWriter:
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # 获取 spine 顺序和 item 映射
-        spine = list(self._original.spine)
-        id_to_item: dict[str, Any] = {
-            item.get_id(): item for item in self._original.get_items()
-        }
+        new_book = self._build_book(chapter_results, title_suffix)
 
-        # 构建 spine_id → chapter_index 精确映射（使用 chapters 中的 item_id）
-        spine_to_chapter: dict[str, int] = {}
-        if self._chapters:
-            for ch in self._chapters:
-                spine_to_chapter[ch.item_id] = ch.index
-
-        updated_count = 0
-        for spine_id, _linear in spine:
-            item = id_to_item.get(spine_id)
-            if item is None or item.get_type() != ebooklib.ITEM_DOCUMENT:
-                continue
-
-            # 优先通过 chapters 精确匹配，回退到正则猜测
-            if self._chapters:
-                chapter_idx = spine_to_chapter.get(spine_id)
-            else:
-                chapter_idx = self._find_chapter_index(item)
-
-            if chapter_idx is not None and chapter_idx in chapter_results:
-                interpreted_text = chapter_results[chapter_idx]
-                new_html = self._text_to_html(interpreted_text, item)
-                item.set_content(new_html.encode("utf-8"))
-                updated_count += 1
-
-        # 更新书名
-        original_title = str(self._original.title) if self._original.title else "Untitled"
-        self._original.set_title(f"{original_title}{title_suffix}")
-        self._original.add_metadata("DC", "description", f"AI 解读版，原书：{original_title}")
-
-        # 重新生成导航文件（NCX、NAV），确保目录引用正确
-        has_ncx = any(
-            getattr(item, 'file_name', '') == 'toc.ncx'
-            for item in self._original.get_items()
-        )
-        has_nav = any(
-            getattr(item, 'file_name', '') == 'nav.xhtml'
-            for item in self._original.get_items()
-        )
-        if not has_ncx:
-            self._original.add_item(epub.EpubNcx())
-        if not has_nav:
-            self._original.add_item(epub.EpubNav())
-
-        # 写入
-        epub.write_epub(str(output_path), self._original, {})
+        epub.write_epub(str(output_path), new_book, {})
         logger.info(
-            "EPUB 写入完成: %s（%d/%d 章已更新）",
+            "EPUB 写入完成: %s（%d/%d 章已输出）",
             output_path,
-            updated_count,
+            len([ch for ch in self._chapters if ch.index in chapter_results]),
             len(chapter_results),
         )
         return output_path
 
     # ---- 内部方法 ----
 
-    @staticmethod
-    def _find_chapter_index(item: Any) -> int | None:
-        """根据 item 推断章节序号。
-
-        尝试多种匹配方式：文件名数字、item ID 数字 等。
-        """
-        import re
-
-        file_name = item.get_name() or ""
-        # 尝试匹配 "chapter_001" 这类文件名
-        m = re.search(r"chapter[_\s]*(\d+)", file_name, re.IGNORECASE)
-        if m:
-            return int(m.group(1))
-
-        # 尝试匹配 item id 中的数字
-        item_id = item.get_id() or ""
-        m = re.search(r"(\d+)", item_id)
-        if m:
-            return int(m.group(1))
-
-        return None
-
-    @staticmethod
-    def _text_to_html(text: str, original_item: Any) -> str:
-        """将纯文本转换为 HTML，尽可能保留原文档的结构框架。
+    def _build_book(
+        self,
+        chapter_results: dict[int, str],
+        title_suffix: str,
+    ) -> epub.EpubBook:
+        """从零构建全新的 EpubBook。
 
         Args:
-            text: 解读后的纯文本。
-            original_item: 原始 ebooklib item（用于提取 HTML 框架）。
+            chapter_results: 章节序号到解读后文本的映射。
+            title_suffix: 书名后缀。
 
         Returns:
-            HTML 字符串。
+            全新的 epub.EpubBook 对象。
         """
-        # 尝试提取原文档的 HTML 结构
+        # 1. 创建空书
+        new_book = epub.EpubBook()
+
+        # 2. 复制元数据
+        self._copy_metadata(new_book)
+
+        # 3. 设置带后缀的书名
+        original_title = str(self._original.title) if self._original.title else "Untitled"
+        new_book.set_title(f"{original_title}{title_suffix}")
+        new_book.add_metadata("DC", "description", f"AI 解读版，原书：{original_title}")
+
+        # 4. 复制封面图
+        self._copy_cover(new_book)
+
+        # 5. 获取原书语言，用于章节 HTML 的 lang 属性
+        lang = self._original.language or "zh-CN"
+
+        # 6. 为每个有解读结果的章节创建 EpubHtml
+        chapter_items: list[epub.EpubHtml] = []
+        for ch in self._chapters:
+            if ch.index not in chapter_results:
+                continue
+
+            interpreted_text = chapter_results[ch.index]
+            html_content = self._build_chapter_html(ch.title, interpreted_text, lang)
+
+            file_name = f"chapter_{ch.index:03d}.xhtml"
+            epub_chapter = epub.EpubHtml(
+                title=ch.title,
+                file_name=file_name,
+                lang=lang,
+            )
+            epub_chapter.set_content(html_content.encode("utf-8"))
+            new_book.add_item(epub_chapter)
+            chapter_items.append(epub_chapter)
+
+        # 7. 构建 spine 和 ToC
+        self._build_spine_and_toc(new_book, chapter_items)
+
+        # 8. 添加导航文件
+        new_book.add_item(epub.EpubNcx())
+        new_book.add_item(epub.EpubNav())
+
+        return new_book
+
+    def _copy_metadata(self, new_book: epub.EpubBook) -> None:
+        """从原书复制 DC 元数据到新书。
+
+        复制 creator、language、publisher、date、identifier 等字段。
+        跳过 title（由 set_title 单独处理）和 OPF namespace（ebooklib 自动生成）。
+        """
+        # 安全获取元数据：部分 EPUB 可能缺少某个 namespace
+        def _safe_get_metadata(namespace: str, name: str) -> list[tuple[Any, Any]]:
+            try:
+                return self._original.get_metadata(namespace, name)
+            except KeyError:
+                return []
+
+        # 作者：第一个用 add_author，其余用 add_metadata
+        creators = _safe_get_metadata("DC", "creator")
+        for i, (value, attrs) in enumerate(creators):
+            if i == 0:
+                new_book.add_author(str(value), uid=str(attrs.get("id", "creator")))
+            else:
+                new_book.add_metadata("DC", "creator", str(value), attrs)
+
+        # 语言
+        lang_entries = _safe_get_metadata("DC", "language")
+        for value, _attrs in lang_entries:
+            new_book.set_language(str(value))
+            break  # 只取第一个
+
+        # 标识符
+        identifiers = _safe_get_metadata("DC", "identifier")
+        for value, attrs in identifiers:
+            if attrs.get("id") == self._original.IDENTIFIER_ID:
+                new_book.set_identifier(str(value))
+                break
+        else:
+            # 没有带主标识符 ID 的，取第一个
+            for value, _attrs in identifiers:
+                new_book.set_identifier(str(value))
+                break
+
+        # 其他 DC 字段
+        dc_fields = [
+            "publisher", "date", "subject", "contributor",
+            "rights", "type", "format", "source", "relation", "coverage",
+        ]
+        for field in dc_fields:
+            entries = _safe_get_metadata("DC", field)
+            for value, attrs in entries:
+                new_book.add_metadata("DC", field, str(value), attrs)
+
+    def _copy_cover(self, new_book: epub.EpubBook) -> None:
+        """从原书复制封面图到新书。
+
+        按优先级查找：ITEM_COVER > ITEM_IMAGE(cover-image) > meta cover。
+        找不到封面时静默跳过。
+        """
+        # 优先级 1：ITEM_COVER（ebooklib 读取时自动标记）
+        cover_items = list(self._original.get_items_of_type(ebooklib.ITEM_COVER))
+        if cover_items:
+            cover = cover_items[0]
+            new_book.set_cover(
+                cover.get_name() or "cover.jpg",
+                cover.get_content(),
+                create_page=True,
+            )
+            logger.info("已从原书复制封面图（ITEM_COVER）。")
+            return
+
+        # 优先级 2：ITEM_IMAGE 中带 "cover-image" 属性的
+        for item in self._original.get_items_of_type(ebooklib.ITEM_IMAGE):
+            props: list[str] = getattr(item, "properties", []) or []
+            if "cover-image" in props:
+                new_book.set_cover(
+                    item.get_name() or "cover.jpg",
+                    item.get_content(),
+                    create_page=True,
+                )
+                logger.info("已从原书复制封面图（cover-image 属性）。")
+                return
+
+        # 优先级 3：<meta name="cover" content="xxx"/> 中指定的 cover image ID
+        # 注意：部分 EPUB 的 metadata 中没有 None namespace，需安全访问
         try:
-            original_html = original_item.get_content().decode("utf-8", errors="replace")
-        except Exception:
-            original_html = ""
+            metas = self._original.get_metadata(None, "meta")
+        except KeyError:
+            metas = []
+        for _value, attrs in metas:
+            if attrs.get("name") == "cover":
+                cover_item_id = attrs.get("content", "")
+                if cover_item_id:
+                    try:
+                        cover_item = self._original.get_item_with_id(cover_item_id)
+                        if cover_item is not None:
+                            new_book.set_cover(
+                                cover_item.get_name() or "cover.jpg",
+                                cover_item.get_content(),
+                                create_page=True,
+                            )
+                            logger.info("已从原书复制封面图（meta cover）。")
+                            return
+                    except Exception:
+                        pass
+                break
 
-        soup = BeautifulSoup(original_html or "<html><body></body></html>", "html.parser")
+        logger.info("原书未找到封面图片，输出 EPUB 将不含封面。")
 
-        # 找到 body 标签
-        body = soup.find("body")
-        if body is None:
-            body = soup
+    @staticmethod
+    def _build_chapter_html(title: str, text: str, lang: str = "zh-CN") -> str:
+        """生成干净的章节 HTML，不继承原书的任何结构/CSS。
 
-        # 保留 head（包含 CSS 引用），但清空 body 内容
-        # 将解读文本按段落分割为 <p> 标签
+        Args:
+            title: 章节标题。
+            text: 解读后的纯文本。
+            lang: 语言代码。
+
+        Returns:
+            完整的 XHTML 字符串。
+        """
+        import html as html_module
+
+        escaped_title = html_module.escape(title)
+
+        # 按空行分段
         paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
+        para_html = "\n".join(
+            f"  <p>{html_module.escape(p)}</p>" for p in paragraphs
+        )
 
-        # 清空 body 中除 h1/h2/h3 以外的内容
-        headings = []
-        for tag in body.find_all(["h1", "h2", "h3"]):
-            headings.append(tag.extract())
+        return (
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<!DOCTYPE html>\n'
+            f'<html xmlns="http://www.w3.org/1999/xhtml"'
+            ' xmlns:epub="http://www.idpf.org/2007/ops"'
+            f' lang="{html_module.escape(lang)}">\n'
+            '<head>\n'
+            f'  <title>{escaped_title}</title>\n'
+            '  <meta charset="utf-8"/>\n'
+            '</head>\n'
+            '<body>\n'
+            f'  <h1>{escaped_title}</h1>\n'
+            f'{para_html}\n'
+            '</body>\n'
+            '</html>'
+        )
 
-        body.clear()
+    @staticmethod
+    def _build_spine_and_toc(
+        new_book: epub.EpubBook,
+        chapter_items: list[epub.EpubHtml],
+    ) -> None:
+        """为新书构建 spine 和 ToC。
 
-        # 恢复标题
-        for heading in headings:
-            body.append(heading)
+        cover 页和 nav 页设为 non-linear，章节按顺序排列。
 
-        # 添加内容段落
-        for para in paragraphs:
-            p = soup.new_tag("p")
-            p.string = para
-            body.append(p)
+        Args:
+            new_book: 正在构建的新书。
+            chapter_items: 已添加的章节 EpubHtml 列表。
+        """
+        spine: list[Any] = []
+        toc: list[epub.Link] = []
 
-        return str(soup)
+        # cover 页（如存在）设为 non-linear
+        for item in new_book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
+            if isinstance(item, epub.EpubCoverHtml):
+                spine.append((item, "no"))
+                break
+
+        # nav 页设为 non-linear
+        for item in new_book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
+            if isinstance(item, epub.EpubNav):
+                spine.append((item, "no"))
+                break
+
+        # 各章节
+        for ch_item in chapter_items:
+            spine.append(ch_item)
+            toc.append(epub.Link(
+                href=ch_item.file_name,
+                title=ch_item.title,
+                uid=ch_item.get_id(),
+            ))
+
+        new_book.spine = spine
+        new_book.toc = toc
 
 
 # ---- 工具函数 ----

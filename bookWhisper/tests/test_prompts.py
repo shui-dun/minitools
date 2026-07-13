@@ -13,15 +13,15 @@ class TestPrompts:
         assert len(SYSTEM_PROMPT) > 100
 
     def test_system_prompt_contains_key_requirements(self) -> None:
-        """System prompt 包含所有 8 条核心要求。"""
-        assert "去啰嗦" in SYSTEM_PROMPT
-        assert "去晦涩" in SYSTEM_PROMPT
+        """System prompt 包含所有核心要求。"""
         assert "口语化" in SYSTEM_PROMPT
-        assert "翻译腔" in SYSTEM_PROMPT
-        assert "括号融合" in SYSTEM_PROMPT
-        assert "术语首次出现时" in SYSTEM_PROMPT
-        assert "术语停顿" in SYSTEM_PROMPT or "断句" in SYSTEM_PROMPT
         assert "有趣" in SYSTEM_PROMPT
+        assert "不常用" in SYSTEM_PROMPT
+        assert "通俗" in SYSTEM_PROMPT
+        assert "不要使用括号" in SYSTEM_PROMPT
+        assert "首次出现时" in SYSTEM_PROMPT
+        assert "不要使用长度为1的词语" in SYSTEM_PROMPT
+        assert "解说员" in SYSTEM_PROMPT
 
     def test_summary_prompt_format(self) -> None:
         """摘要 prompt 支持 format 变量。"""

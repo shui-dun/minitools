@@ -171,8 +171,11 @@ class TestEpubWriterRealBook:
         result = writer.write(output_path, {})
         assert result.exists()
 
-    def test_write_preserves_chapter_count(self, real_reader: EpubReader, tmp_path: Path) -> None:
-        """写入后章节数应保持（写入少量解读不影响未被替换的章节数）。"""
+    def test_write_only_includes_result_chapters(self, real_reader: EpubReader, tmp_path: Path) -> None:
+        """新行为：只输出 chapter_results 中有对应结果的章节。
+
+        传入 {0: "替换内容"} 时，输出应只有 1 章，而非继承全部 73 章。
+        """
         writer = EpubWriter(real_reader.book, real_reader.chapters)
 
         chapter_results = {0: "替换内容"}
@@ -180,9 +183,9 @@ class TestEpubWriterRealBook:
         writer.write(output_path, chapter_results)
 
         reader2 = EpubReader(output_path)
-        # 原始有 73 章，epub_processor 可能过滤少量，但不应差异过大
-        assert abs(len(reader2.chapters) - len(real_reader.chapters)) <= 5, \
-            f"章节数变化过大: {len(real_reader.chapters)} → {len(reader2.chapters)}"
+        # 新行为：只输出有解读结果的章节
+        assert len(reader2.chapters) == 1, \
+            f"只给了 1 章结果，输出应只有 1 章，实际 {len(reader2.chapters)} 章"
 
     def test_write_title_suffix(self, real_reader: EpubReader, tmp_path: Path) -> None:
         """输出 EPUB 写操作不发生崩溃，并验证后缀被设置。
@@ -259,15 +262,92 @@ class TestEpubWriterSyntheticBook:
         assert result.exists()
         assert result.stat().st_size > 0, "输出文件不应为空"
 
-    def test_backward_compat_no_chapters(self, sample_epub_path: Path, tmp_path: Path) -> None:
-        """不传 chapters 时回退到 regex 匹配（向后兼容）。"""
+    def test_partial_results_only_outputs_given_chapters(
+        self, sample_epub_path: Path, tmp_path: Path
+    ) -> None:
+        """只输出 chapter_results 中有对应结果的章节，未给结果的章节不出现在输出中。"""
         reader = EpubReader(sample_epub_path)
-        writer = EpubWriter(reader.book)  # 不传 chapters
+        assert len(reader.chapters) == 2  # 合成书有 2 章
 
-        chapter_results = {0: "回退模式测试"}
-        output_path = tmp_path / "fallback.epub"
-        result = writer.write(output_path, chapter_results)
-        assert result.exists()
+        writer = EpubWriter(reader.book, reader.chapters)
+        # 只给第 0 章结果
+        chapter_results = {0: "只有第 0 章的解读内容。"}
+        output_path = tmp_path / "partial.epub"
+        writer.write(output_path, chapter_results)
+
+        reader2 = EpubReader(output_path)
+        assert len(reader2.chapters) == 1, \
+            f"应只有 1 章，实际 {len(reader2.chapters)} 章"
+        assert "只有第 0 章的解读内容" in reader2.chapters[0].plain_text
+
+    def test_output_file_smaller_than_original(
+        self, sample_epub_path: Path, tmp_path: Path
+    ) -> None:
+        """输出文件应明显小于原书（不含 CSS、字体等资源）。"""
+        reader = EpubReader(sample_epub_path)
+        writer = EpubWriter(reader.book, reader.chapters)
+
+        chapter_results = {
+            0: "第一章解读内容。" * 50,
+            1: "第二章解读内容。" * 50,
+        }
+        output_path = tmp_path / "small_output.epub"
+        writer.write(output_path, chapter_results)
+
+        original_size = sample_epub_path.stat().st_size
+        output_size = output_path.stat().st_size
+        # 输出应比原书小（原书有 CSS 样式文件，新书没有）
+        assert output_size < original_size, \
+            f"输出 ({output_size}B) 应小于原书 ({original_size}B)"
+
+    def test_clean_html_no_css(
+        self, sample_epub_path: Path, tmp_path: Path
+    ) -> None:
+        """输出章节 HTML 不应包含 <link>、<style> 等原书继承的标签。"""
+        reader = EpubReader(sample_epub_path)
+        writer = EpubWriter(reader.book, reader.chapters)
+
+        chapter_results = {0: "测试内容。", 1: "测试内容。"}
+        output_path = tmp_path / "clean.epub"
+        writer.write(output_path, chapter_results)
+
+        reader2 = EpubReader(output_path)
+        for ch in reader2.chapters:
+            assert "<link" not in ch.content_html, \
+                f"章节 {ch.index} HTML 不应包含 <link> 标签"
+            assert "<style" not in ch.content_html.lower(), \
+                f"章节 {ch.index} HTML 不应包含 <style> 标签"
+
+    def test_toc_has_chapter_entries(
+        self, sample_epub_path: Path, tmp_path: Path
+    ) -> None:
+        """输出 EPUB 应有 ToC，其中包含各章节标题。"""
+        reader = EpubReader(sample_epub_path)
+        writer = EpubWriter(reader.book, reader.chapters)
+
+        chapter_results = {0: "第一章内容。", 1: "第二章内容。"}
+        output_path = tmp_path / "with_toc.epub"
+        writer.write(output_path, chapter_results)
+
+        reader2 = EpubReader(output_path)
+        # 验证书名包含原标题
+        assert "测试书籍" in reader2.title
+
+    def test_metadata_copied(
+        self, sample_epub_path: Path, tmp_path: Path
+    ) -> None:
+        """输出 EPUB 应继承原书的作者等元数据。"""
+        reader = EpubReader(sample_epub_path)
+        writer = EpubWriter(reader.book, reader.chapters)
+
+        chapter_results = {0: "测试。", 1: "测试。"}
+        output_path = tmp_path / "metadata.epub"
+        writer.write(output_path, chapter_results)
+
+        # 验证输出文件能被正确读取
+        reader2 = EpubReader(output_path)
+        assert len(reader2.title) > 0, "书名不应为空"
+        assert len(reader2.chapters) == 2
 
 
 class TestChapterDataclass:

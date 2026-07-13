@@ -16,6 +16,7 @@ import sys
 from pathlib import Path
 
 import click
+from click_default_group import DefaultGroup
 
 from bookwhisper import __version__
 from bookwhisper.checkpoint import ChapterResult, CheckpointManager
@@ -82,7 +83,7 @@ def _parse_chapter_index(chapter_id: str) -> int:
 # ============================== CLI ==============================
 
 
-@click.group()
+@click.group(cls=DefaultGroup, default="interpret")
 @click.version_option(version=__version__)
 def cli() -> None:
     """bookWhisper — AI 解读书籍，输出口语化 EPUB，可导入微信读书朗读。"""

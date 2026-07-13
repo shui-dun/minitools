@@ -10,6 +10,7 @@ dependencies = [
     "tiktoken>=0.7",         # Token 计数
     "pyyaml>=6.0",           # 配置文件解析
     "click>=8.0",            # CLI 框架
+    "click-default-group>=1.2",  # 默认子命令
     "tqdm>=4.0",             # 进度条
 ]
 

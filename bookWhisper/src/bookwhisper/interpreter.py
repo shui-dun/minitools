@@ -17,7 +17,7 @@ from openai import OpenAI
 
 from bookwhisper.checkpoint import ChapterResult, CheckpointManager
 from bookwhisper.config import AppConfig, DeepSeekConfig
-from bookwhisper.prompts import REVIEW_PROMPT, SUMMARY_PROMPT, SYSTEM_PROMPT
+from bookwhisper.prompts import REVIEW_PROMPT, RULES_REMINDER, SUMMARY_PROMPT, SYSTEM_PROMPT
 from bookwhisper.splitter import Section
 
 logger = logging.getLogger(__name__)
@@ -363,5 +363,8 @@ class DeepSeekInterpreter:
 
         parts.append(f"【当前解读位置】\n{section.context_label}")
         parts.append(f"【原文内容】\n{section.text}")
+
+        # 规则重申放在末尾，对抗 lost-in-the-middle
+        parts.append(RULES_REMINDER)
 
         return "\n\n".join(parts)

@@ -13,6 +13,8 @@ from __future__ import annotations
 
 import logging
 import sys
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import click
@@ -44,6 +46,7 @@ def _build_cli_overrides(
     output_suffix: str | None,
     max_retries: int | None,
     resume_flag: bool | None,
+    parallel_workers: int | None,
 ) -> dict[str, str]:
     """将 CLI 参数转换为点号路径的覆盖字典。"""
     overrides: dict[str, str] = {}
@@ -66,6 +69,8 @@ def _build_cli_overrides(
         overrides["max_retries"] = str(max_retries)
     if resume_flag is not None:
         overrides["resume"] = str(resume_flag)
+    if parallel_workers is not None:
+        overrides["parallel_workers"] = str(parallel_workers)
 
     return overrides
 
@@ -153,6 +158,12 @@ def cli() -> None:
     default=False,
     help="详细日志输出。",
 )
+@click.option(
+    "--parallel-workers",
+    type=int,
+    default=None,
+    help="并行解读 worker 数量（默认: 5）。",
+)
 def interpret(
     input_file: str,
     config: str | None,
@@ -166,6 +177,7 @@ def interpret(
     max_retries: int | None,
     resume: bool | None,
     verbose: bool,
+    parallel_workers: int | None,
 ) -> None:
     """解读书籍并输出 EPUB。
 
@@ -186,6 +198,7 @@ def interpret(
         output_suffix=output_suffix,
         max_retries=max_retries,
         resume_flag=resume,
+        parallel_workers=parallel_workers,
     )
     app_config.apply_cli_overrides(cli_overrides)
 
@@ -291,84 +304,107 @@ def _run_pipeline(
         summary = interpreter.generate_summary(front_matter)
         click.echo(f"  整书摘要（{len(summary)} 字）已生成。")
 
-    # Step 6: 逐块解读
-    click.echo(f"\n[6/6] 开始解读（共 {len(sections)} 块）...\n")
+    # Step 6: 按章节并行解读
+    # 将 sections 按章节分组，同章内保持顺序（需要上下文传递），跨章并行
+    chapter_sections: dict[int, list[Section]] = {}
+    for s in sections:
+        chapter_sections.setdefault(s.chapter_index, []).append(s)
+
+    num_workers = max(1, config.parallel_workers)
+    click.echo(f"\n[6/6] 开始并行解读（共 {len(sections)} 块，{len(chapter_sections)} 章，{num_workers} worker）...\n")
 
     from tqdm import tqdm
 
     all_results: dict[int, list[ChapterResult]] = {}
-    success_count = 0
-    skip_count = 0
+    counters = {"success": 0, "skip": 0}
+    counter_lock = threading.Lock()
+    error_event = threading.Event()
+    first_error: Exception | None = None
 
-    # 跟踪上一块的解读结果，用于同章内上下文传递
-    prev_chapter_index = -1
-    prev_interpreted_text = ""
+    pbar = tqdm(total=len(sections), desc="解读进度", unit="块")
 
-    pbar = tqdm(sections, desc="解读进度", unit="块")
-    for section in pbar:
-        section_id = section.id
+    def update_progress(skipped: bool = False) -> None:
+        with counter_lock:
+            if skipped:
+                counters["skip"] += 1
+            else:
+                counters["success"] += 1
+            pbar.set_postfix({"跳过": counters["skip"], "完成": counters["success"]})
+        pbar.update(1)
 
-        # 构建前文上下文（仅同章内传递，跨章重置）
-        if section.chapter_index == prev_chapter_index and prev_interpreted_text:
-            # 取上一块解读结果的末尾 1000 字
-            tail_len = min(len(prev_interpreted_text), 1000)
-            previous_context = prev_interpreted_text[-tail_len:]
-        else:
-            previous_context = ""
+    def process_chapter(ch_idx: int, chap_sections: list[Section]) -> list[ChapterResult] | None:
+        """处理单章内所有块（顺序执行，保持上下文传递）。"""
+        nonlocal first_error
 
-        # 检查是否已完成
-        if config.resume and checkpoint.is_done(section_id):
-            # 从 checkpoint 恢复已解读的文本
-            cached = checkpoint.get_result(section_id)
-            if cached is not None:
-                ch_idx = section.chapter_index
-                if ch_idx not in all_results:
-                    all_results[ch_idx] = []
-                all_results[ch_idx].append(cached)
-                # 用已缓存的解读结果更新上下文
-                prev_interpreted_text = cached.interpreted_text
-            skip_count += 1
-            prev_chapter_index = section.chapter_index
-            pbar.set_postfix({"跳过": skip_count, "完成": success_count})
-            continue
-
-        # 解读（带重试）
         try:
-            result = interpreter.interpret_section(
-                section,
-                summary,
-                previous_text=previous_context,
-            )
-        except InterpretError as e:
-            click.echo(f"\n解读失败: {section_id}: {e.message}", err=True)
-            click.echo("你可以重新运行此命令从断点恢复。", err=True)
-            sys.exit(1)
+            results: list[ChapterResult] = []
+            prev_text = ""
 
-        # 二次全文重写
-        refined_text = interpreter.review_and_refine(result.interpreted_text)
-        result.interpreted_text = refined_text
-        result.interpreted_chars = len(refined_text)
-        # 更新 checkpoint 中已保存的结果
-        if checkpoint is not None:
-            checkpoint.mark_done(section_id, result)
-        logger.info("%s 二次重写完成: %d 字", section.context_label, len(refined_text))
+            for section in chap_sections:
+                if error_event.is_set():
+                    return None
 
-        # 收集结果
-        ch_idx = section.chapter_index
-        if ch_idx not in all_results:
-            all_results[ch_idx] = []
-        all_results[ch_idx].append(result)
-        success_count += 1
+                # 检查缓存
+                if config.resume and checkpoint.is_done(section.id):
+                    cached = checkpoint.get_result(section.id)
+                    if cached is not None:
+                        results.append(cached)
+                        prev_text = cached.interpreted_text
+                    update_progress(skipped=True)
+                    continue
 
-        # 更新上下文跟踪
-        prev_chapter_index = section.chapter_index
-        prev_interpreted_text = result.interpreted_text
+                # 解读（带重试）
+                result = interpreter.interpret_section(
+                    section, summary, previous_text=prev_text,
+                )
 
-        pbar.set_postfix({"跳过": skip_count, "完成": success_count})
+                # 二次全文重写
+                refined_text = interpreter.review_and_refine(result.interpreted_text)
+                result.interpreted_text = refined_text
+                result.interpreted_chars = len(refined_text)
+                checkpoint.mark_done(section.id, result)
+                logger.info("%s 二次重写完成: %d 字", section.context_label, len(refined_text))
+
+                results.append(result)
+                prev_text = result.interpreted_text
+                update_progress(skipped=False)
+
+            return results
+
+        except Exception as e:
+            with counter_lock:
+                if first_error is None:
+                    first_error = e
+            error_event.set()
+            raise
+
+    with ThreadPoolExecutor(max_workers=num_workers) as executor:
+        future_to_chapter = {
+            executor.submit(process_chapter, ch_idx, chap_sections): ch_idx
+            for ch_idx, chap_sections in chapter_sections.items()
+        }
+
+        for future in as_completed(future_to_chapter):
+            ch_idx = future_to_chapter[future]
+            try:
+                results = future.result()
+                if results is not None:
+                    all_results[ch_idx] = results
+            except InterpretError as e:
+                error_event.set()
+                pbar.close()
+                click.echo(f"\n解读失败: 第 {ch_idx + 1} 章: {e.message}", err=True)
+                click.echo("你可以重新运行此命令从断点恢复。", err=True)
+                sys.exit(1)
+            except Exception as e:
+                error_event.set()
+                pbar.close()
+                click.echo(f"\n发生未预期的错误（第 {ch_idx + 1} 章）: {e}", err=True)
+                sys.exit(1)
 
     pbar.close()
 
-    click.echo(f"\n解读完成: 成功 {success_count} 块, 跳过 {skip_count} 块。")
+    click.echo(f"\n解读完成: 成功 {counters['success']} 块, 跳过 {counters['skip']} 块。")
 
     # 合并同章节的多块结果
     chapter_results: dict[int, str] = {}

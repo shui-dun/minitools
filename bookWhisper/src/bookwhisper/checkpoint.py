@@ -11,6 +11,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import threading
 from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -68,6 +69,7 @@ class CheckpointManager:
         self._work_dir = work_dir
         self._book_path = book_path
         self._checkpoint_path = checkpoint_path_for(work_dir, book_path)
+        self._lock = threading.RLock()
 
         # 计算输入文件的 SHA256 作为 book_id
         self._book_id = self._compute_hash(book_path)
@@ -79,13 +81,15 @@ class CheckpointManager:
 
     def is_done(self, chapter_id: str) -> bool:
         """该章节是否已成功解读？"""
-        entry = self._data.get("completed_chapters", {}).get(chapter_id)
-        return entry is not None and entry.get("status") == "done"
+        with self._lock:
+            entry = self._data.get("completed_chapters", {}).get(chapter_id)
+            return entry is not None and entry.get("status") == "done"
 
     def is_failed(self, chapter_id: str) -> bool:
         """该章节是否标记为失败？"""
-        entry = self._data.get("completed_chapters", {}).get(chapter_id)
-        return entry is not None and entry.get("status") == "failed"
+        with self._lock:
+            entry = self._data.get("completed_chapters", {}).get(chapter_id)
+            return entry is not None and entry.get("status") == "failed"
 
     def mark_done(self, chapter_id: str, result: ChapterResult) -> None:
         """标记章节解读成功，立即写入文件（含完整解读文本）。
@@ -94,16 +98,17 @@ class CheckpointManager:
             chapter_id: 章节唯一标识。
             result: 解读结果（包含 interpreted_text）。
         """
-        completed = self._data.setdefault("completed_chapters", {})
-        completed[chapter_id] = {
-            "status": "done",
-            "completed_at": datetime.now(timezone.utc).isoformat(),
-            "original_chars": result.original_chars,
-            "interpreted_chars": result.interpreted_chars,
-            "interpreted_text": result.interpreted_text,
-            "api_calls": completed.get(chapter_id, {}).get("api_calls", 0) + 1,
-        }
-        self._flush()
+        with self._lock:
+            completed = self._data.setdefault("completed_chapters", {})
+            completed[chapter_id] = {
+                "status": "done",
+                "completed_at": datetime.now(timezone.utc).isoformat(),
+                "original_chars": result.original_chars,
+                "interpreted_chars": result.interpreted_chars,
+                "interpreted_text": result.interpreted_text,
+                "api_calls": completed.get(chapter_id, {}).get("api_calls", 0) + 1,
+            }
+            self._flush()
         logger.info("第 %s 章解读完成 ✓（%d 字）", chapter_id, len(result.interpreted_text))
 
     def mark_failed(self, chapter_id: str, error: str) -> None:
@@ -113,16 +118,17 @@ class CheckpointManager:
             chapter_id: 章节唯一标识。
             error: 错误描述。
         """
-        completed = self._data.setdefault("completed_chapters", {})
-        existing = completed.get(chapter_id, {})
-        retry_count = existing.get("retry_count", 0) + 1
-        completed[chapter_id] = {
-            "status": "failed",
-            "error": error,
-            "retry_count": retry_count,
-            "last_attempt": datetime.now(timezone.utc).isoformat(),
-        }
-        self._flush()
+        with self._lock:
+            completed = self._data.setdefault("completed_chapters", {})
+            existing = completed.get(chapter_id, {})
+            retry_count = existing.get("retry_count", 0) + 1
+            completed[chapter_id] = {
+                "status": "failed",
+                "error": error,
+                "retry_count": retry_count,
+                "last_attempt": datetime.now(timezone.utc).isoformat(),
+            }
+            self._flush()
         logger.warning("第 %s 章解读失败（第 %d 次重试）: %s", chapter_id, retry_count, error)
 
     def get_result(self, chapter_id: str) -> ChapterResult | None:
@@ -134,18 +140,18 @@ class CheckpointManager:
         Returns:
             ChapterResult（含 interpreted_text），若不存在或未完成则返回 None。
         """
-        entry = self._data.get("completed_chapters", {}).get(chapter_id)
-        if entry is None or entry.get("status") != "done":
-            return None
-        if "interpreted_text" not in entry:
-            # 旧版 checkpoint：只存了状态，没有文本
-            return None
-        return ChapterResult(
-            chapter_id=chapter_id,
-            original_chars=entry["original_chars"],
-            interpreted_chars=entry["interpreted_chars"],
-            interpreted_text=entry["interpreted_text"],
-        )
+        with self._lock:
+            entry = self._data.get("completed_chapters", {}).get(chapter_id)
+            if entry is None or entry.get("status") != "done":
+                return None
+            if "interpreted_text" not in entry:
+                return None
+            return ChapterResult(
+                chapter_id=chapter_id,
+                original_chars=entry["original_chars"],
+                interpreted_chars=entry["interpreted_chars"],
+                interpreted_text=entry["interpreted_text"],
+            )
 
     def get_all_results(self) -> dict[str, ChapterResult]:
         """获取所有已完成章节的完整解读结果。
@@ -153,51 +159,64 @@ class CheckpointManager:
         Returns:
             {chapter_id: ChapterResult} 字典，每个结果包含完整 interpreted_text。
         """
-        results: dict[str, ChapterResult] = {}
-        for ch_id in self._data.get("completed_chapters", {}):
-            result = self.get_result(ch_id)
-            if result is not None:
-                results[ch_id] = result
-        return results
+        with self._lock:
+            results: dict[str, ChapterResult] = {}
+            for ch_id in self._data.get("completed_chapters", {}):
+                entry = self._data["completed_chapters"][ch_id]
+                if entry.get("status") != "done" or "interpreted_text" not in entry:
+                    continue
+                results[ch_id] = ChapterResult(
+                    chapter_id=ch_id,
+                    original_chars=entry["original_chars"],
+                    interpreted_chars=entry["interpreted_chars"],
+                    interpreted_text=entry["interpreted_text"],
+                )
+            return results
 
     def get_pending(self) -> list[str]:
         """获取尚未完成的章节 ID 列表（包括需要重试的 failed 章节）。"""
-        completed = self._data.get("completed_chapters", {})
-        all_ids: set[str] = set()
-        for ch_id, entry in completed.items():
-            if entry.get("status") != "done":
-                all_ids.add(ch_id)
-        return sorted(all_ids)
+        with self._lock:
+            completed = self._data.get("completed_chapters", {})
+            all_ids: set[str] = set()
+            for ch_id, entry in completed.items():
+                if entry.get("status") != "done":
+                    all_ids.add(ch_id)
+            return sorted(all_ids)
 
     def get_failed_ids(self) -> list[str]:
         """获取标记为 failed 的章节 ID 列表。"""
-        completed = self._data.get("completed_chapters", {})
-        return sorted(
-            ch_id for ch_id, entry in completed.items()
-            if entry.get("status") == "failed"
-        )
+        with self._lock:
+            completed = self._data.get("completed_chapters", {})
+            return sorted(
+                ch_id for ch_id, entry in completed.items()
+                if entry.get("status") == "failed"
+            )
 
     def set_book_summary(self, summary: str) -> None:
         """保存整书摘要（避免中断后重新生成）。"""
-        self._data["book_summary"] = summary
-        self._flush()
+        with self._lock:
+            self._data["book_summary"] = summary
+            self._flush()
 
     def get_book_summary(self) -> str | None:
         """获取已保存的整书摘要，若不存在返回 None。"""
-        return self._data.get("book_summary")
+        with self._lock:
+            return self._data.get("book_summary")
 
     def set_total_chapters(self, total: int) -> None:
         """设置总章节数。"""
-        self._data["total_chapters"] = total
-        self._flush()
+        with self._lock:
+            self._data["total_chapters"] = total
+            self._flush()
 
     @property
     def progress(self) -> tuple[int, int]:
         """返回 (已完成数, 总章节数)。"""
-        completed = self._data.get("completed_chapters", {})
-        total = self._data.get("total_chapters", 0)
-        done = sum(1 for entry in completed.values() if entry.get("status") == "done")
-        return done, total
+        with self._lock:
+            completed = self._data.get("completed_chapters", {})
+            total = self._data.get("total_chapters", 0)
+            done = sum(1 for entry in completed.values() if entry.get("status") == "done")
+            return done, total
 
     @property
     def all_done(self) -> bool:
@@ -207,10 +226,11 @@ class CheckpointManager:
 
     def reset_chapter(self, chapter_id: str) -> None:
         """重置单个章节的状态（用于手动重试）。"""
-        completed = self._data.get("completed_chapters", {})
-        if chapter_id in completed:
-            del completed[chapter_id]
-            self._flush()
+        with self._lock:
+            completed = self._data.get("completed_chapters", {})
+            if chapter_id in completed:
+                del completed[chapter_id]
+                self._flush()
 
     # ---- 内部方法 ----
 

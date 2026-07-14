@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import functools
 import logging
 import time
 from typing import Any
@@ -44,6 +45,45 @@ class InterpretError(Exception):
         self.retryable = retryable
 
 
+def retry_on_error(func):
+    """指数退避重试装饰器。遇到可重试的 InterpretError 自动重试。
+
+    重试次数从实例的 config.max_retries 读取。
+    """
+
+    @functools.wraps(func)
+    def wrapper(self: DeepSeekInterpreter, *args: Any, **kwargs: Any) -> Any:
+        max_retries = self._config.max_retries
+        last_error: Exception | None = None
+
+        for attempt in range(max_retries + 1):
+            try:
+                return func(self, *args, **kwargs)
+            except InterpretError as e:
+                last_error = e
+                if not e.retryable:
+                    raise
+                if attempt < max_retries:
+                    wait = 2 ** attempt
+                    logger.warning(
+                        "%s 失败（%d/%d），%d 秒后重试: %s",
+                        func.__name__,
+                        attempt + 1,
+                        max_retries,
+                        wait,
+                        e.message,
+                    )
+                    time.sleep(wait)
+                else:
+                    logger.error("%s 已达最大重试次数: %s", func.__name__, e.message)
+
+        raise InterpretError(
+            f"{func.__name__} 失败，已重试 {max_retries} 次: {last_error}"
+        )
+
+    return wrapper
+
+
 class DeepSeekInterpreter:
     """DeepSeek API 解读器。
 
@@ -70,6 +110,7 @@ class DeepSeekInterpreter:
 
     # ---- 整书摘要 ----
 
+    @retry_on_error
     def generate_summary(self, front_matter: str) -> str:
         """根据前辅文生成整书摘要。
 
@@ -106,60 +147,9 @@ class DeepSeekInterpreter:
         logger.info("整书摘要生成完成（%d 字）", len(summary))
         return summary
 
-    def generate_summary_with_retry(
-        self,
-        front_matter: str,
-        max_retries: int = 3,
-    ) -> str:
-        """带重试的整书摘要生成。
-
-        优先从 checkpoint 恢复；若无缓存则调用 API 并在失败时重试。
-
-        Args:
-            front_matter: 前辅文纯文本。
-            max_retries: 最大重试次数。
-
-        Returns:
-            整书摘要。
-
-        Raises:
-            InterpretError: 所有重试均失败。
-        """
-        # 尝试从 checkpoint 恢复
-        if self._checkpoint is not None:
-            cached = self._checkpoint.get_book_summary()
-            if cached:
-                logger.info("从 checkpoint 恢复整书摘要")
-                return cached
-
-        last_error: Exception | None = None
-
-        for attempt in range(max_retries + 1):
-            try:
-                return self.generate_summary(front_matter)
-            except InterpretError as e:
-                last_error = e
-                if not e.retryable:
-                    raise
-                if attempt < max_retries:
-                    wait = 2 ** attempt  # 1s, 2s, 4s
-                    logger.warning(
-                        "摘要生成失败（%d/%d），%d 秒后重试: %s",
-                        attempt + 1,
-                        max_retries,
-                        wait,
-                        e.message,
-                    )
-                    time.sleep(wait)
-                else:
-                    logger.error("摘要生成失败，已达最大重试次数: %s", e.message)
-
-        raise InterpretError(
-            f"摘要生成失败，已重试 {max_retries} 次: {last_error}"
-        )
-
     # ---- 章节解读 ----
 
+    @retry_on_error
     def interpret_section(
         self,
         section: Section,
@@ -223,6 +213,7 @@ class DeepSeekInterpreter:
 
     # ---- 二次全文重写 ----
 
+    @retry_on_error
     def review_and_refine(self, first_result: str) -> str:
         """对第一轮通俗化结果进行二次全文重写。
 
@@ -244,59 +235,6 @@ class DeepSeekInterpreter:
         )
         logger.info("二次重写完成: %d → %d 字", len(first_result), len(refined))
         return refined
-
-    # ---- 重试逻辑 ----
-
-    def interpret_section_with_retry(
-        self,
-        section: Section,
-        book_summary: str,
-        max_retries: int = 3,
-        previous_text: str = "",
-    ) -> ChapterResult:
-        """带重试的章节解读。
-
-        Args:
-            section: 要解读的章节块。
-            book_summary: 整书摘要。
-            max_retries: 最大重试次数。
-            previous_text: 同一章内上一块的解读结果，用于保持解读连贯性。
-
-        Returns:
-            ChapterResult 解读结果。
-
-        Raises:
-            InterpretError: 所有重试均失败。
-        """
-        last_error: Exception | None = None
-
-        for attempt in range(max_retries + 1):
-            try:
-                return self.interpret_section(section, book_summary, previous_text)
-            except InterpretError as e:
-                last_error = e
-                if not e.retryable:
-                    raise
-                if attempt < max_retries:
-                    wait = 2 ** attempt  # 1s, 2s, 4s
-                    logger.warning(
-                        "解读失败（%d/%d），%d 秒后重试: %s",
-                        attempt + 1,
-                        max_retries,
-                        wait,
-                        e.message,
-                    )
-                    if self._checkpoint is not None:
-                        self._checkpoint.mark_failed(section.id, str(e))
-                    time.sleep(wait)
-                else:
-                    logger.error("解读失败，已达最大重试次数: %s", e.message)
-                    if self._checkpoint is not None:
-                        self._checkpoint.mark_failed(section.id, str(e))
-
-        raise InterpretError(
-            f"解读 {section.id} 失败，已重试 {max_retries} 次: {last_error}"
-        )
 
     # ---- 内部方法 ----
 

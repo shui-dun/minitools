@@ -288,10 +288,7 @@ def _run_pipeline(
         front_matter = reader.get_front_matter_text(config.chunk.book_summary_chars * 3)
         # 把书名显式传入，避免 AI 从正文中猜错书名
         front_matter = f"书名：《{reader.title}》\n\n{front_matter}"
-        summary = interpreter.generate_summary_with_retry(
-            front_matter,
-            max_retries=config.max_retries,
-        )
+        summary = interpreter.generate_summary(front_matter)
         click.echo(f"  整书摘要（{len(summary)} 字）已生成。")
 
     # Step 6: 逐块解读
@@ -337,10 +334,9 @@ def _run_pipeline(
 
         # 解读（带重试）
         try:
-            result = interpreter.interpret_section_with_retry(
+            result = interpreter.interpret_section(
                 section,
                 summary,
-                max_retries=config.max_retries,
                 previous_text=previous_context,
             )
         except InterpretError as e:
@@ -349,16 +345,13 @@ def _run_pipeline(
             sys.exit(1)
 
         # 二次全文重写
-        try:
-            refined_text = interpreter.review_and_refine(result.interpreted_text)
-            result.interpreted_text = refined_text
-            result.interpreted_chars = len(refined_text)
-            # 更新 checkpoint 中已保存的结果
-            if checkpoint is not None:
-                checkpoint.mark_done(section_id, result)
-            logger.info("%s 二次重写完成: %d 字", section.context_label, len(refined_text))
-        except InterpretError as e:
-            logger.warning("%s 二次重写失败，使用首次结果: %s", section.context_label, e.message)
+        refined_text = interpreter.review_and_refine(result.interpreted_text)
+        result.interpreted_text = refined_text
+        result.interpreted_chars = len(refined_text)
+        # 更新 checkpoint 中已保存的结果
+        if checkpoint is not None:
+            checkpoint.mark_done(section_id, result)
+        logger.info("%s 二次重写完成: %d 字", section.context_label, len(refined_text))
 
         # 收集结果
         ch_idx = section.chapter_index

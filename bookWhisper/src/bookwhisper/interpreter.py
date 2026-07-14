@@ -17,7 +17,7 @@ from openai import OpenAI
 
 from bookwhisper.checkpoint import ChapterResult, CheckpointManager
 from bookwhisper.config import AppConfig, DeepSeekConfig
-from bookwhisper.prompts import SUMMARY_PROMPT, SYSTEM_PROMPT
+from bookwhisper.prompts import REVIEW_PROMPT, SUMMARY_PROMPT, SYSTEM_PROMPT
 from bookwhisper.splitter import Section
 
 logger = logging.getLogger(__name__)
@@ -220,6 +220,30 @@ class DeepSeekInterpreter:
             self._checkpoint.mark_done(section_id, result)
 
         return result
+
+    # ---- 二次全文重写 ----
+
+    def review_and_refine(self, first_result: str) -> str:
+        """对第一轮通俗化结果进行二次全文重写。
+
+        Args:
+            first_result: 第一轮通俗化文本。
+
+        Returns:
+            重写后的最终文本。
+        """
+        user_content = REVIEW_PROMPT.format(content=first_result)
+
+        logger.info("正在进行二次全文重写（%d 字）...", len(first_result))
+        refined = self._call_api(
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_content},
+            ],
+            max_tokens=self._config.deepseek.max_tokens,
+        )
+        logger.info("二次重写完成: %d → %d 字", len(first_result), len(refined))
+        return refined
 
     # ---- 重试逻辑 ----
 

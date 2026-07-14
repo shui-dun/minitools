@@ -348,6 +348,18 @@ def _run_pipeline(
             click.echo("你可以重新运行此命令从断点恢复。", err=True)
             sys.exit(1)
 
+        # 二次全文重写
+        try:
+            refined_text = interpreter.review_and_refine(result.interpreted_text)
+            result.interpreted_text = refined_text
+            result.interpreted_chars = len(refined_text)
+            # 更新 checkpoint 中已保存的结果
+            if checkpoint is not None:
+                checkpoint.mark_done(section_id, result)
+            logger.info("%s 二次重写完成: %d 字", section.context_label, len(refined_text))
+        except InterpretError as e:
+            logger.warning("%s 二次重写失败，使用首次结果: %s", section.context_label, e.message)
+
         # 收集结果
         ch_idx = section.chapter_index
         if ch_idx not in all_results:

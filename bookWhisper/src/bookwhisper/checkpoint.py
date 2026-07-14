@@ -204,23 +204,29 @@ class CheckpointManager:
             return self._data.get("book_summary")
 
     def set_total_chapters(self, total: int) -> None:
-        """设置总章节数。"""
+        """设置总章节数（用于显示）。"""
         with self._lock:
             self._data["total_chapters"] = total
             self._flush()
 
+    def set_total_sections(self, total: int) -> None:
+        """设置总节段数（切分后的处理单元数，用于判断是否全部完成）。"""
+        with self._lock:
+            self._data["total_sections"] = total
+            self._flush()
+
     @property
     def progress(self) -> tuple[int, int]:
-        """返回 (已完成数, 总章节数)。"""
+        """返回 (已完成节段数, 总节段数)。"""
         with self._lock:
             completed = self._data.get("completed_chapters", {})
-            total = self._data.get("total_chapters", 0)
+            total = self._data.get("total_sections", self._data.get("total_chapters", 0))
             done = sum(1 for entry in completed.values() if entry.get("status") == "done")
             return done, total
 
     @property
     def all_done(self) -> bool:
-        """是否所有章节都已解读完成？"""
+        """是否所有节段都已解读完成？"""
         done, total = self.progress
         return total > 0 and done >= total
 
@@ -247,10 +253,12 @@ class CheckpointManager:
                 #         "检测到输入文件已变更（book_id 不匹配），创建新 checkpoint"
                 #     )
                 #     return self._create_new()
+                done_count = sum(1 for e in data.get("completed_chapters", {}).values() if e.get("status") == "done")
+                total = data.get("total_sections", data.get("total_chapters", 0))
                 logger.info(
-                    "加载已有 checkpoint: %d/%d 章已完成",
-                    sum(1 for e in data.get("completed_chapters", {}).values() if e.get("status") == "done"),
-                    data.get("total_chapters", 0),
+                    "加载已有 checkpoint: %d/%d 块已完成",
+                    done_count,
+                    total,
                 )
                 return data
             except (json.JSONDecodeError, KeyError):

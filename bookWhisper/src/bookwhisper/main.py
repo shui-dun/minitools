@@ -267,16 +267,10 @@ def _run_pipeline(
     checkpoint = CheckpointManager(output_dir, epub_path)
     checkpoint.set_total_chapters(len(reader.chapters))
 
-    if config.resume and checkpoint.all_done:
-        click.echo("  所有章节已完成解读，如需重新解读请使用 --no-resume。")
-        # 仍然重新生成 EPUB（用户可能改了配置）
-        _rebuild_epub(reader, checkpoint, output_dir, config)
-        return
-
     if config.resume:
         done, total = checkpoint.progress
         if done > 0:
-            click.echo(f"  断点续传: {done}/{total} 章已完成，从未完成处继续。")
+            click.echo(f"  断点续传: {done}/{total} 块已完成，从未完成处继续。")
         else:
             click.echo("  全新解读。")
     else:
@@ -286,7 +280,14 @@ def _run_pipeline(
     click.echo("\n[4/6] 文本分块...")
     splitter = ChapterSplitter(max_chars=config.chunk.max_chars)
     sections = splitter.split_chapters(reader.chapters)
+    checkpoint.set_total_sections(len(sections))
     click.echo(f"  共 {len(reader.chapters)} 章，切分为 {len(sections)} 个处理块。")
+
+    # 在得知实际节段数后，重新检查是否全部完成
+    if config.resume and checkpoint.all_done:
+        click.echo("  所有章节已完成解读，如需重新解读请使用 --no-resume。")
+        _rebuild_epub(reader, checkpoint, output_dir, config)
+        return
 
     # Step 5: 生成整书摘要
     click.echo("\n[5/6] 初始化 DeepSeek 解读器...")

@@ -205,10 +205,6 @@ class DeepSeekInterpreter:
             result.interpreted_chars,
         )
 
-        # 标记完成
-        if self._checkpoint is not None:
-            self._checkpoint.mark_done(section_id, result)
-
         return result
 
     # ---- 二次全文重写 ----

@@ -20,3 +20,6 @@ chunk:
 output:
   dir: "./output"                # 输出目录
   suffix: "_interpreted"         # 输出文件名后缀
+
+# 并行解读 worker 数量（默认 5）
+parallel_workers: 5

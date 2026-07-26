@@ -77,13 +77,13 @@ class TestInterpreterSummary:
     def test_generate_summary_with_retry(
         self, mock_openai_cls, interpreter_config, mock_openai_response
     ):
-        """generate_summary_with_retry 调用成功。"""
+        """generate_summary 内置重试，调用成功。"""
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = mock_openai_response
         mock_openai_cls.return_value = mock_client
 
         interpreter = DeepSeekInterpreter(interpreter_config)
-        summary = interpreter.generate_summary_with_retry("前言内容。", max_retries=2)
+        summary = interpreter.generate_summary("前言内容。")
 
         assert summary == "这是解读后的文本内容。"
 
@@ -107,8 +107,9 @@ class TestInterpreterSummary:
         mock_client.chat.completions.create.side_effect = side_effect
         mock_openai_cls.return_value = mock_client
 
+        interpreter_config.max_retries = 3
         interpreter = DeepSeekInterpreter(interpreter_config)
-        summary = interpreter.generate_summary_with_retry("前言内容。", max_retries=3)
+        summary = interpreter.generate_summary("前言内容。")
 
         assert call_count[0] == 2  # 1 次失败 + 1 次成功
         assert summary == "重试后成功。"
@@ -211,10 +212,9 @@ class TestRetryLogic:
         mock_client.chat.completions.create.side_effect = side_effect
         mock_openai_cls.return_value = mock_client
 
+        interpreter_config.max_retries = 3
         interpreter = DeepSeekInterpreter(interpreter_config)
-        result = interpreter.interpret_section_with_retry(
-            sample_section, "摘要", max_retries=3
-        )
+        result = interpreter.interpret_section(sample_section, "摘要")
 
         # 应重试了 3 次（2 次失败 + 1 次成功）
         assert call_count[0] == 3
@@ -227,11 +227,10 @@ class TestRetryLogic:
         mock_client.chat.completions.create.side_effect = ConnectionError("持续网络错误")
         mock_openai_cls.return_value = mock_client
 
+        interpreter_config.max_retries = 2
         interpreter = DeepSeekInterpreter(interpreter_config)
         with pytest.raises(InterpretError, match="已重试"):
-            interpreter.interpret_section_with_retry(
-                sample_section, "摘要", max_retries=2
-            )
+            interpreter.interpret_section(sample_section, "摘要")
 
     @patch("bookwhisper.interpreter.OpenAI")
     def test_non_retryable_error(self, mock_openai_cls, interpreter_config, sample_section):
@@ -240,8 +239,7 @@ class TestRetryLogic:
         mock_client.chat.completions.create.side_effect = ValueError("参数错误")
         mock_openai_cls.return_value = mock_client
 
+        interpreter_config.max_retries = 3
         interpreter = DeepSeekInterpreter(interpreter_config)
         with pytest.raises(InterpretError):
-            interpreter.interpret_section_with_retry(
-                sample_section, "摘要", max_retries=3
-            )
+            interpreter.interpret_section(sample_section, "摘要")

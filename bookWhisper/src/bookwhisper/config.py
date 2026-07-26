@@ -56,6 +56,7 @@ class AppConfig:
     # 非嵌套项
     resume: bool = True
     max_retries: int = 3
+    parallel_workers: int = 5
 
     def as_nested_dict(self) -> dict[str, dict[str, Any]]:
         """将配置展开为嵌套字典，方便点号路径查找。
@@ -177,6 +178,17 @@ def _apply_dict_to_config(data: dict[str, Any], config: AppConfig) -> None:
     """将字典数据应用到 AppConfig 实例。"""
     for section_name, section_data in data.items():
         if not isinstance(section_data, dict):
+            # 顶级字段（如 resume、max_retries、parallel_workers）
+            if hasattr(config, section_name):
+                old_value = getattr(config, section_name)
+                value = section_data
+                if isinstance(old_value, bool) and not isinstance(value, bool):
+                    value = str(value).lower() in ("true", "1", "yes")
+                elif isinstance(old_value, int) and not isinstance(value, int):
+                    value = int(value)
+                elif isinstance(old_value, float) and not isinstance(value, float):
+                    value = float(value)
+                setattr(config, section_name, value)
             continue
         section_obj = getattr(config, section_name, None)
         if section_obj is None:

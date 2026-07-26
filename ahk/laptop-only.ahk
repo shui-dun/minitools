@@ -6,15 +6,15 @@ CapsLock::
 	WinGet, id, List,,, Program Manager
 	WinGet, current_id, ID, A
 	found := 0
-	first_gemini_id := ""
+	first_target_id := ""
 	Loop, %id%
 	{
 		this_id := id%A_Index%
 		WinGetTitle, title, ahk_id %this_id%
-		if (InStr(title, "Gemini"))
+		if (InStr(title, "Google Chrome"))
 		{
-			if (!first_gemini_id)
-				first_gemini_id := this_id
+			if (!first_target_id)
+				first_target_id := this_id
 			if (this_id != current_id) {
 				WinActivate, ahk_id %this_id%
 				found := 1
@@ -22,8 +22,8 @@ CapsLock::
 			}
 		}
 	}
-	if (!found && first_gemini_id) {
-		WinActivate, ahk_id %first_gemini_id%
+	if (!found && first_target_id) {
+		WinActivate, ahk_id %first_target_id%
 	}
 return
 

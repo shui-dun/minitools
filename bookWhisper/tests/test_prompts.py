@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from bookwhisper.prompts import SUMMARY_PROMPT, SYSTEM_PROMPT
+from bookwhisper.prompts import REVIEW_PROMPT, SUMMARY_PROMPT, SYSTEM_PROMPT
 
 
 class TestPrompts:
@@ -28,3 +28,13 @@ class TestPrompts:
         formatted = SUMMARY_PROMPT.format(max_chars=500, content="测试内容")
         assert "500" in formatted
         assert "测试内容" in formatted
+
+    def test_review_prompt_not_empty(self) -> None:
+        """审核重写 prompt 不为空。"""
+        assert len(REVIEW_PROMPT) > 50
+
+    def test_review_prompt_format(self) -> None:
+        """审核重写 prompt 支持 format 变量。"""
+        formatted = REVIEW_PROMPT.format(content="测试通俗化结果")
+        assert "测试通俗化结果" in formatted
+        assert "全文重写" in formatted

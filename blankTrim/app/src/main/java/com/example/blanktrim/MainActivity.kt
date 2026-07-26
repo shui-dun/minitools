@@ -87,9 +87,59 @@ class MainActivity : Activity() {
         private const val REQUEST_CODE_PICK_FILE = 1
 
         private val TEXT_ENTRY_EXTENSIONS = setOf("xhtml", "html", "htm", "xml", "opf", "ncx")
-        private val TARGET_PATTERN = Regex("[~！!…]+")
-        // \s + Unicode Z 类 + NEL(U+0085) + 零宽空格(U+200B) + BOM(U+FEFF)
+
+        // ═══════════════════════════════════════════════════════════════
+        // 格式化规则 —— 直接改 [...] 里的字符即可增删
+        // ═══════════════════════════════════════════════════════════════
+
+        /**
+         * ① 标点符号 → 中文逗号（，）
+         * 连续多个标点只替换为一个逗号。
+         *
+         * 包含：～ ~ ！ ! ？ ? 、 … — ： : ； ; ． . " " ' ' 《 》 【 】 「 」 『 』 （ ） ( ) [ ] { } < >
+         *
+         * 增删方法：直接在下面字符串的 [ ] 里加/删字符。
+         * 注意这四个字符在 [ ] 里需转义： ] → \]   \ → \\   ^ → \^   - → \-
+         */
+        private val PUNCTUATION_TO_COMMA = Regex(
+            "[" +
+            "～~！!？?、" +           // 波浪号 感叹号 问号 顿号
+            "…—" +                   // 省略号 破折号
+            "：:；;．." +             // 冒号 分号 句点（中文。保留不动）
+            "“”" +          // "" 左右弯引号
+            "‘’" +          // '' 左右弯单引号
+            "《》" +          // 《》
+            "【】" +          // 【】
+            "「」" +          // 「」
+            "『』" +          // 『』
+            "（）" +          // 全角括号 （）
+            "\"'" +                   // 英文直引号 " '
+            "()\\[\\]{}<>" +          // 英文括号
+            "]+"
+        )
+
+        /**
+         * ② 无意义符号 → 直接删除（不替换为逗号）。
+         * 这些是广告/排版符号，不是标点，删掉即可。
+         *
+         * 增删方法：直接在 [ ] 里加/删字符。
+         */
+        private val JUNK_SYMBOLS_TO_REMOVE = Regex(
+            "[" +
+            "\\-\\-=+*#@_|\\\\/" +   // - - = + * # @ _ | \ /
+            "\\^&%\$￥€£©®™°" +      // ^ & % $ ￥ € £ © ® ™ °
+            "·•‧・" + // · • ‧ ・（各种点）
+            "]+"
+        )
+
+        /**
+         * ③ 空白字符 → 删除。
+         * \s = ASCII空白(空格/tab/换行/回车)
+         * \p{Z} = Unicode分隔符(全角空格/不间断空格/行段分隔等)
+         *  = NEL换行  ​ = 零宽空格  ﻿ = BOM
+         */
         private val WHITESPACE_PATTERN = Regex("[\\s\\p{Z}\\u0085\\u200B\\uFEFF]+")
+
         private val XML_ENCODING_PATTERN = Regex(
             """encoding\s*=\s*["'][^"']+["']""",
             RegexOption.IGNORE_CASE
@@ -97,10 +147,19 @@ class MainActivity : Activity() {
 
         // ========== 公开 API ==========
 
+        /**
+         * 格式化文本，三步流水线：
+         * ① 各种标点符号 → 中文逗号（，）
+         * ② 无意义符号 → 直接删除
+         * ③ 所有空白字符 → 删除
+         *
+         * 最终只有中文逗号（，）和句号（。）保留下来供听书软件断句。
+         */
         fun formatText(text: String): String {
             return text
-                .replace(TARGET_PATTERN, "，")
-                .replace(WHITESPACE_PATTERN, "")
+                .replace(PUNCTUATION_TO_COMMA, "，")   // ① 标点 → 逗号
+                .replace(JUNK_SYMBOLS_TO_REMOVE, "")   // ② 广告符号 → 删除
+                .replace(WHITESPACE_PATTERN, "")       // ③ 空白 → 删除
         }
 
         fun isZipFile(bytes: ByteArray): Boolean {

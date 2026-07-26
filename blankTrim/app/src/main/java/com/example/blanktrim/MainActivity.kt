@@ -72,7 +72,8 @@ class MainActivity : Activity() {
                 formatText(text).toByteArray(enc)
             }
 
-            contentResolver.openOutputStream(uri, "w")?.use { it.write(resultBytes) }
+            // "rwt" = 读写截断。单纯 "w" 部分设备不截断旧文件，导致残留
+            contentResolver.openOutputStream(uri, "rwt")?.use { it.write(resultBytes) }
 
             Toast.makeText(this, "处理完成", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
@@ -87,7 +88,8 @@ class MainActivity : Activity() {
 
         private val TEXT_ENTRY_EXTENSIONS = setOf("xhtml", "html", "htm", "xml", "opf", "ncx")
         private val TARGET_PATTERN = Regex("[~！!…]+")
-        private val WHITESPACE_PATTERN = Regex("[\\s\\p{Z}]+")
+        // \s + Unicode Z 类 + NEL(U+0085) + 零宽空格(U+200B) + BOM(U+FEFF)
+        private val WHITESPACE_PATTERN = Regex("[\\s\\p{Z}\\u0085\\u200B\\uFEFF]+")
         private val XML_ENCODING_PATTERN = Regex(
             """encoding\s*=\s*["'][^"']+["']""",
             RegexOption.IGNORE_CASE

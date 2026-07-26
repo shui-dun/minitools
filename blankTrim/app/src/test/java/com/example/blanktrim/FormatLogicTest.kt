@@ -203,57 +203,125 @@ class FormatLogicTest {
         assertFalse("格式化后仍存在空白字符", hasWhitespace)
     }
 
-    // ========== 长文本压力测试 ==========
+    // ========== 长文本压力测试：模拟真实文件处理管线 ==========
 
     @Test
-    fun `300K 长文本——格式化后全文无目标字符残留`() {
-        val sb = StringBuilder()
-        val base = "这是测试文本用于验证长文本格式化功能是否正常工作"
-        val targets = listOf("~", "！", "!", "…")
+    fun `50万字小说级管线测试——格式化后只有一行`() {
+        // 模拟真实 50 万字中文小说，走完整管线：
+        //   原始文本 → GBK 编码 → detectEncoding → decode → formatText
+        //   → 用检测到的编码写回 → 重读 → 验证
+        val gbk = Charset.forName("GBK")
+        val paragraph = "第一章　天地玄黄宇宙洪荒日月盈昃辰宿列张寒来暑往秋收冬藏。" +
+            "闰余成岁律吕调阳云腾致雨露结为霜金生丽水玉出昆冈~~测试！！"
 
-        var inserted = 0
-        while (sb.length < 300_000) {
-            sb.append(base)
-            if (sb.length % 137 < base.length) {
-                sb.append(targets[inserted % targets.size])
-                sb.append("  \t\n　  ")
-                inserted++
+        val sb = StringBuilder()
+        // 段落之间插入各种换行符
+        val lineBreaks = listOf("\r\n", "\n", "\r")
+        var lineCount = 0
+        var targetCount = 0
+        var spaceCount = 0
+
+        while (sb.length < 500_000) {
+            sb.append(paragraph)
+            // 每段插入一个目标字符和空白
+            if (sb.length % 157 < paragraph.length) {
+                sb.append('…')
+                targetCount++
             }
+            if (sb.length % 211 < paragraph.length) {
+                sb.append("~！!")
+                targetCount += 3
+            }
+            // 随机换行符
+            sb.append(lineBreaks[lineCount % 3])
+            lineCount++
+            // 段首缩进（全角空格 + 普通空格）
+            sb.append("　　  ")
+            spaceCount += 4
         }
 
-        val result = MainActivity.formatText(sb.toString())
-        val leftover = Regex("[~！!…]").findAll(result).toList()
-        assertEquals("残留目标字符: ${leftover.take(10).map { it.value }}", 0, leftover.size)
+        val original = sb.toString()
+        val originalLines = original.split(Regex("\\R")).size
+        println("原文行数: $originalLines, 原文长度: ${original.length}")
 
-        val leftoverWs = Regex("[\\s\\p{Z}]").findAll(result).toList()
-        assertEquals("残留空白字符", 0, leftoverWs.size)
+        // === 完整管线：bytes → detect → decode → format → encode ===
+
+        // Step 1: 以 GBK 编码为字节（模拟 GBK 编码的文件）
+        val rawBytes = original.toByteArray(gbk)
+        println("GBK 字节数: ${rawBytes.size}")
+
+        // Step 2: 检测编码
+        val detected = MainActivity.detectEncoding(rawBytes)
+        assertEquals("应检测为 GBK", gbk, detected)
+
+        // Step 3: 解码
+        val decoded = String(rawBytes, detected)
+        // 解码后不应有 � 替换字符
+        val replacementChars = decoded.count { it == '�' }
+        assertEquals("解码不应产生替换字符(�)", 0, replacementChars)
+
+        // Step 4: 格式化
+        val formatted = MainActivity.formatText(decoded)
+        println("格式化后长度: ${formatted.length}")
+
+        // Step 5: 用检测到的编码写回
+        val outputBytes = formatted.toByteArray(detected)
+
+        // Step 6: 重新读取验证
+        val reread = String(outputBytes, detected)
+        assertEquals("重读应与格式化结果一致", formatted, reread)
+
+        // === 核心断言 ===
+        // 1. 不应残留任何换行
+        val remainingNewlines = reread.count { it == '\n' || it == '\r' }
+        assertEquals("应无换行符残留, 但找到 $remainingNewlines 个", 0, remainingNewlines)
+
+        // 2. 不应残留任何目标字符
+        val remainingTargets = Regex("[~！!…]").findAll(reread).count()
+        assertEquals("应无目标字符残留", 0, remainingTargets)
+
+        // 3. 不应残留空白（包括全角空格）
+        val remainingSpaces = Regex("[\\s\\p{Z}\\u0085\\u200B\\uFEFF]").findAll(reread).count()
+        assertEquals("应无空白字符残留", 0, remainingSpaces)
+
+        // 4. 不应该为空
+        assertTrue("格式化后不应为空", reread.isNotEmpty())
+        assertTrue("格式化后应更短", reread.length < original.length)
+
+        println("✅ 50万字管线测试通过：${reread.take(50)}...")
     }
 
     @Test
-    fun `长文本 GBK 往返——编码一致性`() {
-        // 构建 GBK 编码的长文本，确保往返后编码不变
+    fun `UTF-8 50万字管线测试`() {
+        val paragraph = "第一章　天地玄黄宇宙洪荒日月盈昃辰宿列张寒来暑往秋收冬藏。" +
+            "闰余成岁律吕调阳云腾致雨露结为霜金生丽水玉出昆冈~~测试！！"
+
         val sb = StringBuilder()
-        while (sb.length < 50_000) {
-            sb.append("天地玄黄宇宙洪荒日月盈昃辰宿列张寒来暑往秋收冬藏")
+        val lineBreaks = listOf("\r\n", "\n", "\r")
+        var i = 0
+        while (sb.length < 500_000) {
+            sb.append(paragraph)
+            if (sb.length % 157 < paragraph.length) sb.append('…')
+            sb.append(lineBreaks[i++ % 3])
+            sb.append("　　  ")
         }
+
         val original = sb.toString()
-        val rawBytes = original.toByteArray(gbk)
+        val rawBytes = original.toByteArray(Charsets.UTF_8)
 
-        // 检测
+        // 完整管线
         val detected = MainActivity.detectEncoding(rawBytes)
-        assertEquals(gbk, detected)
+        assertEquals(Charsets.UTF_8, detected)
 
-        // 解码验证
         val decoded = String(rawBytes, detected)
-        assertEquals(original, decoded)
-
-        // 格式化 + 写回
         val formatted = MainActivity.formatText(decoded)
         val outputBytes = formatted.toByteArray(detected)
         val reread = String(outputBytes, detected)
 
-        // GBK 编码的往返应保持一致性
-        assertTrue("GBK 往返后内容错误", reread.length > 0)
+        assertEquals("应无换行符", 0, reread.count { it == '\n' || it == '\r' })
+        assertEquals("应无目标字符", 0, Regex("[~！!…]").findAll(reread).count())
+        assertEquals("应无空白", 0, Regex("[\\s\\p{Z}\\u0085\\u200B\\uFEFF]").findAll(reread).count())
+        assertTrue("不应为空", reread.isNotEmpty())
     }
 
     // ========== isZipFile 测试 ==========

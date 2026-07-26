@@ -14,6 +14,7 @@
 - [online-text-processor](./online-text-processor) 基于 Vue.js 的纯前端文本处理工具
 - [ahk](./ahk) autohotkey脚本
 - [hollow_knight_trainer](./hollow_knight_trainer) 空洞骑士修改器
+- [blankTrim](./blankTrim) 极简安卓 App：选择 `.txt` / `.epub` 文件 → 自动格式化 → 静默覆盖原文件。
 - [git-autocommit](./git-autocommit) 定时自动将指定 git 仓库的更改提交并push到远程仓库。
 - [binreplace](./binreplace) 在二进制文件中执行字符串或数值替换，同时保持文件大小不变。
 - [copyMd](./copyMd) 复制markdown以及其链接的本地图片（使用go实现）

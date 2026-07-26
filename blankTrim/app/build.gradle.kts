@@ -32,5 +32,7 @@ android {
 }
 
 dependencies {
+    // Mozilla 编码自动检测（Firefox 同款算法，处理 GBK/UTF-8/Big5 等）
+    implementation("com.googlecode.juniversalchardet:juniversalchardet:1.0.3")
     testImplementation("junit:junit:4.13.2")
 }

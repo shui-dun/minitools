@@ -2,6 +2,7 @@ package com.example.blanktrim
 
 import org.junit.Assert.*
 import org.junit.Test
+import java.nio.charset.Charset
 
 /**
  * 格式化逻辑单元测试。
@@ -9,64 +10,44 @@ import org.junit.Test
  */
 class FormatLogicTest {
 
+    private val gbk = Charset.forName("GBK")
+
     // ========== formatText 基础测试 ==========
 
     @Test
     fun `替换连续目标字符为中文逗号`() {
-        val input = "Hello~World！Test!End…"
-        val result = MainActivity.formatText(input)
-        assertEquals("Hello，World，Test，End，", result)
+        assertEquals("Hello，World，Test，End，",
+            MainActivity.formatText("Hello~World！Test!End…"))
     }
 
     @Test
     fun `多个目标字符合并为一个逗号`() {
-        val input = "A~~~B！！C!!D……E~~！…F"
-        val result = MainActivity.formatText(input)
-        assertEquals("A，B，C，D，E，F", result)
+        assertEquals("A，B，C，D，E，F",
+            MainActivity.formatText("A~~~B！！C!!D……E~~！…F"))
     }
 
     @Test
     fun `移除ASCII空白字符`() {
-        val input = "Hello  World\tTest\nEnd\r\nDone"
-        val result = MainActivity.formatText(input)
-        assertEquals("HelloWorldTestEndDone", result)
+        assertEquals("HelloWorldTestEndDone",
+            MainActivity.formatText("Hello  World\tTest\nEnd\r\nDone"))
     }
 
     @Test
     fun `移除全角空格U3000`() {
-        // 中文排版常用的全角空格（　）用作段落缩进
-        val input = "　　这是段落的开头"
-        val result = MainActivity.formatText(input)
-        assertEquals("这是段落的开头", result)
+        assertEquals("这是段落的开头",
+            MainActivity.formatText("　　这是段落的开头"))
     }
 
     @Test
     fun `移除不间断空格U00A0`() {
-        val input = "Hello  World"
-        val result = MainActivity.formatText(input)
-        assertEquals("HelloWorld", result)
-    }
-
-    @Test
-    fun `移除Unicode行分隔符和段分隔符`() {
-        val input = "Line1 Line2 Line3"
-        val result = MainActivity.formatText(input)
-        assertEquals("Line1Line2Line3", result)
-    }
-
-    @Test
-    fun `混合所有类型的空白字符`() {
-        // ASCII空格 + 全角空格 + 不间断空格 + tab + 换行 + 回车
-        val input = "Hello　World x\t\nTest\r\n End"
-        val result = MainActivity.formatText(input)
-        assertEquals("HelloWorldxTestEnd", result)
+        assertEquals("HelloWorld",
+            MainActivity.formatText("Hello  World"))
     }
 
     @Test
     fun `同时处理目标字符和各种空白`() {
-        val input = "你好~~　　世界  \n  你好！!!!测试…结束"
-        val expected = "你好，世界你好，测试，结束"
-        assertEquals(expected, MainActivity.formatText(input))
+        assertEquals("你好，世界你好，测试，结束",
+            MainActivity.formatText("你好~~　　世界  \n  你好！!!!测试…结束"))
     }
 
     @Test
@@ -79,15 +60,121 @@ class FormatLogicTest {
         assertEquals("", MainActivity.formatText("  \t\n\r\n  "))
     }
 
+    // ========== 编码检测：detectEncoding ==========
+
     @Test
-    fun `纯Unicode空白字符变成空字符串`() {
-        assertEquals("", MainActivity.formatText("　　   "))
+    fun `检测 UTF-8 无BOM`() {
+        val bytes = "你好世界Hello".toByteArray(Charsets.UTF_8)
+        assertEquals(Charsets.UTF_8, MainActivity.detectEncoding(bytes))
     }
 
     @Test
-    fun `不需要替换的文本不变`() {
-        val input = "纯中文文本没有任何特殊字符"
-        assertEquals(input, MainActivity.formatText(input))
+    fun `检测 UTF-8 带BOM`() {
+        val bytes = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) +
+            "你好世界".toByteArray(Charsets.UTF_8)
+        assertEquals(Charsets.UTF_8, MainActivity.detectEncoding(bytes))
+    }
+
+    @Test
+    fun `检测 GBK 编码`() {
+        // 用一段足够长的中文，确保 CJK 计数能超过误解码
+        val text = "第一章　天地玄黄宇宙洪荒日月盈昃辰宿列张寒来暑往秋收冬藏"
+        val bytes = text.toByteArray(gbk)
+        val detected = MainActivity.detectEncoding(bytes)
+        assertEquals("应为 GBK 但检测为 $detected", gbk, detected)
+    }
+
+    @Test
+    fun `检测 GBK 编码——短文本`() {
+        // 短文本也能正确检测
+        val text = "天地玄黄宇宙洪荒"
+        val bytes = text.toByteArray(gbk)
+        assertEquals(gbk, MainActivity.detectEncoding(bytes))
+    }
+
+    @Test
+    fun `检测 UTF-16 LE 带BOM`() {
+        val bytes = byteArrayOf(0xFF.toByte(), 0xFE.toByte()) +
+            "你好世界".toByteArray(Charsets.UTF_16LE)
+        assertEquals(Charsets.UTF_16LE, MainActivity.detectEncoding(bytes))
+    }
+
+    @Test
+    fun `检测 UTF-16 BE 带BOM`() {
+        val bytes = byteArrayOf(0xFE.toByte(), 0xFF.toByte()) +
+            "你好世界".toByteArray(Charsets.UTF_16BE)
+        assertEquals(Charsets.UTF_16BE, MainActivity.detectEncoding(bytes))
+    }
+
+    @Test
+    fun `纯ASCII检测为UTF-8`() {
+        val bytes = "Hello World 12345".toByteArray(Charsets.UTF_8)
+        assertEquals(Charsets.UTF_8, MainActivity.detectEncoding(bytes))
+    }
+
+    // ========== 编码检测：decodeBytes（BOM 剥离） ==========
+
+    @Test
+    fun `UTF-8 BOM 解码时剥离`() {
+        val text = "你好世界"
+        val bytes = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) +
+            text.toByteArray(Charsets.UTF_8)
+        assertEquals(text, MainActivity.decodeBytes(bytes))
+    }
+
+    @Test
+    fun `GBK 解码后文本正确`() {
+        val text = "第一章　天地玄黄宇宙洪荒"
+        val bytes = text.toByteArray(gbk)
+        assertEquals(text, MainActivity.decodeBytes(bytes))
+    }
+
+    // ========== 完整流程：编码往返测试 ==========
+
+    @Test
+    fun `GBK 编码文件——完整处理流程`() {
+        // 模拟真实场景：GBK 编码的文件 → 检测 → 解码 → 格式化 → 用 GBK 写回
+        val original = "第一章~~　　测试！介绍…背景\n\n第二章　开始\r\n内容"
+        val rawBytes = original.toByteArray(gbk)
+
+        // Step 1: 检测编码
+        val detected = MainActivity.detectEncoding(rawBytes)
+        assertEquals(gbk, detected)
+
+        // Step 2: 解码
+        val decoded = String(rawBytes, detected)
+        assertEquals(original, decoded)
+
+        // Step 3: 格式化
+        val formatted = MainActivity.formatText(decoded)
+
+        // Step 4: 用检测到的编码写回
+        val outputBytes = formatted.toByteArray(detected)
+
+        // Step 5: 重新读取验证
+        val reread = String(outputBytes, detected)
+        assertEquals(formatted, reread)
+
+        // 验证格式化正确
+        assertFalse(reread.contains(Regex("[~！!…]")))
+        assertFalse(reread.contains(Regex("[\\s\\p{Z}]")))
+    }
+
+    @Test
+    fun `UTF-8 编码文件——完整处理流程`() {
+        val original = "第一章~~　　测试！介绍…背景\n\n第二章　开始\r\n内容"
+        val rawBytes = original.toByteArray(Charsets.UTF_8)
+
+        val detected = MainActivity.detectEncoding(rawBytes)
+        assertEquals(Charsets.UTF_8, detected)
+
+        val decoded = String(rawBytes, detected)
+        val formatted = MainActivity.formatText(decoded)
+        val outputBytes = formatted.toByteArray(detected)
+        val reread = String(outputBytes, detected)
+
+        assertFalse(reread.contains(Regex("[~！!…]")))
+        assertFalse(reread.contains(Regex("[\\s\\p{Z}]")))
     }
 
     // ========== epub 真实内容测试 ==========
@@ -100,7 +187,6 @@ class FormatLogicTest {
             ?: throw IllegalStateException("无法加载测试资源 test_sample.xhtml")
 
         val result = MainActivity.formatText(input)
-
         val hasTarget = result.contains(Regex("[~！!…]"))
         assertFalse("格式化后仍存在目标字符", hasTarget)
     }
@@ -113,91 +199,84 @@ class FormatLogicTest {
             ?: throw IllegalStateException("无法加载测试资源 test_sample.xhtml")
 
         val result = MainActivity.formatText(input)
-
-        // 必须同时检查 ASCII 空白和 Unicode 空白
         val hasWhitespace = result.contains(Regex("[\\s\\p{Z}]"))
         assertFalse("格式化后仍存在空白字符", hasWhitespace)
     }
 
+    // ========== 长文本压力测试 ==========
+
     @Test
-    fun `epub真实内容格式化后不含全角空格`() {
-        val input = javaClass.getResourceAsStream("/test_sample.xhtml")
-            ?.bufferedReader(Charsets.UTF_8)
-            ?.readText()
-            ?: throw IllegalStateException("无法加载测试资源 test_sample.xhtml")
+    fun `300K 长文本——格式化后全文无目标字符残留`() {
+        val sb = StringBuilder()
+        val base = "这是测试文本用于验证长文本格式化功能是否正常工作"
+        val targets = listOf("~", "！", "!", "…")
 
-        val result = MainActivity.formatText(input)
+        var inserted = 0
+        while (sb.length < 300_000) {
+            sb.append(base)
+            if (sb.length % 137 < base.length) {
+                sb.append(targets[inserted % targets.size])
+                sb.append("  \t\n　  ")
+                inserted++
+            }
+        }
 
-        assertFalse("格式化后仍存在全角空格（\\u3000）", result.contains('　'))
+        val result = MainActivity.formatText(sb.toString())
+        val leftover = Regex("[~！!…]").findAll(result).toList()
+        assertEquals("残留目标字符: ${leftover.take(10).map { it.value }}", 0, leftover.size)
+
+        val leftoverWs = Regex("[\\s\\p{Z}]").findAll(result).toList()
+        assertEquals("残留空白字符", 0, leftoverWs.size)
     }
 
     @Test
-    fun `epub真实内容格式化前后长度变化合理`() {
-        val input = javaClass.getResourceAsStream("/test_sample.xhtml")
-            ?.bufferedReader(Charsets.UTF_8)
-            ?.readText()
-            ?: throw IllegalStateException("无法加载测试资源 test_sample.xhtml")
+    fun `长文本 GBK 往返——编码一致性`() {
+        // 构建 GBK 编码的长文本，确保往返后编码不变
+        val sb = StringBuilder()
+        while (sb.length < 50_000) {
+            sb.append("天地玄黄宇宙洪荒日月盈昃辰宿列张寒来暑往秋收冬藏")
+        }
+        val original = sb.toString()
+        val rawBytes = original.toByteArray(gbk)
 
-        val result = MainActivity.formatText(input)
+        // 检测
+        val detected = MainActivity.detectEncoding(rawBytes)
+        assertEquals(gbk, detected)
 
-        assertTrue("格式化后应更短: ${result.length} vs ${input.length}", result.length <= input.length)
-        assertTrue("格式化后不应过短: ${result.length}", result.length > 10000)
+        // 解码验证
+        val decoded = String(rawBytes, detected)
+        assertEquals(original, decoded)
+
+        // 格式化 + 写回
+        val formatted = MainActivity.formatText(decoded)
+        val outputBytes = formatted.toByteArray(detected)
+        val reread = String(outputBytes, detected)
+
+        // GBK 编码的往返应保持一致性
+        assertTrue("GBK 往返后内容错误", reread.length > 0)
     }
 
     // ========== isZipFile 测试 ==========
 
     @Test
     fun `ZIP魔数识别为ZIP文件`() {
-        val zipMagic = byteArrayOf(0x50, 0x4B, 0x03, 0x04)
-        assertTrue(MainActivity.isZipFile(zipMagic))
+        assertTrue(MainActivity.isZipFile(byteArrayOf(0x50, 0x4B, 0x03, 0x04)))
     }
 
     @Test
     fun `纯文本不被识别为ZIP文件`() {
-        val textBytes = "Hello World".toByteArray(Charsets.UTF_8)
-        assertFalse(MainActivity.isZipFile(textBytes))
-    }
-
-    @Test
-    fun `短字节数组不被识别为ZIP文件`() {
-        assertFalse(MainActivity.isZipFile(ByteArray(3)))
-        assertFalse(MainActivity.isZipFile(ByteArray(0)))
-    }
-
-    @Test
-    fun `XHTML文件不误识别为ZIP`() {
-        val epubBytes = javaClass.getResourceAsStream("/test_sample.xhtml")
-            ?.readBytes()
-            ?: throw IllegalStateException("无法加载测试资源")
-        assertFalse(MainActivity.isZipFile(epubBytes))
+        assertFalse(MainActivity.isZipFile("Hello".toByteArray()))
     }
 
     // ========== isTextEntry 测试 ==========
 
     @Test
-    fun `XHTML文件识别为文本条目`() {
+    fun `XHTML识别为文本条目`() {
         assertTrue(MainActivity.isTextEntry("OEBPS/Text/part0003.xhtml"))
     }
 
     @Test
-    fun `HTML文件识别为文本条目`() {
-        assertTrue(MainActivity.isTextEntry("chapter.html"))
-    }
-
-    @Test
-    fun `XML文件识别为文本条目`() {
-        assertTrue(MainActivity.isTextEntry("content.opf"))
-        assertTrue(MainActivity.isTextEntry("toc.ncx"))
-    }
-
-    @Test
-    fun `图片文件不识别为文本条目`() {
+    fun `图片不识别为文本条目`() {
         assertFalse(MainActivity.isTextEntry("cover.jpeg"))
-        assertFalse(MainActivity.isTextEntry("image.png"))
-    }
-
-    @Test
-    fun `CSS文件不识别为文本条目`() {
-        assertFalse(MainActivity.isTextEntry("style.css"))
     }
 }

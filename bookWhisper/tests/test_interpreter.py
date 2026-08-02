@@ -243,3 +243,82 @@ class TestRetryLogic:
         interpreter = DeepSeekInterpreter(interpreter_config)
         with pytest.raises(InterpretError):
             interpreter.interpret_section(sample_section, "摘要")
+
+    @patch("bookwhisper.interpreter.OpenAI")
+    def test_retry_on_empty_content(
+        self, mock_openai_cls, interpreter_config, sample_section
+    ):
+        """API 返回空字符串时，应视为可重试错误自动重试。"""
+        mock_client = MagicMock()
+
+        call_count = [0]
+
+        def side_effect(*args, **kwargs):
+            call_count[0] += 1
+            mock = MagicMock()
+            mock.choices = [MagicMock()]
+            if call_count[0] < 3:
+                mock.choices[0].message.content = ""  # 空字符串
+            else:
+                mock.choices[0].message.content = "重试后成功。"
+            return mock
+
+        mock_client.chat.completions.create.side_effect = side_effect
+        mock_openai_cls.return_value = mock_client
+
+        interpreter_config.max_retries = 3
+        interpreter = DeepSeekInterpreter(interpreter_config)
+        result = interpreter.interpret_section(sample_section, "摘要")
+
+        assert call_count[0] == 3  # 2 次空内容 + 1 次成功
+        assert result.interpreted_text == "重试后成功。"
+
+    @patch("bookwhisper.interpreter.OpenAI")
+    def test_retry_on_none_content(
+        self, mock_openai_cls, interpreter_config, sample_section
+    ):
+        """API 返回 None 时，应视为可重试错误自动重试。"""
+        mock_client = MagicMock()
+
+        call_count = [0]
+
+        def side_effect(*args, **kwargs):
+            call_count[0] += 1
+            mock = MagicMock()
+            mock.choices = [MagicMock()]
+            if call_count[0] < 2:
+                mock.choices[0].message.content = None
+            else:
+                mock.choices[0].message.content = "重试后成功。"
+            return mock
+
+        mock_client.chat.completions.create.side_effect = side_effect
+        mock_openai_cls.return_value = mock_client
+
+        interpreter_config.max_retries = 3
+        interpreter = DeepSeekInterpreter(interpreter_config)
+        result = interpreter.interpret_section(sample_section, "摘要")
+
+        assert call_count[0] == 2  # 1 次 None + 1 次成功
+        assert result.interpreted_text == "重试后成功。"
+
+    @patch("bookwhisper.interpreter.OpenAI")
+    def test_empty_content_retry_exhausted(
+        self, mock_openai_cls, interpreter_config, sample_section
+    ):
+        """API 持续返回空内容，重试耗尽后应抛出 InterpretError。"""
+        mock_client = MagicMock()
+
+        def side_effect(*args, **kwargs):
+            mock = MagicMock()
+            mock.choices = [MagicMock()]
+            mock.choices[0].message.content = ""
+            return mock
+
+        mock_client.chat.completions.create.side_effect = side_effect
+        mock_openai_cls.return_value = mock_client
+
+        interpreter_config.max_retries = 2
+        interpreter = DeepSeekInterpreter(interpreter_config)
+        with pytest.raises(InterpretError, match="已重试"):
+            interpreter.interpret_section(sample_section, "摘要")

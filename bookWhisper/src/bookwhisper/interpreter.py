@@ -282,6 +282,8 @@ class DeepSeekInterpreter:
                 raise InterpretError("API 返回空内容", retryable=True)
             return content
 
+        except InterpretError:
+            raise  # 已经是 InterpretError，保留原始 retryable 标记，不重新包装
         except Exception as e:
             error_name = type(e).__name__
             is_retryable = any(

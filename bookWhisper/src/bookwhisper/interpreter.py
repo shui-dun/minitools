@@ -45,10 +45,20 @@ class InterpretError(Exception):
         self.retryable = retryable
 
 
+def _is_empty_result(result: Any) -> bool:
+    """检查返回结果是否为空文本（长度为 0）。"""
+    if isinstance(result, str):
+        return len(result) == 0
+    if isinstance(result, ChapterResult):
+        return len(result.interpreted_text) == 0
+    return False
+
+
 def retry_on_error(func):
     """指数退避重试装饰器。遇到可重试的 InterpretError 自动重试。
 
     重试次数从实例的 config.max_retries 读取。
+    同时检查返回结果：若输出文本长度为 0，视为失败并重试。
     """
 
     @functools.wraps(func)
@@ -58,7 +68,11 @@ def retry_on_error(func):
 
         for attempt in range(max_retries + 1):
             try:
-                return func(self, *args, **kwargs)
+                result = func(self, *args, **kwargs)
+                # 输出文本长度为 0，视作失败，触发重试
+                if _is_empty_result(result):
+                    raise InterpretError("输出文本长度为 0", retryable=True)
+                return result
             except InterpretError as e:
                 last_error = e
                 if not e.retryable:
@@ -264,7 +278,7 @@ class DeepSeekInterpreter:
                 max_tokens=max_tokens,
             )
             content = response.choices[0].message.content
-            if content is None:
+            if not content:
                 raise InterpretError("API 返回空内容", retryable=True)
             return content
 

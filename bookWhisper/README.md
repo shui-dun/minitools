@@ -122,26 +122,26 @@ bookwhisper interpret <输入文件> [选项]
 #### 使用示例
 
 ```bash
+# 使用 自定义 模型
+bookwhisper interpret 社会学导论.epub --deepseek-model deepseek-v4-flash
+
 # 解读 EPUB，输出到指定目录
 bookwhisper interpret 社会学导论.epub --output ./audiobooks
 
 # 解读 MOBI 文件（需要安装 Calibre）
-bookwhisper interpret 认知觉醒.mobi
+bookwhisper interpret 社会学导论.mobi
 
 # 调小块大小，降低单次 API 调用量
-bookwhisper interpret 大部头.epub --chunk-max-chars 1500
+bookwhisper interpret 社会学导论.epub --chunk-max-chars 1500
 
 # 强制重新解读整本书（忽略断点续传）
-bookwhisper interpret 已读过的书.epub --no-resume
-
-# 使用 reasoning 模型
-bookwhisper interpret 哲学书.epub --deepseek-model deepseek-reasoner
+bookwhisper interpret 社会学导论.epub --no-resume
 
 # 开启详细日志排查问题
-bookwhisper interpret 问题书.epub --verbose
+bookwhisper interpret 社会学导论.epub --verbose
 
 # 组合使用：通过配置文件 + CLI 覆盖部分参数
-bookwhisper interpret 书籍.epub --config my_config.yaml --chunk-max-chars 2000
+bookwhisper interpret 社会学导论.epub --config my_config.yaml --chunk-max-chars 2000
 ```
 
 ---

@@ -86,6 +86,15 @@ class TestApplyCliOverrides:
         config = AppConfig()
         assert config.mode == "default"
 
+    def test_override_fallback_to_original_on_empty(self) -> None:
+        config = AppConfig()
+        config.apply_cli_overrides({"fallback_to_original_on_empty": "true"})
+        assert config.fallback_to_original_on_empty is True
+
+    def test_fallback_to_original_default(self) -> None:
+        config = AppConfig()
+        assert config.fallback_to_original_on_empty is False
+
 
 class TestAsNestedDict:
     """嵌套字典导"""

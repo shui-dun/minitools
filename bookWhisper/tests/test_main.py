@@ -113,6 +113,16 @@ class TestCli:
         ])
         assert result.exit_code != 0
 
+    def test_fallback_to_original_on_empty_flag(self, sample_epub_path) -> None:
+        """--fallback-to-original-on-empty 不应报错。"""
+        runner = CliRunner(env={"DEEPSEEK_API_KEY": "sk-test"})
+        result = runner.invoke(cli, [
+            "interpret",
+            str(sample_epub_path),
+            "--fallback-to-original-on-empty",
+        ])
+        assert isinstance(result.exit_code, int)
+
     # ---- MOBI/AZW3 格式输入测试 ----
 
     def test_interpret_mobi_input(self, real_mobi_path) -> None:

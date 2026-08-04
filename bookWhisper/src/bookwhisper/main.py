@@ -48,6 +48,7 @@ def _build_cli_overrides(
     resume_flag: bool | None,
     parallel_workers: int | None,
     mode: str | None,
+    fallback_to_original_on_empty: bool | None,
 ) -> dict[str, str]:
     """将 CLI 参数转换为点号路径的覆盖字典。"""
     overrides: dict[str, str] = {}
@@ -74,6 +75,8 @@ def _build_cli_overrides(
         overrides["parallel_workers"] = str(parallel_workers)
     if mode is not None:
         overrides["mode"] = mode
+    if fallback_to_original_on_empty is not None:
+        overrides["fallback_to_original_on_empty"] = str(fallback_to_original_on_empty)
 
     return overrides
 
@@ -173,6 +176,11 @@ def cli() -> None:
     default=None,
     help="解读模式：default=社会科学书籍通俗化，novel=小说翻译 TTS 优化。",
 )
+@click.option(
+    "--fallback-to-original-on-empty/--no-fallback-to-original-on-empty",
+    default=None,
+    help="空内容回退：API 多次返回空内容后是否回退到原文（默认: 关闭）。",
+)
 def interpret(
     input_file: str,
     config: str | None,
@@ -188,6 +196,7 @@ def interpret(
     verbose: bool,
     parallel_workers: int | None,
     mode: str | None,
+    fallback_to_original_on_empty: bool | None,
 ) -> None:
     """解读书籍并输出 EPUB。
 
@@ -210,6 +219,7 @@ def interpret(
         resume_flag=resume,
         parallel_workers=parallel_workers,
         mode=mode,
+        fallback_to_original_on_empty=fallback_to_original_on_empty,
     )
     app_config.apply_cli_overrides(cli_overrides)
 
@@ -371,9 +381,23 @@ def _run_pipeline(
                     continue
 
                 # 解读（带重试）
-                result = interpreter.interpret_section(
-                    section, summary, previous_text=prev_text,
-                )
+                try:
+                    result = interpreter.interpret_section(
+                        section, summary, previous_text=prev_text,
+                    )
+                except InterpretError as e:
+                    if config.fallback_to_original_on_empty and e.empty_fallback:
+                        logger.warning(
+                            "%s 返回空内容已达上限，回退到原文", section.context_label
+                        )
+                        result = ChapterResult(
+                            chapter_id=section.id,
+                            original_chars=len(section.text),
+                            interpreted_chars=len(section.text),
+                            interpreted_text=section.text,
+                        )
+                    else:
+                        raise
 
                 if config.mode == "novel":
                     # novel 模式：不需要二次重写，直接保存
@@ -381,7 +405,16 @@ def _run_pipeline(
                     logger.info("%s novel 模式完成: %d 字", section.context_label, result.interpreted_chars)
                 else:
                     # default 模式：二次全文重写
-                    refined_text = interpreter.review_and_refine(result.interpreted_text)
+                    try:
+                        refined_text = interpreter.review_and_refine(result.interpreted_text)
+                    except InterpretError as e:
+                        if config.fallback_to_original_on_empty and e.empty_fallback:
+                            logger.warning(
+                                "%s 二次重写返回空内容已达上限，回退到一次结果", section.context_label
+                            )
+                            refined_text = result.interpreted_text
+                        else:
+                            raise
                     result.interpreted_text = refined_text
                     result.interpreted_chars = len(refined_text)
                     checkpoint.mark_done(section.id, result)

@@ -45,10 +45,16 @@ _RETRYABLE_ERRORS = (
 class InterpretError(Exception):
     """解读失败。"""
 
-    def __init__(self, message: str, retryable: bool = False) -> None:
+    def __init__(
+        self,
+        message: str,
+        retryable: bool = False,
+        empty_fallback: bool = False,
+    ) -> None:
         super().__init__(message)
         self.message = message
         self.retryable = retryable
+        self.empty_fallback = empty_fallback
 
 
 def _is_empty_result(result: Any) -> bool:
@@ -77,7 +83,7 @@ def retry_on_error(func):
                 result = func(self, *args, **kwargs)
                 # 输出文本长度为 0，视作失败，触发重试
                 if _is_empty_result(result):
-                    raise InterpretError("输出文本长度为 0", retryable=True)
+                    raise InterpretError("输出文本长度为 0", retryable=True, empty_fallback=True)
                 return result
             except InterpretError as e:
                 last_error = e
@@ -98,7 +104,10 @@ def retry_on_error(func):
                     logger.error("%s 已达最大重试次数: %s", func.__name__, e.message)
 
         raise InterpretError(
-            f"{func.__name__} 失败，已重试 {max_retries} 次: {last_error}"
+            f"{func.__name__} 失败，已重试 {max_retries} 次: {last_error}",
+            empty_fallback=(
+                isinstance(last_error, InterpretError) and last_error.empty_fallback
+            ),
         )
 
     return wrapper
@@ -291,7 +300,7 @@ class DeepSeekInterpreter:
             )
             content = response.choices[0].message.content
             if not content:
-                raise InterpretError("API 返回空内容", retryable=True)
+                raise InterpretError("API 返回空内容", retryable=True, empty_fallback=True)
             return content
 
         except InterpretError:

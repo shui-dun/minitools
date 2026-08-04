@@ -55,6 +55,7 @@ class AppConfig:
 
     # 非嵌套项
     mode: str = "default"
+    fallback_to_original_on_empty: bool = False
     resume: bool = True
     max_retries: int = 3
     parallel_workers: int = 5

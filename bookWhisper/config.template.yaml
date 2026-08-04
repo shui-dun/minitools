@@ -24,5 +24,8 @@ output:
 # 解读模式："default" 为默认的社会科学书籍通俗化解读，"novel" 为小说翻译优化
 mode: "default"
 
+# 空内容回退：API 多次返回空内容后是否回退到原文（默认 false）
+fallback_to_original_on_empty: false
+
 # 并行解读 worker 数量（默认 5）
 parallel_workers: 5

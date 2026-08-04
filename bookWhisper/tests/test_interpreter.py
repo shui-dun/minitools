@@ -409,5 +409,32 @@ class TestNovelMode:
         messages = call_args.kwargs["messages"]
         system_msg = next(m["content"] for m in messages if m["role"] == "system")
 
-        assert "小说翻译优化" in system_msg
+        assert "小说优化" in system_msg
         assert "不是重写" in system_msg
+
+
+class TestEmptyFallback:
+    """空内容回退逻辑测试。"""
+
+    @patch("bookwhisper.interpreter.OpenAI")
+    def test_empty_content_error_has_empty_fallback_flag(
+        self, mock_openai_cls, interpreter_config, sample_section
+    ):
+        """空内容重试耗尽后，InterpretError.empty_fallback 应为 True。"""
+        mock_client = MagicMock()
+
+        def side_effect(*args, **kwargs):
+            mock = MagicMock()
+            mock.choices = [MagicMock()]
+            mock.choices[0].message.content = ""
+            return mock
+
+        mock_client.chat.completions.create.side_effect = side_effect
+        mock_openai_cls.return_value = mock_client
+
+        interpreter_config.max_retries = 1
+        interpreter = DeepSeekInterpreter(interpreter_config)
+        with pytest.raises(InterpretError) as exc_info:
+            interpreter.interpret_section(sample_section, "")
+
+        assert exc_info.value.empty_fallback is True

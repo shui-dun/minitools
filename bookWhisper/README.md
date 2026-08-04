@@ -135,6 +135,7 @@ bookwhisper interpret <输入文件> [选项]
 | `--parallel-workers INTEGER` | 并行解读 worker 数量 | `5` |
 | `--max-retries INTEGER` | API 失败最大重试次数 | `3` |
 | `--resume / --no-resume` | 是否断点续传 | 启用 |
+| `--fallback-to-original-on-empty` / `--no-fallback-to-original-on-empty` | 空内容回退：API 多次返回空内容后是否回退到原文 | 关闭 |
 | `-v, --verbose` | 详细日志 | 关闭 |
 
 #### 使用示例
@@ -160,6 +161,9 @@ bookwhisper interpret 社会学导论.epub --no-resume
 
 # 开启详细日志排查问题
 bookwhisper interpret 社会学导论.epub --verbose
+
+# 遭遇空内容时自动回退到原文（网络错误不触发，仅空内容触发）
+bookwhisper interpret 书籍.epub --fallback-to-original-on-empty
 
 # 组合使用：通过配置文件 + CLI 覆盖部分参数
 bookwhisper interpret 社会学导论.epub --config my_config.yaml --chunk-max-chars 2000
@@ -198,6 +202,9 @@ output:
 
 # 解读模式："default"=社科书籍通俗化，"novel"=小说翻译优化
 mode: "default"
+
+# 空内容回退：API 多次返回空内容后是否回退到原文
+fallback_to_original_on_empty: false
 
 # 并行解读 worker 数量
 parallel_workers: 5

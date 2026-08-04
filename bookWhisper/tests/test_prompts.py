@@ -86,5 +86,6 @@ class TestNovelPrompt:
         assert "不完整" in NOVEL_SYSTEM_PROMPT
 
     def test_novel_prompt_no_meta_output(self) -> None:
-        """NOVEL prompt 要求输出不包含小说以外的内容。"""
-        assert "输出不能包含除小说内容以外的任何其他东西" in NOVEL_SYSTEM_PROMPT
+        """NOVEL prompt 要求直接输出正文，不要额外说明。"""
+        assert "直接输出优化后的正文" in NOVEL_SYSTEM_PROMPT
+        assert "不要添加任何说明" in NOVEL_SYSTEM_PROMPT

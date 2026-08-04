@@ -19,6 +19,7 @@ from openai import OpenAI
 from bookwhisper.checkpoint import ChapterResult, CheckpointManager
 from bookwhisper.config import AppConfig, DeepSeekConfig
 from bookwhisper.prompts import (
+    NOVEL_RULES_REMINDER,
     NOVEL_SYSTEM_PROMPT,
     REVIEW_PROMPT,
     RULES_REMINDER,
@@ -330,9 +331,23 @@ class DeepSeekInterpreter:
         """
         if novel_mode:
             parts: list[str] = []
-            if previous_text:
-                parts.append(previous_text)
-            parts.append(section.text)
+            # 只取上一段末尾 300 字作为衔接上下文，并加标签区分
+            if previous_text and len(previous_text) > 300:
+                prev_tail = previous_text[-300:]
+            elif previous_text:
+                # 如果上一段本身就很短（<=300 字），保留原文
+                prev_tail = previous_text
+            else:
+                prev_tail = ""
+
+            if prev_tail:
+                parts.append(
+                    "【前文末尾】以下是上一段的末尾内容，"
+                    "仅供衔接上下文，请勿修改：\n" + prev_tail
+                )
+
+            parts.append("请优化以下文本：\n" + section.text)
+            parts.append(NOVEL_RULES_REMINDER)
             return "\n\n".join(parts)
 
         parts: list[str] = []

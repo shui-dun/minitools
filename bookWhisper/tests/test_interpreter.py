@@ -379,19 +379,44 @@ class TestNovelMode:
     def test_novel_user_message_has_previous_text(
         self, mock_openai_cls, interpreter_config, mock_openai_response, sample_section
     ):
-        """novel 模式传入 previous_text 时应出现在消息中。"""
+        """novel 模式传入 previous_text 时应以【前文末尾】标签包裹。"""
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = mock_openai_response
         mock_openai_cls.return_value = mock_client
 
+        prev = "上一段末尾内容"
         interpreter = DeepSeekInterpreter(interpreter_config, mode="novel")
-        interpreter.interpret_section(sample_section, "", previous_text="上一段末尾内容")
+        interpreter.interpret_section(sample_section, "", previous_text=prev)
 
         call_args = mock_client.chat.completions.create.call_args
         messages = call_args.kwargs["messages"]
         user_msg = next(m["content"] for m in messages if m["role"] == "user")
 
-        assert "上一段末尾内容" in user_msg
+        assert "【前文末尾】" in user_msg
+        assert "请勿修改" in user_msg
+        assert prev in user_msg
+
+    @patch("bookwhisper.interpreter.OpenAI")
+    def test_novel_previous_text_trimmed(
+        self, mock_openai_cls, interpreter_config, mock_openai_response, sample_section
+    ):
+        """novel 模式传入长 previous_text 时只保留末尾 300 字。"""
+        mock_client = MagicMock()
+        mock_client.chat.completions.create.return_value = mock_openai_response
+        mock_openai_cls.return_value = mock_client
+
+        long_prev = "A" * 500
+        interpreter = DeepSeekInterpreter(interpreter_config, mode="novel")
+        interpreter.interpret_section(sample_section, "", previous_text=long_prev)
+
+        call_args = mock_client.chat.completions.create.call_args
+        messages = call_args.kwargs["messages"]
+        user_msg = next(m["content"] for m in messages if m["role"] == "user")
+
+        # 长文本应被截断，只保留末尾 300
+        assert len(long_prev) == 500
+        assert "A" * 500 not in user_msg
+        assert "A" * 300 in user_msg
 
     @patch("bookwhisper.interpreter.OpenAI")
     def test_novel_system_prompt_in_api_call(

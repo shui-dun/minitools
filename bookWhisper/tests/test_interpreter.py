@@ -417,10 +417,10 @@ class TestEmptyFallback:
     """空内容回退逻辑测试。"""
 
     @patch("bookwhisper.interpreter.OpenAI")
-    def test_empty_content_error_has_empty_fallback_flag(
+    def test_empty_content_retry_exhausted_has_empty_fallback_flag(
         self, mock_openai_cls, interpreter_config, sample_section
     ):
-        """空内容重试耗尽后，InterpretError.empty_fallback 应为 True。"""
+        """默认模式：空内容重试耗尽后，InterpretError.empty_fallback 应为 True。"""
         mock_client = MagicMock()
 
         def side_effect(*args, **kwargs):
@@ -438,3 +438,62 @@ class TestEmptyFallback:
             interpreter.interpret_section(sample_section, "")
 
         assert exc_info.value.empty_fallback is True
+
+    @patch("bookwhisper.interpreter.OpenAI")
+    def test_empty_fallback_raises_immediately(
+        self, mock_openai_cls, interpreter_config, sample_section
+    ):
+        """fallback 模式：第一次空内容就立即抛出，不重试。"""
+        mock_client = MagicMock()
+
+        call_count = [0]
+
+        def side_effect(*args, **kwargs):
+            call_count[0] += 1
+            mock = MagicMock()
+            mock.choices = [MagicMock()]
+            mock.choices[0].message.content = ""
+            return mock
+
+        mock_client.chat.completions.create.side_effect = side_effect
+        mock_openai_cls.return_value = mock_client
+
+        interpreter_config.max_retries = 3
+        interpreter_config.fallback_to_original_on_empty = True
+        interpreter = DeepSeekInterpreter(interpreter_config)
+        with pytest.raises(InterpretError) as exc_info:
+            interpreter.interpret_section(sample_section, "")
+
+        # 只调用了 1 次 API（没有重试）
+        assert call_count[0] == 1
+        assert exc_info.value.empty_fallback is True
+
+    @patch("bookwhisper.interpreter.OpenAI")
+    def test_empty_fallback_does_not_affect_network_errors(
+        self, mock_openai_cls, interpreter_config, sample_section
+    ):
+        """fallback 模式不影响网络错误的重试行为。"""
+        mock_client = MagicMock()
+
+        call_count = [0]
+
+        def side_effect(*args, **kwargs):
+            call_count[0] += 1
+            if call_count[0] < 2:
+                raise ConnectionError("网络错误")
+            mock = MagicMock()
+            mock.choices = [MagicMock()]
+            mock.choices[0].message.content = "成功"
+            return mock
+
+        mock_client.chat.completions.create.side_effect = side_effect
+        mock_openai_cls.return_value = mock_client
+
+        interpreter_config.max_retries = 3
+        interpreter_config.fallback_to_original_on_empty = True
+        interpreter = DeepSeekInterpreter(interpreter_config)
+        result = interpreter.interpret_section(sample_section, "")
+
+        # 网络错误照常重试，最终成功
+        assert call_count[0] == 2
+        assert result.interpreted_text == "成功"

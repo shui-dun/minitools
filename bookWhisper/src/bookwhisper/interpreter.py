@@ -89,6 +89,9 @@ def retry_on_error(func):
                 last_error = e
                 if not e.retryable:
                     raise
+                # 空内容回退模式：一次空内容就立即抛出，不重试
+                if e.empty_fallback and self._config.fallback_to_original_on_empty:
+                    raise
                 if attempt < max_retries:
                     wait = 2 ** attempt
                     logger.warning(

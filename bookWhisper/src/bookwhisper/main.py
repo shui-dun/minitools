@@ -249,7 +249,7 @@ def interpret(
     # ========== Pipeline ==========
 
     try:
-        _run_pipeline(input_path, output_dir, app_config)
+        _run_pipeline(input_path, output_dir, app_config, verbose=verbose)
     except InterpretError as e:
         click.echo(f"\n解读失败: {e.message}", err=True)
         click.echo("你可以重新运行此命令从断点恢复（默认启用 --resume）。", err=True)
@@ -265,6 +265,7 @@ def _run_pipeline(
     input_path: Path,
     output_dir: Path,
     config: AppConfig,
+    verbose: bool = False,
 ) -> None:
     """执行完整的解读 pipeline。"""
 
@@ -313,7 +314,7 @@ def _run_pipeline(
 
     # Step 5: 生成整书摘要（novel 模式跳过）
     click.echo("\n[5/6] 初始化 DeepSeek 解读器...")
-    interpreter = DeepSeekInterpreter(config, checkpoint, mode=config.mode)
+    interpreter = DeepSeekInterpreter(config, checkpoint, mode=config.mode, verbose=verbose)
 
     summary = ""
     if config.mode != "novel":

@@ -10,7 +10,9 @@
 from __future__ import annotations
 
 import functools
+import json
 import logging
+import sys
 import time
 from typing import Any
 
@@ -65,6 +67,66 @@ def _is_empty_result(result: Any) -> bool:
     if isinstance(result, ChapterResult):
         return len(result.interpreted_text) == 0
     return False
+
+
+def _dump_curl(
+    model: str,
+    messages: list[dict[str, str]],
+    temperature: float,
+    max_tokens: int,
+) -> None:
+    """将 API 请求打印为可复制的 curl 命令（输出到 stderr）。"""
+    payload = {
+        "model": model,
+        "messages": messages,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+    }
+    body = json.dumps(payload, ensure_ascii=False, indent=2)
+    escaped = body.replace("'", "'\\''")
+    curl = (
+        "curl -s https://api.deepseek.com/chat/completions \\\n"
+        "  -H 'Content-Type: application/json' \\\n"
+        "  -H 'Authorization: Bearer $DEEPSEEK_API_KEY' \\\n"
+        f"  -d '{escaped}'"
+    )
+    print(f"\n{'=' * 60}\n[VERBOSE] DeepSeek API 请求\n{'=' * 60}", file=sys.stderr)
+    print(curl, file=sys.stderr)
+    print("=" * 60, file=sys.stderr)
+
+
+def _dump_response(response: Any) -> None:
+    """将 API 响应关键信息打印到 stderr（verbose 模式）。"""
+    choice = response.choices[0]
+    finish = getattr(choice, "finish_reason", "N/A")
+    content = choice.message.content
+    content_len = len(content) if content else 0
+
+    print(f"\n{'=' * 60}", file=sys.stderr)
+    print("[VERBOSE] DeepSeek API 响应", file=sys.stderr)
+    print("=" * 60, file=sys.stderr)
+    print(f"  finish_reason : {finish}", file=sys.stderr)
+    print(f"  content length: {content_len}", file=sys.stderr)
+
+    reasoning = getattr(choice.message, "reasoning_content", None)
+    if reasoning:
+        print(f"  reasoning_content length: {len(reasoning)}", file=sys.stderr)
+
+    if content:
+        print(f"  content (前 200 字): {content[:200]}", file=sys.stderr)
+    else:
+        print("  content: (空)", file=sys.stderr)
+        fields = [f for f in dir(choice.message) if not f.startswith("_")]
+        print(f"  message fields: {fields}", file=sys.stderr)
+
+    usage = getattr(response, "usage", None)
+    if usage:
+        pt = getattr(usage, "prompt_tokens", "?")
+        ct = getattr(usage, "completion_tokens", "?")
+        tt = getattr(usage, "total_tokens", "?")
+        print(f"  usage: prompt={pt}, completion={ct}, total={tt}", file=sys.stderr)
+
+    print("=" * 60, file=sys.stderr)
 
 
 def retry_on_error(func):
@@ -134,10 +196,12 @@ class DeepSeekInterpreter:
         config: AppConfig,
         checkpoint: CheckpointManager | None = None,
         mode: str = "default",
+        verbose: bool = False,
     ) -> None:
         self._config = config
         self._checkpoint = checkpoint
         self._mode = mode
+        self._verbose = verbose
         self._system_prompt = SYSTEM_PROMPT if mode != "novel" else NOVEL_SYSTEM_PROMPT
         self._client = OpenAI(
             api_key=config.deepseek.api_key,
@@ -295,6 +359,14 @@ class DeepSeekInterpreter:
         if temperature is None:
             temperature = self._config.deepseek.temperature
 
+        if self._verbose:
+            _dump_curl(
+                self._config.deepseek.model,
+                messages,
+                temperature,
+                max_tokens,
+            )
+
         try:
             response = self._client.chat.completions.create(
                 model=self._config.deepseek.model,
@@ -302,6 +374,10 @@ class DeepSeekInterpreter:
                 temperature=temperature,
                 max_tokens=max_tokens,
             )
+
+            if self._verbose:
+                _dump_response(response)
+
             content = response.choices[0].message.content
             if not content:
                 raise InterpretError("API 返回空内容", retryable=True, empty_fallback=True)

@@ -110,7 +110,10 @@ def _dump_response(response: Any) -> None:
 
     reasoning = getattr(choice.message, "reasoning_content", None)
     if reasoning:
-        print(f"  reasoning_content length: {len(reasoning)}", file=sys.stderr)
+        print(f"  reasoning_content ({len(reasoning)} 字符):", file=sys.stderr)
+        print(f"  --- reasoning 开始 ---", file=sys.stderr)
+        print(reasoning, file=sys.stderr)
+        print(f"  --- reasoning 结束 ---", file=sys.stderr)
 
     if content:
         print(f"  content (前 200 字): {content[:200]}", file=sys.stderr)

@@ -25,7 +25,7 @@ class DeepSeekConfig:
     model: str = "deepseek-v4-pro"
     base_url: str = "https://api.deepseek.com"
     temperature: float = 0.3
-    max_tokens: int = 8192
+    max_tokens: int = 65536
 
 
 @dataclass

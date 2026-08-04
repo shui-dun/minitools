@@ -11,7 +11,7 @@ deepseek:
   model: "deepseek-v4-pro"
   base_url: "https://api.deepseek.com"
   temperature: 0.3
-  max_tokens: 8192               # 单次 API 调用最大输出 token 数
+  max_tokens: 65536              # 单次 API 调用最大输出 token 数（需覆盖思考链 + 正文）
 
 chunk:
   max_chars: 15000               # 单块最大中文字符数（足够大才能去啰嗦）

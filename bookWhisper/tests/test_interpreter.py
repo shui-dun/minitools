@@ -9,6 +9,7 @@ import pytest
 from bookwhisper.checkpoint import CheckpointManager
 from bookwhisper.config import AppConfig
 from bookwhisper.interpreter import DeepSeekInterpreter, InterpretError
+from bookwhisper.prompts import NOVEL_SYSTEM_PROMPT, SYSTEM_PROMPT
 from bookwhisper.splitter import Section
 
 
@@ -322,3 +323,91 @@ class TestRetryLogic:
         interpreter = DeepSeekInterpreter(interpreter_config)
         with pytest.raises(InterpretError, match="已重试"):
             interpreter.interpret_section(sample_section, "摘要")
+
+
+class TestNovelMode:
+    """novel 模式测试。"""
+
+    def test_novel_mode_uses_novel_prompt(self, interpreter_config):
+        """novel 模式应使用 NOVEL_SYSTEM_PROMPT。"""
+        interpreter = DeepSeekInterpreter(interpreter_config, mode="novel")
+        assert interpreter._system_prompt == NOVEL_SYSTEM_PROMPT
+
+    def test_default_mode_uses_default_prompt(self, interpreter_config):
+        """default 模式应使用 SYSTEM_PROMPT。"""
+        interpreter = DeepSeekInterpreter(interpreter_config, mode="default")
+        assert interpreter._system_prompt == SYSTEM_PROMPT
+
+    @patch("bookwhisper.interpreter.OpenAI")
+    def test_novel_user_message_no_summary(
+        self, mock_openai_cls, interpreter_config, mock_openai_response, sample_section
+    ):
+        """novel 模式的消息不应包含【整书摘要】。"""
+        mock_client = MagicMock()
+        mock_client.chat.completions.create.return_value = mock_openai_response
+        mock_openai_cls.return_value = mock_client
+
+        interpreter = DeepSeekInterpreter(interpreter_config, mode="novel")
+        interpreter.interpret_section(sample_section, "整书摘要")
+
+        call_args = mock_client.chat.completions.create.call_args
+        messages = call_args.kwargs["messages"]
+        user_msg = next(m["content"] for m in messages if m["role"] == "user")
+
+        assert "【整书摘要】" not in user_msg
+        assert "【当前解读位置】" not in user_msg
+
+    @patch("bookwhisper.interpreter.OpenAI")
+    def test_novel_user_message_no_rules_reminder(
+        self, mock_openai_cls, interpreter_config, mock_openai_response, sample_section
+    ):
+        """novel 模式的消息不应包含【重要提醒】。"""
+        mock_client = MagicMock()
+        mock_client.chat.completions.create.return_value = mock_openai_response
+        mock_openai_cls.return_value = mock_client
+
+        interpreter = DeepSeekInterpreter(interpreter_config, mode="novel")
+        interpreter.interpret_section(sample_section, "")
+
+        call_args = mock_client.chat.completions.create.call_args
+        messages = call_args.kwargs["messages"]
+        user_msg = next(m["content"] for m in messages if m["role"] == "user")
+
+        assert "重要提醒" not in user_msg
+
+    @patch("bookwhisper.interpreter.OpenAI")
+    def test_novel_user_message_has_previous_text(
+        self, mock_openai_cls, interpreter_config, mock_openai_response, sample_section
+    ):
+        """novel 模式传入 previous_text 时应出现在消息中。"""
+        mock_client = MagicMock()
+        mock_client.chat.completions.create.return_value = mock_openai_response
+        mock_openai_cls.return_value = mock_client
+
+        interpreter = DeepSeekInterpreter(interpreter_config, mode="novel")
+        interpreter.interpret_section(sample_section, "", previous_text="上一段末尾内容")
+
+        call_args = mock_client.chat.completions.create.call_args
+        messages = call_args.kwargs["messages"]
+        user_msg = next(m["content"] for m in messages if m["role"] == "user")
+
+        assert "上一段末尾内容" in user_msg
+
+    @patch("bookwhisper.interpreter.OpenAI")
+    def test_novel_system_prompt_in_api_call(
+        self, mock_openai_cls, interpreter_config, mock_openai_response, sample_section
+    ):
+        """novel 模式发送给 API 的 system prompt 应该是 NOVEL_SYSTEM_PROMPT。"""
+        mock_client = MagicMock()
+        mock_client.chat.completions.create.return_value = mock_openai_response
+        mock_openai_cls.return_value = mock_client
+
+        interpreter = DeepSeekInterpreter(interpreter_config, mode="novel")
+        interpreter.interpret_section(sample_section, "")
+
+        call_args = mock_client.chat.completions.create.call_args
+        messages = call_args.kwargs["messages"]
+        system_msg = next(m["content"] for m in messages if m["role"] == "system")
+
+        assert "小说翻译优化" in system_msg
+        assert "不是重写" in system_msg

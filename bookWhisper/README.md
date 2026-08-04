@@ -6,6 +6,8 @@ AI 解读书籍
 
 直接读书（或听书）有几个痛点：
 
+### 默认模式（社会科学书籍通俗化）
+
 | 痛点 | bookWhisper 的解法 |
 |------|-------------------|
 | 书面语晦涩，听不太懂 | LLM 改写为口语短句 |
@@ -16,6 +18,20 @@ AI 解读书籍
 | TTS 在术语中间断错句 | 在术语前后自然断句 |
 | 术语听不懂，不知道每个字怎么写 | 首次出现时逐字说明 + 白话解释 |
 | 读起来枯燥，没动力 | 加入设问、类比、点评式过渡，像朋友聊天 |
+
+### novel 模式（小说翻译 TTS 优化）
+
+适用于小说类文本的翻译优化，特点是**克制、最小改动**：
+
+| 痛点 | novel 模式的解法 |
+|------|-----------------|
+| OCR 带来的错别字、页码、脚注、特殊符号 | 修正错别字，删除干扰内容 |
+| 生僻词/文雅词听不懂（如"吊诡"、"信玄袋"） | 替换为通俗词（"奇怪"、"袋子"） |
+| 单字词不易听清（如"树"、"蚁"） | 替换为双字词（"树木"、"蚂蚁"） |
+| 对话顺序不自然（"真好"，他说道） | 改为说话人在前（他说道，"真好"） |
+| 文言文倾向听不懂 | 改写为白话文 |
+
+通过 `--mode novel` 开启，仅做一次处理，不进行大幅重写。
 
 ---
 
@@ -110,11 +126,13 @@ bookwhisper interpret <输入文件> [选项]
 | `-c, --config PATH` | YAML 配置文件路径 | 无 |
 | `-o, --output TEXT` | 输出目录 | `./output` |
 | `--output-suffix TEXT` | 输出文件名后缀 | `_interpreted` |
+| `--mode TEXT` | 解读模式：`default` / `novel` | `default` |
 | `--deepseek-model TEXT` | DeepSeek 模型名 | `deepseek-v4-pro` |
 | `--deepseek-base-url TEXT` | API 地址 | `https://api.deepseek.com` |
 | `--deepseek-temperature FLOAT` | 温度参数（0-1） | `0.3` |
-| `--chunk-max-chars INTEGER` | 单块最大字符数 | `3000` |
-| `--chunk-book-summary-chars INTEGER` | 整书摘要最大字数 | `500` |
+| `--chunk-max-chars INTEGER` | 单块最大字符数 | `15000` |
+| `--chunk-book-summary-chars INTEGER` | 整书摘要最大字数 | `800` |
+| `--parallel-workers INTEGER` | 并行解读 worker 数量 | `5` |
 | `--max-retries INTEGER` | API 失败最大重试次数 | `3` |
 | `--resume / --no-resume` | 是否断点续传 | 启用 |
 | `-v, --verbose` | 详细日志 | 关闭 |
@@ -130,6 +148,9 @@ bookwhisper interpret 社会学导论.epub --output ./audiobooks
 
 # 解读 MOBI 文件（需要安装 Calibre）
 bookwhisper interpret 社会学导论.mobi
+
+# 使用 novel 模式优化小说翻译（克制模式，仅做最小改动）
+bookwhisper interpret 小说.epub --mode novel
 
 # 调小块大小，降低单次 API 调用量
 bookwhisper interpret 社会学导论.epub --chunk-max-chars 1500
@@ -168,12 +189,18 @@ deepseek:
   temperature: 0.3
 
 chunk:
-  max_chars: 3000               # 单块最大中文字符数
-  book_summary_chars: 500        # 整书摘要最大字数
+  max_chars: 15000               # 单块最大中文字符数
+  book_summary_chars: 800         # 整书摘要最大字数
 
 output:
   dir: "./output"
   suffix: "_interpreted"
+
+# 解读模式："default"=社科书籍通俗化，"novel"=小说翻译优化
+mode: "default"
+
+# 并行解读 worker 数量
+parallel_workers: 5
 ```
 
 有了家目录配置后，直接运行即可，不需要每次指定 `--config`：
@@ -205,7 +232,7 @@ bookwhisper interpret 长书.epub
 bookwhisper interpret 长书.epub
 ```
 
-断点信息保存在输出目录下的 `.bookwhisper_checkpoint.json` 文件中。
+断点信息保存在输出目录下的 `.bookwhisper_{书名}.checkpoint.json` 文件中。
 
 ```bash
 # 强制从头重新解读
@@ -252,4 +279,4 @@ bookwhisper interpret 长书.epub --no-resume
 uv run pytest tests/ -v
 ```
 
-70 个测试覆盖了所有模块：配置加载、格式转换、EPUB 读写、文本分块、API 调用（mock）、重试逻辑、断点续传、CLI 集成。
+159 个测试覆盖了所有模块：配置加载、格式转换、EPUB 读写、文本分块、API 调用（mock）、重试逻辑、断点续传、CLI 集成、双模式支持。

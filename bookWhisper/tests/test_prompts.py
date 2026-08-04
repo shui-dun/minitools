@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
-from bookwhisper.prompts import REVIEW_PROMPT, SUMMARY_PROMPT, SYSTEM_PROMPT
+from bookwhisper.prompts import (
+    NOVEL_SYSTEM_PROMPT,
+    REVIEW_PROMPT,
+    SUMMARY_PROMPT,
+    SYSTEM_PROMPT,
+)
 
 
 class TestPrompts:
@@ -38,3 +43,48 @@ class TestPrompts:
         formatted = REVIEW_PROMPT.format(content="测试通俗化结果")
         assert "测试通俗化结果" in formatted
         assert "全文重写" in formatted
+
+
+class TestNovelPrompt:
+    """novel 模式提示词测试。"""
+
+    def test_novel_prompt_not_empty(self) -> None:
+        """NOVEL prompt 不为空。"""
+        assert len(NOVEL_SYSTEM_PROMPT) > 100
+
+    def test_novel_prompt_minimal_changes(self) -> None:
+        """NOVEL prompt 强调尽量保持原文。"""
+        assert "尽量保持原文" in NOVEL_SYSTEM_PROMPT
+        assert "不是重写" in NOVEL_SYSTEM_PROMPT
+
+    def test_novel_prompt_ocr_fix(self) -> None:
+        """NOVEL prompt 包含 OCR 修正要求。"""
+        assert "OCR" in NOVEL_SYSTEM_PROMPT
+        assert "错别字" in NOVEL_SYSTEM_PROMPT
+
+    def test_novel_prompt_replace_uncommon_words(self) -> None:
+        """NOVEL prompt 包含不常用词替换要求。"""
+        assert "不常用" in NOVEL_SYSTEM_PROMPT
+        assert "吊诡" in NOVEL_SYSTEM_PROMPT
+
+    def test_novel_prompt_single_char_words(self) -> None:
+        """NOVEL prompt 包含单字词替换要求。"""
+        assert "单个字的词语" in NOVEL_SYSTEM_PROMPT
+
+    def test_novel_prompt_dialogue_reorder(self) -> None:
+        """NOVEL prompt 包含对话顺序改写要求。"""
+        assert "他说道" in NOVEL_SYSTEM_PROMPT
+
+    def test_novel_prompt_classical_to_vernacular(self) -> None:
+        """NOVEL prompt 包含文言文改写要求。"""
+        assert "文言文" in NOVEL_SYSTEM_PROMPT
+        assert "白话文" in NOVEL_SYSTEM_PROMPT
+
+    def test_novel_prompt_text_alignment(self) -> None:
+        """NOVEL prompt 包含文本对齐要求。"""
+        assert "对齐" in NOVEL_SYSTEM_PROMPT
+        assert "不完整" in NOVEL_SYSTEM_PROMPT
+
+    def test_novel_prompt_no_meta_output(self) -> None:
+        """NOVEL prompt 要求输出不包含小说以外的内容。"""
+        assert "输出不能包含除小说内容以外的任何其他东西" in NOVEL_SYSTEM_PROMPT

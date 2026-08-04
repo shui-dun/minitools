@@ -22,6 +22,7 @@ class TestAppConfigDefaults:
         assert config.chunk.book_summary_chars == 800
         assert config.output.dir == "./output"
         assert config.output.suffix == "_interpreted"
+        assert config.mode == "default"
         assert config.resume is True
         assert config.max_retries == 3
 
@@ -75,6 +76,15 @@ class TestApplyCliOverrides:
         config = AppConfig()
         config.apply_cli_overrides({"resume": "false"})
         assert config.resume is False
+
+    def test_override_mode(self) -> None:
+        config = AppConfig()
+        config.apply_cli_overrides({"mode": "novel"})
+        assert config.mode == "novel"
+
+    def test_override_mode_default(self) -> None:
+        config = AppConfig()
+        assert config.mode == "default"
 
 
 class TestAsNestedDict:

@@ -21,5 +21,8 @@ output:
   dir: "./output"                # 输出目录
   suffix: "_interpreted"         # 输出文件名后缀
 
+# 解读模式："default" 为默认的社会科学书籍通俗化解读，"novel" 为小说翻译优化
+mode: "default"
+
 # 并行解读 worker 数量（默认 5）
 parallel_workers: 5

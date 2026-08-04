@@ -47,6 +47,7 @@ def _build_cli_overrides(
     max_retries: int | None,
     resume_flag: bool | None,
     parallel_workers: int | None,
+    mode: str | None,
 ) -> dict[str, str]:
     """将 CLI 参数转换为点号路径的覆盖字典。"""
     overrides: dict[str, str] = {}
@@ -71,6 +72,8 @@ def _build_cli_overrides(
         overrides["resume"] = str(resume_flag)
     if parallel_workers is not None:
         overrides["parallel_workers"] = str(parallel_workers)
+    if mode is not None:
+        overrides["mode"] = mode
 
     return overrides
 
@@ -164,6 +167,12 @@ def cli() -> None:
     default=None,
     help="并行解读 worker 数量（默认: 5）。",
 )
+@click.option(
+    "--mode",
+    type=click.Choice(["default", "novel"]),
+    default=None,
+    help="解读模式：default=社会科学书籍通俗化，novel=小说翻译 TTS 优化。",
+)
 def interpret(
     input_file: str,
     config: str | None,
@@ -178,6 +187,7 @@ def interpret(
     resume: bool | None,
     verbose: bool,
     parallel_workers: int | None,
+    mode: str | None,
 ) -> None:
     """解读书籍并输出 EPUB。
 
@@ -199,6 +209,7 @@ def interpret(
         max_retries=max_retries,
         resume_flag=resume,
         parallel_workers=parallel_workers,
+        mode=mode,
     )
     app_config.apply_cli_overrides(cli_overrides)
 
@@ -222,6 +233,7 @@ def interpret(
     click.echo(f"  输入: {input_path}")
     click.echo(f"  输出: {output_dir}")
     click.echo(f"  模型: {app_config.deepseek.model}")
+    click.echo(f"  模式: {app_config.mode}")
     click.echo("=" * 60)
 
     # ========== Pipeline ==========
@@ -289,21 +301,25 @@ def _run_pipeline(
         _rebuild_epub(reader, checkpoint, output_dir, config)
         return
 
-    # Step 5: 生成整书摘要
+    # Step 5: 生成整书摘要（novel 模式跳过）
     click.echo("\n[5/6] 初始化 DeepSeek 解读器...")
-    interpreter = DeepSeekInterpreter(config, checkpoint)
+    interpreter = DeepSeekInterpreter(config, checkpoint, mode=config.mode)
 
-    # 尝试从 checkpoint 恢复摘要
-    summary = checkpoint.get_book_summary()
-    if summary:
-        click.echo(f"  从 checkpoint 恢复整书摘要（{len(summary)} 字）。")
+    summary = ""
+    if config.mode != "novel":
+        # 尝试从 checkpoint 恢复摘要
+        summary = checkpoint.get_book_summary()
+        if summary:
+            click.echo(f"  从 checkpoint 恢复整书摘要（{len(summary)} 字）。")
+        else:
+            click.echo("  正在生成整书摘要...")
+            front_matter = reader.get_front_matter_text(config.chunk.book_summary_chars * 3)
+            # 把书名显式传入，避免 AI 从正文中猜错书名
+            front_matter = f"书名：《{reader.title}》\n\n{front_matter}"
+            summary = interpreter.generate_summary(front_matter)
+            click.echo(f"  整书摘要（{len(summary)} 字）已生成。")
     else:
-        click.echo("  正在生成整书摘要...")
-        front_matter = reader.get_front_matter_text(config.chunk.book_summary_chars * 3)
-        # 把书名显式传入，避免 AI 从正文中猜错书名
-        front_matter = f"书名：《{reader.title}》\n\n{front_matter}"
-        summary = interpreter.generate_summary(front_matter)
-        click.echo(f"  整书摘要（{len(summary)} 字）已生成。")
+        click.echo("  novel 模式：跳过整书摘要生成。")
 
     # Step 6: 按章节并行解读
     # 将 sections 按章节分组，同章内保持顺序（需要上下文传递），跨章并行
@@ -359,12 +375,17 @@ def _run_pipeline(
                     section, summary, previous_text=prev_text,
                 )
 
-                # 二次全文重写
-                refined_text = interpreter.review_and_refine(result.interpreted_text)
-                result.interpreted_text = refined_text
-                result.interpreted_chars = len(refined_text)
-                checkpoint.mark_done(section.id, result)
-                logger.info("%s 二次重写完成: %d 字", section.context_label, len(refined_text))
+                if config.mode == "novel":
+                    # novel 模式：不需要二次重写，直接保存
+                    checkpoint.mark_done(section.id, result)
+                    logger.info("%s novel 模式完成: %d 字", section.context_label, result.interpreted_chars)
+                else:
+                    # default 模式：二次全文重写
+                    refined_text = interpreter.review_and_refine(result.interpreted_text)
+                    result.interpreted_text = refined_text
+                    result.interpreted_chars = len(refined_text)
+                    checkpoint.mark_done(section.id, result)
+                    logger.info("%s 二次重写完成: %d 字", section.context_label, len(refined_text))
 
                 results.append(result)
                 prev_text = result.interpreted_text

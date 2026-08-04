@@ -18,7 +18,13 @@ from openai import OpenAI
 
 from bookwhisper.checkpoint import ChapterResult, CheckpointManager
 from bookwhisper.config import AppConfig, DeepSeekConfig
-from bookwhisper.prompts import REVIEW_PROMPT, RULES_REMINDER, SUMMARY_PROMPT, SYSTEM_PROMPT
+from bookwhisper.prompts import (
+    NOVEL_SYSTEM_PROMPT,
+    REVIEW_PROMPT,
+    RULES_REMINDER,
+    SUMMARY_PROMPT,
+    SYSTEM_PROMPT,
+)
 from bookwhisper.splitter import Section
 
 logger = logging.getLogger(__name__)
@@ -114,9 +120,12 @@ class DeepSeekInterpreter:
         self,
         config: AppConfig,
         checkpoint: CheckpointManager | None = None,
+        mode: str = "default",
     ) -> None:
         self._config = config
         self._checkpoint = checkpoint
+        self._mode = mode
+        self._system_prompt = SYSTEM_PROMPT if mode != "novel" else NOVEL_SYSTEM_PROMPT
         self._client = OpenAI(
             api_key=config.deepseek.api_key,
             base_url=config.deepseek.base_url,
@@ -193,10 +202,13 @@ class DeepSeekInterpreter:
         )
 
         # 构建消息
-        user_content = self._build_user_content(section, book_summary, previous_text)
+        user_content = self._build_user_content(
+            section, book_summary, previous_text,
+            novel_mode=(self._mode == "novel"),
+        )
 
         messages: list[dict[str, str]] = [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": self._system_prompt},
             {"role": "user", "content": user_content},
         ]
 
@@ -293,12 +305,24 @@ class DeepSeekInterpreter:
 
     @staticmethod
     def _build_user_content(
-        section: Section, book_summary: str, previous_text: str = ""
+        section: Section,
+        book_summary: str = "",
+        previous_text: str = "",
+        *,
+        novel_mode: bool = False,
     ) -> str:
         """构建发送给 LLM 的用户消息。
 
         包含：前文回顾 + 整书摘要 + 章节上下文标签 + 章节文本。
+        novel 模式下仅包含前文回顾和原文，不含摘要和规则重申。
         """
+        if novel_mode:
+            parts: list[str] = []
+            if previous_text:
+                parts.append(previous_text)
+            parts.append(section.text)
+            return "\n\n".join(parts)
+
         parts: list[str] = []
 
         if previous_text:

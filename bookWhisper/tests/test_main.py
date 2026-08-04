@@ -33,6 +33,7 @@ class TestCli:
         result = runner.invoke(cli, ["interpret", "--help"])
         assert result.exit_code == 0
         assert "INPUT_FILE" in result.output
+        assert "--mode" in result.output
 
     @pytest.mark.skipif(
         DEFAULT_CONFIG_PATH.exists() or "DEEPSEEK_API_KEY" in os.environ,
@@ -81,6 +82,36 @@ class TestCli:
             "--verbose",
         ])
         assert isinstance(result.exit_code, int)
+
+    def test_mode_novel_flag(self, sample_epub_path) -> None:
+        """--mode novel 不应报错。"""
+        runner = CliRunner(env={"DEEPSEEK_API_KEY": "sk-test"})
+        result = runner.invoke(cli, [
+            "interpret",
+            str(sample_epub_path),
+            "--mode", "novel",
+        ])
+        assert isinstance(result.exit_code, int)
+
+    def test_mode_default_flag(self, sample_epub_path) -> None:
+        """--mode default 不应报错。"""
+        runner = CliRunner(env={"DEEPSEEK_API_KEY": "sk-test"})
+        result = runner.invoke(cli, [
+            "interpret",
+            str(sample_epub_path),
+            "--mode", "default",
+        ])
+        assert isinstance(result.exit_code, int)
+
+    def test_mode_invalid_rejected(self) -> None:
+        """无效的 mode 值应该被 click 拒绝。"""
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            "interpret",
+            "--mode", "invalid_mode",
+            "/nonexistent/file.epub",
+        ])
+        assert result.exit_code != 0
 
     # ---- MOBI/AZW3 格式输入测试 ----
 

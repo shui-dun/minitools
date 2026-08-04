@@ -54,6 +54,7 @@ class AppConfig:
     output: OutputConfig = field(default_factory=OutputConfig)
 
     # 非嵌套项
+    mode: str = "default"
     resume: bool = True
     max_retries: int = 3
     parallel_workers: int = 5

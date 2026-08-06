@@ -107,7 +107,7 @@ bookwhisper interpret 经济学原理.epub
 
 ## 命令详解
 
-### `bookwhisper interpret` — 解读一本书
+### `bookwhisper interpret` — 解读一本书（或批量翻译一个目录）
 
 ```bash
 bookwhisper interpret <输入文件> [选项]
@@ -117,7 +117,7 @@ bookwhisper interpret <输入文件> [选项]
 
 | 参数 | 说明 |
 |------|------|
-| `INPUT_FILE` | 输入文件路径，支持 `.epub` / `.mobi` / `.azw3` |
+| `INPUT_FILE` | 输入文件路径（支持 `.epub` / `.mobi` / `.azw3`），或目录路径（批量翻译目录下所有电子书） |
 
 #### 选项
 
@@ -132,7 +132,8 @@ bookwhisper interpret <输入文件> [选项]
 | `--deepseek-temperature FLOAT` | 温度参数（0-1） | `0.3` |
 | `--chunk-max-chars INTEGER` | 单块最大字符数 | `15000` |
 | `--chunk-book-summary-chars INTEGER` | 整书摘要最大字数 | `800` |
-| `--parallel-workers INTEGER` | 并行解读 worker 数量 | `5` |
+| `--parallel-workers INTEGER` | 并行解读 worker 数量（章节级） | `5` |
+| `--batch-workers INTEGER` | 批量翻译时同时处理的书籍数量 | `20` |
 | `--max-retries INTEGER` | API 失败最大重试次数 | `3` |
 | `--resume / --no-resume` | 是否断点续传 | 启用 |
 | `--fallback-to-original-on-empty` / `--no-fallback-to-original-on-empty` | 空内容回退：API 多次返回空内容后是否回退到原文 | 关闭 |
@@ -156,6 +157,15 @@ bookwhisper interpret 小说.epub --mode novel
 # 调小块大小，降低单次 API 调用量
 bookwhisper interpret 社会学导论.epub --chunk-max-chars 1500
 
+# 批量翻译整个目录（默认 20 本并发，单本失败不影响其他）
+bookwhisper interpret ./books/
+
+# 批量翻译，限制并发数为 5
+bookwhisper interpret ./books/ --batch-workers 5
+
+# 批量翻译 novel 模式
+bookwhisper interpret ./novels/ --mode novel --batch-workers 10
+
 # 强制重新解读整本书（忽略断点续传）
 bookwhisper interpret 社会学导论.epub --no-resume
 
@@ -168,6 +178,33 @@ bookwhisper interpret 书籍.epub --fallback-to-original-on-empty
 # 组合使用：通过配置文件 + CLI 覆盖部分参数
 bookwhisper interpret 社会学导论.epub --config my_config.yaml --chunk-max-chars 2000
 ```
+
+---
+
+## 批量翻译
+
+传入目录路径即可批量翻译目录下所有电子书（递归扫描子目录）：
+
+```bash
+bookwhisper interpret ./books/
+```
+
+**行为：**
+- 递归扫描目录，自动发现所有 `.epub` / `.mobi` / `.azw3` / `.azw` 文件
+- **并发处理**：默认 20 本书同时翻译，通过 `--batch-workers` 调整
+- **单本隔离**：任意一本书翻译失败（网络错误、格式损坏等）不影响其他书
+- **断点续传**：每本书独立维护 checkpoint，中断后重新运行自动跳过已完成章节
+
+```bash
+# 批量翻译，限制 5 本并发
+bookwhisper interpret ./books/ --batch-workers 5
+
+# 批量翻译小说，novel 模式
+bookwhisper interpret ./novels/ --mode novel --batch-workers 10
+```
+
+> `--parallel-workers` 控制每本书内部章节的并行度，`--batch-workers` 控制同时翻译几本书。
+> 总 API 并发 ≈ `batch_workers × parallel_workers`，请根据 API 限流合理设置。
 
 ---
 
@@ -206,8 +243,11 @@ mode: "default"
 # 空内容回退：API 多次返回空内容后是否回退到原文
 fallback_to_original_on_empty: false
 
-# 并行解读 worker 数量
+# 并行解读 worker 数量（章节级）
 parallel_workers: 5
+
+# 批量翻译时同时处理的书籍数量
+batch_workers: 20
 ```
 
 有了家目录配置后，直接运行即可，不需要每次指定 `--config`：
@@ -286,4 +326,4 @@ bookwhisper interpret 长书.epub --no-resume
 uv run pytest tests/ -v
 ```
 
-159 个测试覆盖了所有模块：配置加载、格式转换、EPUB 读写、文本分块、API 调用（mock）、重试逻辑、断点续传、CLI 集成、双模式支持。
+191 个测试覆盖了所有模块：配置加载、格式转换、EPUB 读写、文本分块、API 调用（mock）、重试逻辑、断点续传、CLI 集成、双模式支持、批量翻译。

@@ -193,23 +193,109 @@ class TestBatchInterpret:
                 except Exception as e:
                     pytest.fail(f"_batch_interpret 不应抛异常，但抛出了: {e}")
 
-    def test_serial_execution_order(self, tmp_path: Path) -> None:
-        """验证书籍按文件名排序串行处理。"""
+    def test_all_books_processed(self, tmp_path: Path) -> None:
+        """验证所有书籍都被处理（并发模式下顺序不保证）。"""
         (tmp_path / "c.epub").write_text("dummy")
         (tmp_path / "a.epub").write_text("dummy")
         (tmp_path / "b.epub").write_text("dummy")
         config = AppConfig()
 
-        processed = []
+        processed: list[str] = []
+        lock = __import__("threading").Lock()
 
         def side_effect(book_path, *args, **kwargs):
-            processed.append(book_path.name)
+            with lock:
+                processed.append(book_path.name)
 
         with mock.patch("bookwhisper.main._run_pipeline", side_effect=side_effect):
             with mock.patch("click.echo"):
                 _batch_interpret(tmp_path, config)
-                assert processed == ["a.epub", "b.epub", "c.epub"], \
-                    f"期望按文件名排序处理，实际顺序: {processed}"
+                assert sorted(processed) == ["a.epub", "b.epub", "c.epub"], \
+                    f"所有三本书都应被处理，实际: {processed}"
+
+    def test_concurrent_processing(self, tmp_path: Path) -> None:
+        """验证多本书确实并发执行（总耗时 < 串行耗时）。"""
+        import time
+
+        # 创建 3 本书
+        for name in ["a.epub", "b.epub", "c.epub"]:
+            (tmp_path / name).write_text("dummy")
+
+        config = AppConfig()
+        config.batch_workers = 3  # 允许 3 本并发
+
+        sleep_time = 0.1  # 每本书 sleep 0.1 秒
+
+        def side_effect(book_path, *args, **kwargs):
+            time.sleep(sleep_time)
+            return book_path  # 不抛异常
+
+        with mock.patch("bookwhisper.main._run_pipeline", side_effect=side_effect):
+            with mock.patch("click.echo"):
+                start = time.monotonic()
+                _batch_interpret(tmp_path, config)
+                elapsed = time.monotonic() - start
+
+        # 并发 3 本应 < 串行 3 × 0.1 = 0.3，给 0.25 留余量
+        assert elapsed < sleep_time * 2.5, \
+            f"并发耗时 ({elapsed:.2f}s) 应远小于串行 (0.3s)"
+
+    def test_batch_workers_capped_by_config(self, tmp_path: Path) -> None:
+        """验证并发度不超过 batch_workers 设置。"""
+        import time
+
+        for name in [f"book_{i:02d}.epub" for i in range(6)]:
+            (tmp_path / name).write_text("dummy")
+
+        config = AppConfig()
+        config.batch_workers = 2  # 最多 2 本并发
+
+        max_concurrent = 0
+        current = 0
+        lock = __import__("threading").Lock()
+
+        def side_effect(book_path, *args, **kwargs):
+            nonlocal max_concurrent, current
+            with lock:
+                current += 1
+                if current > max_concurrent:
+                    max_concurrent = current
+            time.sleep(0.05)
+            with lock:
+                current -= 1
+
+        with mock.patch("bookwhisper.main._run_pipeline", side_effect=side_effect):
+            with mock.patch("click.echo"):
+                _batch_interpret(tmp_path, config)
+
+        assert max_concurrent <= 2, \
+            f"最大并发数 ({max_concurrent}) 应不超过 batch_workers (2)"
+
+    def test_concurrent_with_failures(self, tmp_path: Path) -> None:
+        """并发模式下部分失败仍能全部完成。"""
+        for name in ["a.epub", "b.epub", "c.epub", "d.epub"]:
+            (tmp_path / name).write_text("dummy")
+
+        config = AppConfig()
+        config.batch_workers = 4
+
+        call_count = 0
+        lock = __import__("threading").Lock()
+
+        def side_effect(book_path, *args, **kwargs):
+            nonlocal call_count
+            with lock:
+                call_count += 1
+                current = call_count
+            if current % 2 == 1:  # 第 1、3 本失败
+                raise SystemExit(1)
+            # 第 2、4 本成功
+
+        with mock.patch("bookwhisper.main._run_pipeline", side_effect=side_effect):
+            with mock.patch("click.echo"):
+                _batch_interpret(tmp_path, config)
+                # 4 本全部被处理
+                assert call_count == 4
 
 
 # ==================== CLI 集成测试 ====================
@@ -272,6 +358,17 @@ class TestCliBatchMode:
             ])
             assert isinstance(result.exit_code, int)
             mock_run.assert_called_once()
+
+    def test_batch_workers_cli_option(self, tmp_path: Path) -> None:
+        """--batch-workers 参数不应 crash。"""
+        (tmp_path / "book.epub").write_text("dummy")
+        runner = CliRunner(env={"DEEPSEEK_API_KEY": "sk-test"})
+        with mock.patch("bookwhisper.main._run_pipeline"):
+            result = runner.invoke(cli, [
+                "interpret", str(tmp_path), "--batch-workers", "10",
+            ])
+            assert isinstance(result.exit_code, int)
+            assert "并发度" in result.output
 
     def test_nonexistent_directory(self) -> None:
         """不存在的目录应被 click.Path(exists=True) 拦截。"""

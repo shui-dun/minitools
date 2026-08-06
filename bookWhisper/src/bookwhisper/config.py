@@ -59,6 +59,7 @@ class AppConfig:
     resume: bool = True
     max_retries: int = 3
     parallel_workers: int = 5
+    batch_workers: int = 20  # 批量翻译时同时处理的书籍数量
 
     def as_nested_dict(self) -> dict[str, dict[str, Any]]:
         """将配置展开为嵌套字典，方便点号路径查找。

@@ -29,3 +29,6 @@ fallback_to_original_on_empty: false
 
 # 并行解读 worker 数量（默认 5）
 parallel_workers: 5
+
+# 批量翻译时同时处理的书籍数量（默认 20）
+batch_workers: 20

@@ -49,6 +49,7 @@ def _build_cli_overrides(
     parallel_workers: int | None,
     mode: str | None,
     fallback_to_original_on_empty: bool | None,
+    batch_workers: int | None,
 ) -> dict[str, str]:
     """将 CLI 参数转换为点号路径的覆盖字典。"""
     overrides: dict[str, str] = {}
@@ -77,6 +78,8 @@ def _build_cli_overrides(
         overrides["mode"] = mode
     if fallback_to_original_on_empty is not None:
         overrides["fallback_to_original_on_empty"] = str(fallback_to_original_on_empty)
+    if batch_workers is not None:
+        overrides["batch_workers"] = str(batch_workers)
 
     return overrides
 
@@ -111,9 +114,9 @@ def _batch_interpret(
     config: AppConfig,
     verbose: bool = False,
 ) -> None:
-    """批量翻译目录下的所有电子书（串行处理，一本书翻译完再翻译下一本）。
+    """批量翻译目录下的所有电子书（并发处理，多本书同时翻译）。
 
-    单本书翻译失败时记录错误并继续处理下一本，不会中断整个批量任务。
+    单本书翻译失败时记录错误并继续处理，不会中断整个批量任务。
 
     Args:
         directory: 包含电子书文件的目录。
@@ -128,38 +131,79 @@ def _batch_interpret(
         return
 
     output_dir = Path(config.output.dir).resolve()
+    batch_workers = max(1, config.batch_workers)
+    total = len(books)
 
     click.echo("=" * 60)
     click.echo(f"  bookWhisper v{__version__}  批量翻译模式")
     click.echo(f"  扫描目录: {directory}")
-    click.echo(f"  发现书籍: {len(books)} 本")
+    click.echo(f"  发现书籍: {total} 本")
     click.echo(f"  输出目录: {output_dir}")
     click.echo(f"  模型: {config.deepseek.model}")
     click.echo(f"  模式: {config.mode}")
+    click.echo(f"  并发度: {min(batch_workers, total)} 本同时处理")
     click.echo("=" * 60)
 
-    for i, book in enumerate(books, 1):
-        click.echo(f"\n{'─' * 50}")
-        click.echo(f"[{i}/{len(books)}] 开始处理: {book.name}")
-        click.echo(f"{'─' * 50}")
+    # 线程安全的计数器
+    lock = threading.Lock()
+    completed = 0
+    succeeded = 0
+    failed = 0
+
+    def _process_one(book: Path) -> tuple[str, bool, str, int]:
+        """处理单本书。返回 (书名, 成功, 错误信息, 当前完成数)。"""
+        nonlocal completed, succeeded, failed
 
         try:
             _run_pipeline(book, output_dir, config, verbose=verbose)
-            click.echo(f"\n✓ [{i}/{len(books)}] 完成: {book.name}")
+            ok = True
+            error = ""
         except SystemExit as e:
-            if e.code is not None and e.code != 0:
-                click.echo(
-                    f"\n✗ [{i}/{len(books)}] 失败: {book.name} (退出码: {e.code})",
-                    err=True,
-                )
-            click.echo("  继续处理下一本...")
+            ok = e.code is None or e.code == 0
+            error = f" (退出码: {e.code})" if not ok else ""
         except Exception:
             logger.exception("批量翻译 %s 时发生异常", book.name)
-            click.echo(f"\n✗ [{i}/{len(books)}] 失败: {book.name}（异常）", err=True)
-            click.echo("  继续处理下一本...")
+            ok = False
+            error = "（异常）"
+
+        with lock:
+            completed += 1
+            if ok:
+                succeeded += 1
+            else:
+                failed += 1
+            snapshot = completed
+
+        return book.name, ok, error, snapshot
+
+    with ThreadPoolExecutor(max_workers=batch_workers) as executor:
+        future_to_book = {
+            executor.submit(_process_one, book): book
+            for book in books
+        }
+
+        for future in as_completed(future_to_book):
+            book = future_to_book[future]
+            try:
+                name, ok, error, n = future.result()
+                if ok:
+                    click.echo(f"✓ [{n}/{total}] 完成: {name}")
+                else:
+                    click.echo(
+                        f"✗ [{n}/{total}] 失败: {name}{error}",
+                        err=True,
+                    )
+            except Exception:
+                # worker 内部已 catch，这里是兜底
+                with lock:
+                    completed += 1
+                    failed += 1
+                    n = completed
+                logger.exception("获取 %s 结果时异常", book.name)
+                click.echo(f"✗ [{n}/{total}] 失败: {book.name}", err=True)
 
     click.echo(f"\n{'=' * 60}")
-    click.echo(f"  批量翻译结束（共扫描 {len(books)} 本）")
+    click.echo(f"  批量翻译结束: 成功 {succeeded} 本, 失败 {failed} 本, 共 {total} 本")
     click.echo(f"{'=' * 60}")
 
 
@@ -253,6 +297,12 @@ def cli() -> None:
     help="并行解读 worker 数量（默认: 5）。",
 )
 @click.option(
+    "--batch-workers",
+    type=int,
+    default=None,
+    help="批量翻译时同时处理的书籍数量（默认: 20）。",
+)
+@click.option(
     "--mode",
     type=click.Choice(["default", "novel"]),
     default=None,
@@ -279,6 +329,7 @@ def interpret(
     parallel_workers: int | None,
     mode: str | None,
     fallback_to_original_on_empty: bool | None,
+    batch_workers: int | None,
 ) -> None:
     """解读书籍并输出 EPUB。
 
@@ -303,6 +354,7 @@ def interpret(
         parallel_workers=parallel_workers,
         mode=mode,
         fallback_to_original_on_empty=fallback_to_original_on_empty,
+        batch_workers=batch_workers,
     )
     app_config.apply_cli_overrides(cli_overrides)
 

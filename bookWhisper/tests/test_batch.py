@@ -16,7 +16,7 @@ import pytest
 from click.testing import CliRunner
 
 from bookwhisper.config import AppConfig
-from bookwhisper.main import _discover_book_files, _batch_interpret, cli
+from bookwhisper.main import _discover_book_files, _filter_batch_books, _batch_interpret, cli
 
 
 # ==================== _discover_book_files 测试 ====================
@@ -96,6 +96,124 @@ class TestDiscoverBookFiles:
         result = _discover_book_files(tmp_path)
         assert len(result) == 1
         assert result[0].name == ".hidden_book.epub"
+
+
+# ==================== _filter_batch_books 测试 ====================
+
+
+class TestFilterBatchBooks:
+    """测试 _filter_batch_books 的过滤和去重逻辑。"""
+
+    DEFAULT_SUFFIX = "_interpreted"
+
+    def _make_books(self, tmp_path: Path, *names: str) -> list[Path]:
+        """在临时目录创建指定文件名的空文件，返回 Path 列表（保持 _discover_book_files 的排序）。"""
+        books = []
+        for name in names:
+            p = tmp_path / name
+            p.write_text("dummy")
+            books.append(p)
+        return sorted(books, key=lambda p: p.name.lower())
+
+    def test_empty_list(self) -> None:
+        """空列表返回空列表。"""
+        assert _filter_batch_books([], self.DEFAULT_SUFFIX) == []
+
+    def test_normal_books_unchanged(self, tmp_path: Path) -> None:
+        """不涉及输出后缀和同名冲突时，所有书籍保留。"""
+        books = self._make_books(tmp_path, "a.epub", "b.mobi", "c.azw3")
+        result = _filter_batch_books(books, self.DEFAULT_SUFFIX)
+        assert len(result) == 3
+
+    def test_exclude_output_files(self, tmp_path: Path) -> None:
+        """stem 以 output_suffix 结尾的文件应被排除。"""
+        books = self._make_books(
+            tmp_path,
+            "a.epub",                    # 正常文件，保留
+            "a_interpreted.epub",        # 输出文件，排除
+            "b_interpreted.epub",        # 输出文件，排除
+            "c.mobi",                    # 正常文件，保留
+        )
+        result = _filter_batch_books(books, self.DEFAULT_SUFFIX)
+        names = [r.name for r in result]
+        assert names == ["a.epub", "c.mobi"]
+        assert "a_interpreted.epub" not in names
+        assert "b_interpreted.epub" not in names
+
+    def test_dedup_epub_preferred(self, tmp_path: Path) -> None:
+        """同名不同格式时保留 EPUB，跳过其他格式。"""
+        books = self._make_books(
+            tmp_path,
+            "book.epub",    # EPUB 优先
+            "book.mobi",    # 应被跳过（同名 EPUB 已存在）
+            "book.azw3",    # 应被跳过
+        )
+        result = _filter_batch_books(books, self.DEFAULT_SUFFIX)
+        names = [r.name for r in result]
+        assert names == ["book.epub"]
+
+    def test_no_epub_first_format_wins(self, tmp_path: Path) -> None:
+        """没有 EPUB 时保留第一个发现的格式。"""
+        books = self._make_books(
+            tmp_path,
+            "book.mobi",
+            "book.azw3",
+        )
+        result = _filter_batch_books(books, self.DEFAULT_SUFFIX)
+        assert len(result) == 1
+        assert result[0].suffix in (".mobi", ".azw3")
+
+    def test_dedup_does_not_affect_different_stems(self, tmp_path: Path) -> None:
+        """不同 stem 的文件不受去重影响。"""
+        books = self._make_books(
+            tmp_path,
+            "alpha.epub",
+            "beta.epub",
+            "gamma.mobi",
+            "alpha.mobi",    # 与 alpha.epub 同名，应跳过
+        )
+        result = _filter_batch_books(books, self.DEFAULT_SUFFIX)
+        names = [r.name for r in result]
+        assert "alpha.epub" in names
+        assert "beta.epub" in names
+        assert "gamma.mobi" in names
+        assert "alpha.mobi" not in names  # 被去重
+
+    def test_output_suffix_and_dedup_combined(self, tmp_path: Path) -> None:
+        """输出文件排除和去重同时生效。"""
+        books = self._make_books(
+            tmp_path,
+            "book.epub",                  # 保留（正常 EPUB）
+            "book.mobi",                  # 跳过（同名 EPUB 存在）
+            "book_interpreted.epub",      # 跳过（输出文件）
+            "other_interpreted.epub",     # 跳过（输出文件）
+            "other.mobi",                 # 保留（唯一格式，无同名 EPUB）
+        )
+        result = _filter_batch_books(books, self.DEFAULT_SUFFIX)
+        names = [r.name for r in result]
+        assert names == ["book.epub", "other.mobi"]
+
+    def test_custom_suffix(self, tmp_path: Path) -> None:
+        """使用自定义后缀过滤。"""
+        books = self._make_books(
+            tmp_path,
+            "normal.epub",
+            "normal_custom.epub",     # 自定义后缀 → 排除
+            "normal_interpreted.epub", # 默认后缀 → 不排除（因为改用了自定义后缀）
+        )
+        result = _filter_batch_books(books, "_custom")
+        names = [r.name for r in result]
+        assert "normal.epub" in names
+        assert "normal_interpreted.epub" in names
+        assert "normal_custom.epub" not in names
+
+    def test_suffix_mid_stem_not_excluded(self, tmp_path: Path) -> None:
+        """后缀出现在 stem 中间（非末尾）时不应被排除。"""
+        # stem = "my_interpreted_book"，中间有 _interpreted 但不是结尾
+        books = self._make_books(tmp_path, "my_interpreted_book.epub")
+        result = _filter_batch_books(books, "_interpreted")
+        # stem "my_interpreted_book" 不以 "_interpreted" 结尾，应保留
+        assert len(result) == 1
 
 
 # ==================== _batch_interpret 测试 ====================

@@ -109,6 +109,68 @@ def _discover_book_files(directory: Path) -> list[Path]:
     return unique
 
 
+def _filter_batch_books(
+    books: list[Path],
+    output_suffix: str,
+) -> list[Path]:
+    """批量模式下过滤书籍列表，解决并发处理时的两类问题。
+
+    1. 排除之前的输出文件：stem 以 output_suffix 结尾的文件是之前翻译
+       生成的输出 EPUB，批量模式不应将其当作输入重新翻译。
+    2. 同名不同格式去重（EPUB 优先）：如果 a.epub 和 a.mobi 同时存在，
+       只保留 a.epub。因为批量并发时，a.mobi 经 Calibre 转换为 a.epub
+       会与直接处理 a.epub 的线程产生文件级竞态条件，导致数据损坏。
+       单文件模式不存在此问题（用户显式指定了要处理的文件）。
+
+    Args:
+        books: 原始发现的电子书路径列表。
+        output_suffix: 输出文件名后缀（如 "_interpreted"），用于识别输出文件。
+
+    Returns:
+        过滤并去重后的电子书路径列表。
+    """
+    filtered: list[Path] = []
+    skipped_output: list[str] = []
+    skipped_dup: list[str] = []
+
+    # ---- 第一遍：排除输出文件 ----
+    for b in books:
+        if b.stem.endswith(output_suffix):
+            skipped_output.append(b.name)
+        else:
+            filtered.append(b)
+
+    # ---- 第二遍：同名不同格式去重，EPUB 优先 ----
+    seen: dict[str, Path] = {}  # stem → book path
+    for b in filtered:
+        stem = b.stem
+        if stem in seen:
+            existing = seen[stem]
+            # EPUB 优先于其他格式
+            if b.suffix.lower() == ".epub":
+                skipped_dup.append(existing.name)
+                seen[stem] = b
+            else:
+                skipped_dup.append(b.name)
+        else:
+            seen[stem] = b
+
+    if skipped_output:
+        logger.info(
+            "批量模式：跳过 %d 个输出文件: %s",
+            len(skipped_output),
+            ", ".join(skipped_output[:5]),
+        )
+    if skipped_dup:
+        logger.info(
+            "批量模式：同名 EPUB 优先，跳过 %d 个重复格式文件: %s",
+            len(skipped_dup),
+            ", ".join(skipped_dup[:5]),
+        )
+
+    return sorted(seen.values(), key=lambda p: p.name.lower())
+
+
 def _batch_interpret(
     directory: Path,
     config: AppConfig,
@@ -123,11 +185,23 @@ def _batch_interpret(
         config: 应用配置。
         verbose: 详细日志输出。
     """
-    books = _discover_book_files(directory)
+    raw_books = _discover_book_files(directory)
 
-    if not books:
+    if not raw_books:
         click.echo(f"警告：在目录 {directory} 中未找到任何支持的电子书文件。")
         click.echo(f"支持的格式: {', '.join(sorted(SUPPORTED_INPUT_FORMATS))}")
+        return
+
+    # 批量模式特有的过滤：排除输出文件 + 同名去重（EPUB 优先）
+    # 单文件模式不需要这些处理，因为用户显式指定了要处理的文件
+    books = _filter_batch_books(raw_books, config.output.suffix)
+
+    if not books:
+        click.echo(
+            f"警告：过滤后无可处理的电子书。\n"
+            f"  原始发现: {len(raw_books)} 个文件\n"
+            f"  可能原因: 所有文件都是输出文件（stem 以 '{config.output.suffix}' 结尾）"
+        )
         return
 
     output_dir = Path(config.output.dir).resolve()

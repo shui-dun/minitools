@@ -23,7 +23,7 @@ from click_default_group import DefaultGroup
 from bookwhisper import __version__
 from bookwhisper.checkpoint import ChapterResult, CheckpointManager
 from bookwhisper.config import AppConfig, load_config
-from bookwhisper.converter import FormatConverter
+from bookwhisper.converter import FormatConverter, SUPPORTED_INPUT_FORMATS
 from bookwhisper.epub_processor import EpubReader, EpubWriter
 from bookwhisper.interpreter import DeepSeekInterpreter, InterpretError
 from bookwhisper.splitter import ChapterSplitter, Section
@@ -79,6 +79,88 @@ def _build_cli_overrides(
         overrides["fallback_to_original_on_empty"] = str(fallback_to_original_on_empty)
 
     return overrides
+
+
+def _discover_book_files(directory: Path) -> list[Path]:
+    """递归扫描目录，发现所有支持的电子书文件。
+
+    Args:
+        directory: 目录路径。
+
+    Returns:
+        按文件名排序的去重电子书路径列表。
+    """
+    books: list[Path] = []
+    for item in directory.rglob("*"):
+        if item.is_file() and item.suffix.lower() in SUPPORTED_INPUT_FORMATS:
+            books.append(item)
+
+    # 去重并按文件名排序
+    seen: set[str] = set()
+    unique: list[Path] = []
+    for b in sorted(books, key=lambda p: p.name.lower()):
+        resolved = str(b.resolve())
+        if resolved not in seen:
+            seen.add(resolved)
+            unique.append(b)
+    return unique
+
+
+def _batch_interpret(
+    directory: Path,
+    config: AppConfig,
+    verbose: bool = False,
+) -> None:
+    """批量翻译目录下的所有电子书（串行处理，一本书翻译完再翻译下一本）。
+
+    单本书翻译失败时记录错误并继续处理下一本，不会中断整个批量任务。
+
+    Args:
+        directory: 包含电子书文件的目录。
+        config: 应用配置。
+        verbose: 详细日志输出。
+    """
+    books = _discover_book_files(directory)
+
+    if not books:
+        click.echo(f"警告：在目录 {directory} 中未找到任何支持的电子书文件。")
+        click.echo(f"支持的格式: {', '.join(sorted(SUPPORTED_INPUT_FORMATS))}")
+        return
+
+    output_dir = Path(config.output.dir).resolve()
+
+    click.echo("=" * 60)
+    click.echo(f"  bookWhisper v{__version__}  批量翻译模式")
+    click.echo(f"  扫描目录: {directory}")
+    click.echo(f"  发现书籍: {len(books)} 本")
+    click.echo(f"  输出目录: {output_dir}")
+    click.echo(f"  模型: {config.deepseek.model}")
+    click.echo(f"  模式: {config.mode}")
+    click.echo("=" * 60)
+
+    for i, book in enumerate(books, 1):
+        click.echo(f"\n{'─' * 50}")
+        click.echo(f"[{i}/{len(books)}] 开始处理: {book.name}")
+        click.echo(f"{'─' * 50}")
+
+        try:
+            _run_pipeline(book, output_dir, config, verbose=verbose)
+            click.echo(f"\n✓ [{i}/{len(books)}] 完成: {book.name}")
+        except SystemExit as e:
+            if e.code is not None and e.code != 0:
+                click.echo(
+                    f"\n✗ [{i}/{len(books)}] 失败: {book.name} (退出码: {e.code})",
+                    err=True,
+                )
+            click.echo("  继续处理下一本...")
+        except Exception:
+            logger.exception("批量翻译 %s 时发生异常", book.name)
+            click.echo(f"\n✗ [{i}/{len(books)}] 失败: {book.name}（异常）", err=True)
+            click.echo("  继续处理下一本...")
+
+    click.echo(f"\n{'=' * 60}")
+    click.echo(f"  批量翻译结束（共扫描 {len(books)} 本）")
+    click.echo(f"{'=' * 60}")
 
 
 def _parse_chapter_index(chapter_id: str) -> int:
@@ -200,7 +282,8 @@ def interpret(
 ) -> None:
     """解读书籍并输出 EPUB。
 
-    INPUT_FILE: 输入文件路径（支持 .epub / .mobi / .azw3）。
+    INPUT_FILE: 输入文件路径（支持 .epub / .mobi / .azw3），
+    或目录路径（递归扫描目录内所有电子书，串行处理）。
     """
     if verbose:
         logging.getLogger().setLevel(logging.DEBUG)
@@ -236,6 +319,13 @@ def interpret(
         sys.exit(1)
 
     input_path = Path(input_file).resolve()
+
+    # ---- 目录模式：批量翻译 ----
+    if input_path.is_dir():
+        _batch_interpret(input_path, app_config, verbose=verbose)
+        return
+
+    # ---- 单文件模式 ----
     output_dir = Path(app_config.output.dir).resolve()
 
     click.echo("=" * 60)

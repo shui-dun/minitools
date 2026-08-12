@@ -546,6 +546,44 @@ class Task {
 		this.dv.table([""], tasks.map((t) => [printTask(t)]));
 	}
 
+	async showComposeTasks() {
+		let composeFolder = app.vault.getAbstractFileByPath('compose');
+		if (!composeFolder) return;
+
+		let composeFiles = composeFolder.children.filter(f => f.extension === 'md');
+		if (composeFiles.length === 0) return;
+
+		let composeTasks = [];
+		for (let file of composeFiles) {
+			let content = await app.vault.read(file);
+			if (!content.includes('#t')) continue;
+
+			let lines = content.split('\n');
+			for (let line of lines) {
+				if (/#t\b/.test(line)) {
+					// 去掉 #t 标签，取前15个字符作为展示文本
+					let text = line.replace(/#t\s*/g, '').trim();
+					let displayText = text.substring(0, 15);
+					if (text.length > 15) displayText += '...';
+					composeTasks.push({ text: displayText, file });
+				}
+			}
+		}
+
+		// 按文件名降序排列
+		composeTasks.sort((a, b) => b.file.name.localeCompare(a.file.name));
+
+		if (composeTasks.length === 0) return;
+
+		// 追加到现有 todo 列表后面
+		this.dv.paragraph('');
+		this.dv.table([''], composeTasks.map(t => {
+			let dvPage = this.dv.page(t.file.path);
+			let link = dvPage ? dvPage.file.link : `[[${t.file.path}|→]]`;
+			return [link + ' - ' + t.text];
+		}));
+	}
+
 	async skip(p) {
 		let days = this.daysOfTask(p);
 		if (days.length == 0) {

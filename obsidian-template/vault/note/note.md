@@ -7,6 +7,27 @@ excludedTags:
 page: 0
 openNextNote: random
 ---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ```dataviewjs
 const {WaitLoading, Utils, Note} = await cJS();
 Note.init(dv);

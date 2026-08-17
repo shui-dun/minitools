@@ -11,7 +11,7 @@ CapsLock::
 	{
 		this_id := id%A_Index%
 		WinGetTitle, title, ahk_id %this_id%
-		if (InStr(title, "Google Chrome"))
+		if (InStr(title, "Google Gemini"))
 		{
 			if (!first_target_id)
 				first_target_id := this_id

@@ -1,30 +1,35 @@
 #Warn ; 启用警告
 #SingleInstance Force ; 如果脚本已经在运行，则终止旧实例并启动新实例
-; 鼠标中键和Tab切换到标题中含有Gemini的另一个窗口（优先切换到不同于当前窗口的）
+; 鼠标中键和CapsLock：若当前不在Cherry Studio则先激活它，然后切换标签页
 MButton::
 CapsLock::
-	WinGet, id, List,,, Program Manager
 	WinGet, current_id, ID, A
-	found := 0
-	first_target_id := ""
-	Loop, %id%
+	WinGetTitle, current_title, ahk_id %current_id%
+	target_id := ""
+	if (InStr(current_title, "Cherry Studio"))
 	{
-		this_id := id%A_Index%
-		WinGetTitle, title, ahk_id %this_id%
-		if (InStr(title, "Google Gemini"))
+		target_id := current_id
+	}
+	else
+	{
+		WinGet, id, List,,, Program Manager
+		Loop, %id%
 		{
-			if (!first_target_id)
-				first_target_id := this_id
-			if (this_id != current_id) {
-				WinActivate, ahk_id %this_id%
-				found := 1
+			this_id := id%A_Index%
+			WinGetTitle, title, ahk_id %this_id%
+			if (InStr(title, "Cherry Studio"))
+			{
+				target_id := this_id
 				break
 			}
 		}
 	}
-	if (!found && first_target_id) {
-		WinActivate, ahk_id %first_target_id%
-	}
+	if (!target_id)
+		return
+	if (target_id != current_id)
+		WinActivate, ahk_id %target_id%
+	Sleep 50
+	SendInput ^{Tab}
 return
 
 ; 右alt映射到右ctrl

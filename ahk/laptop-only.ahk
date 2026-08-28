@@ -27,8 +27,10 @@ CapsLock::
 	if (!target_id)
 		return
 	if (target_id != current_id)
+	{
 		WinActivate, ahk_id %target_id%
-	Sleep 50
+		Sleep 50
+	}
 	SendInput ^{Tab}
 return
 

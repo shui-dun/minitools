@@ -9,12 +9,17 @@ def press_keyboard():
     # # 按下 Alt
     # win32api.keybd_event(win32con.VK_MENU, 0, 0, 0)
     # time.sleep(0.05)
-    # 按下 7
-    win32api.keybd_event(win32con.VK_NUMPAD7, 0, 0, 0)
+    # 按下 1
+    win32api.keybd_event(win32con.VK_NUMPAD1, 0, 0, 0)
     time.sleep(0.2)
-    # 松开 7
-    win32api.keybd_event(win32con.VK_NUMPAD7, 0, win32con.KEYEVENTF_KEYUP, 0)
-    # time.sleep(0.05)
+    # 松开 1
+    win32api.keybd_event(win32con.VK_NUMPAD1, 0, win32con.KEYEVENTF_KEYUP, 0)
+    time.sleep(0.05)
+    # 按下 0
+    win32api.keybd_event(win32con.VK_NUMPAD0, 0, 0, 0)
+    time.sleep(0.2)
+    # 松开 0
+    win32api.keybd_event(win32con.VK_NUMPAD0, 0, win32con.KEYEVENTF_KEYUP, 0)
     # # 松开 Alt
     # win32api.keybd_event(win32con.VK_MENU, 0, win32con.KEYEVENTF_KEYUP, 0)
 
@@ -26,8 +31,8 @@ def main():
         try:
             events = get_gamepad()
             for event in events:
-                if event.code == 'ABS_HAT0Y':  # 十字键上下
-                    gamepad_key1_pressed = event.state == -1  # 1为下，-1为上，0为未按
+                if event.code == 'ABS_HAT0X':  # 十字键左右
+                    gamepad_key1_pressed = event.state == -1  # -1为左，1为右，0为未按
                 if event.code == 'BTN_SOUTH':  # A键
                     gamepad_key2_pressed = event.state == 1  # 1为按下，0为未按
 

@@ -383,7 +383,6 @@ class DeepSeekInterpreter:
                 messages=messages,  # type: ignore[arg-type]
                 temperature=temperature,
                 max_tokens=max_tokens,
-                **extra,
             )
 
             if self._verbose:

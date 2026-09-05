@@ -22,7 +22,7 @@ class DeepSeekConfig:
     """DeepSeek API 配置。"""
 
     api_key: str = ""
-    model: str = "deepseek-v4-pro"
+    model: str = "deepseek-v4-flash"
     base_url: str = "https://api.deepseek.com"
     temperature: float = 0.3
     max_tokens: int = 65536
@@ -64,7 +64,7 @@ class AppConfig:
     def as_nested_dict(self) -> dict[str, dict[str, Any]]:
         """将配置展开为嵌套字典，方便点号路径查找。
 
-        例如 {"deepseek": {"model": "deepseek-chat", ...}, "chunk": {...}, ...}
+        例如 {"deepseek": {"model": "deepseek-v4-flash", ...}, "chunk": {...}, ...}
         """
         result: dict[str, dict[str, Any]] = {}
         for field_name in self.__dataclass_fields__:
@@ -80,7 +80,7 @@ class AppConfig:
         """应用 CLI 点号路径覆盖。
 
         Args:
-            overrides: 点号路径到值的映射，如 {"deepseek.model": "deepseek-chat", "chunk.max_chars": "2000"}
+            overrides: 点号路径到值的映射，如 {"deepseek.model": "deepseek-v4-flash", "chunk.max_chars": "2000"}
             也支持顶级字段如 {"resume": "false"}。
         """
         for key, value in overrides.items():

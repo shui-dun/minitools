@@ -16,7 +16,7 @@ class TestAppConfigDefaults:
 
     def test_default_config(self) -> None:
         config = AppConfig()
-        assert config.deepseek.model == "deepseek-v4-pro"
+        assert config.deepseek.model == "deepseek-v4-flash"
         assert config.deepseek.temperature == 0.3
         assert config.chunk.max_chars == 15000
         assert config.chunk.book_summary_chars == 800
@@ -103,7 +103,7 @@ class TestAsNestedDict:
         config = AppConfig()
         d = config.as_nested_dict()
         assert "deepseek" in d
-        assert d["deepseek"]["model"] == "deepseek-v4-pro"
+        assert d["deepseek"]["model"] == "deepseek-v4-flash"
         assert d["chunk"]["max_chars"] == 15000
         assert d["output"]["dir"] == "./output"
 
@@ -161,4 +161,4 @@ deepseek:
     def test_load_nonexistent_yaml(self) -> None:
         """不存在的 YAML 文件不应报错，使用默认值。"""
         config = load_config("/nonexistent/path.yaml")
-        assert config.deepseek.model == "deepseek-v4-pro"
+        assert config.deepseek.model == "deepseek-v4-flash"

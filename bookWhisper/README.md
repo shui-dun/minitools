@@ -127,7 +127,7 @@ bookwhisper interpret <输入文件> [选项]
 | `-o, --output TEXT` | 输出目录 | `./output` |
 | `--output-suffix TEXT` | 输出文件名后缀 | `_interpreted` |
 | `--mode TEXT` | 解读模式：`default` / `novel` | `default` |
-| `--deepseek-model TEXT` | DeepSeek 模型名 | `deepseek-v4-pro` |
+| `--deepseek-model TEXT` | DeepSeek 模型名 | `deepseek-v4-flash` |
 | `--deepseek-base-url TEXT` | API 地址 | `https://api.deepseek.com` |
 | `--deepseek-temperature FLOAT` | 温度参数（0-1） | `0.3` |
 | `--chunk-max-chars INTEGER` | 单块最大字符数 | `15000` |
@@ -142,8 +142,8 @@ bookwhisper interpret <输入文件> [选项]
 #### 使用示例
 
 ```bash
-# 使用 自定义 模型
-bookwhisper interpret 社会学导论.epub --deepseek-model deepseek-v4-flash
+# 指定使用 pro 模型（默认 flash；需要更高解读质量时切换）
+bookwhisper interpret 社会学导论.epub --deepseek-model deepseek-v4-pro
 
 # 解读 EPUB，输出到指定目录
 bookwhisper interpret 社会学导论.epub --output ./audiobooks
@@ -225,7 +225,8 @@ vim ~/.bookwhisper.yaml
 ```yaml
 deepseek:
   api_key: "${DEEPSEEK_API_KEY}"  # 支持环境变量
-  model: "deepseek-v4-pro"
+  # 默认使用 flash（性价比高）；需要更高解读质量可改为 deepseek-v4-pro
+  model: "deepseek-v4-flash"
   base_url: "https://api.deepseek.com"
   temperature: 0.3
 

@@ -8,7 +8,8 @@
 deepseek:
   # API Key，支持环境变量 ${DEEPSEEK_API_KEY}
   api_key: "${DEEPSEEK_API_KEY}"
-  model: "deepseek-v4-pro"
+  # 默认使用 flash（性价比高）；需要更高解读质量可改为 deepseek-v4-pro
+  model: "deepseek-v4-flash"
   base_url: "https://api.deepseek.com"
   temperature: 0.3
   max_tokens: 65536              # 单次 API 调用最大输出 token 数（需覆盖思考链 + 正文）

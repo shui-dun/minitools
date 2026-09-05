@@ -322,7 +322,7 @@ def cli() -> None:
 @click.option(
     "--deepseek-model",
     default=None,
-    help="DeepSeek 模型名（默认: deepseek-v4-pro）。",
+    help="DeepSeek 模型名（默认: deepseek-v4-flash）。",
 )
 @click.option(
     "--deepseek-base-url",

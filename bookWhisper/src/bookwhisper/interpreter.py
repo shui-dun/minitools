@@ -362,6 +362,12 @@ class DeepSeekInterpreter:
         if temperature is None:
             temperature = self._config.deepseek.temperature
 
+        # novel 模式：思考强度设为最大，确保逐条认真遵守优化规则
+        extra: dict[str, Any] = {}
+        if self._mode == "novel":
+            extra["reasoning_effort"] = "max"
+            extra["extra_body"] = {"thinking": {"type": "enabled"}}
+
         if self._verbose:
             _dump_curl(
                 self._config.deepseek.model,
@@ -376,6 +382,7 @@ class DeepSeekInterpreter:
                 messages=messages,  # type: ignore[arg-type]
                 temperature=temperature,
                 max_tokens=max_tokens,
+                **extra,
             )
 
             if self._verbose:

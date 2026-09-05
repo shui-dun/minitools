@@ -339,7 +339,7 @@ def cli() -> None:
     "--chunk-max-chars",
     type=int,
     default=None,
-    help="单块最大字符数（默认: 15000）。",
+    help="单块最大字符数（默认: 15000；novel 模式自动减半）。",
 )
 @click.option(
     "--chunk-book-summary-chars",
@@ -517,10 +517,18 @@ def _run_pipeline(
 
     # Step 4: 分块
     click.echo("\n[4/6] 文本分块...")
-    splitter = ChapterSplitter(max_chars=config.chunk.max_chars)
+    # novel 模式是单次、克制、要求输出与原文对齐的精细编辑（没有二次重写兜底），
+    # 单块比 default 小一些，长块上单次输出更容易失真。
+    chunk_max_chars = config.chunk.max_chars
+    if config.mode == "novel":
+        chunk_max_chars //= 2
+    splitter = ChapterSplitter(max_chars=chunk_max_chars)
     sections = splitter.split_chapters(reader.chapters)
     checkpoint.set_total_sections(len(sections))
-    click.echo(f"  共 {len(reader.chapters)} 章，切分为 {len(sections)} 个处理块。")
+    click.echo(
+        f"  共 {len(reader.chapters)} 章，切分为 {len(sections)} 个处理块"
+        f"（单块上限 {chunk_max_chars} 字符）。"
+    )
 
     # 在得知实际节段数后，重新检查是否全部完成
     if config.resume and checkpoint.all_done:

@@ -33,6 +33,8 @@ AI 解读书籍
 
 通过 `--mode novel` 开启，仅做一次处理，不进行大幅重写。
 
+novel 模式是单次、克制、要求输出与原文对齐的精细编辑（没有 default 模式那样的二次全文重写兜底），因此，分块自动比 default 模式小一半（`chunk.max_chars / 2`），避免长块上一次调用输出质量不稳定。
+
 ---
 
 ## 整体流程
@@ -130,7 +132,7 @@ bookwhisper <输入文件> [选项]
 | `--deepseek-model TEXT` | DeepSeek 模型名 | `deepseek-v4-flash` |
 | `--deepseek-base-url TEXT` | API 地址 | `https://api.deepseek.com` |
 | `--deepseek-temperature FLOAT` | 温度参数（0-1） | `0.3` |
-| `--chunk-max-chars INTEGER` | 单块最大字符数 | `15000` |
+| `--chunk-max-chars INTEGER` | 单块最大字符数（novel 模式自动减半） | `15000` |
 | `--chunk-book-summary-chars INTEGER` | 整书摘要最大字数 | `800` |
 | `--parallel-workers INTEGER` | 并行解读 worker 数量（章节级） | `5` |
 | `--batch-workers INTEGER` | 批量翻译时同时处理的书籍数量 | `20` |
@@ -231,7 +233,7 @@ deepseek:
   temperature: 0.3
 
 chunk:
-  max_chars: 15000               # 单块最大中文字符数
+  max_chars: 15000               # 单块最大中文字符数（novel 模式自动减半）
   book_summary_chars: 800         # 整书摘要最大字数
 
 output:
@@ -327,4 +329,4 @@ bookwhisper 长书.epub --no-resume
 uv run pytest tests/ -v
 ```
 
-191 个测试覆盖了所有模块：配置加载、格式转换、EPUB 读写、文本分块、API 调用（mock）、重试逻辑、断点续传、CLI 集成、双模式支持、批量翻译。
+201 个测试覆盖了所有模块：配置加载、格式转换、EPUB 读写、文本分块、API 调用（mock）、重试逻辑、断点续传、CLI 集成、双模式支持、批量翻译。

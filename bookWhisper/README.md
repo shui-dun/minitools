@@ -96,7 +96,7 @@ export DEEPSEEK_API_KEY=sk-你的key
 
 ```bash
 # 最基本的用法
-bookwhisper interpret 经济学原理.epub
+bookwhisper 经济学原理.epub
 
 # 输出文件: ./output/经济学原理_interpreted.epub
 ```
@@ -107,10 +107,10 @@ bookwhisper interpret 经济学原理.epub
 
 ## 命令详解
 
-### `bookwhisper interpret` — 解读一本书（或批量翻译一个目录）
+### `bookwhisper` — 解读一本书（或批量翻译一个目录）
 
 ```bash
-bookwhisper interpret <输入文件> [选项]
+bookwhisper <输入文件> [选项]
 ```
 
 #### 参数
@@ -143,40 +143,40 @@ bookwhisper interpret <输入文件> [选项]
 
 ```bash
 # 指定使用 pro 模型（默认 flash；需要更高解读质量时切换）
-bookwhisper interpret 社会学导论.epub --deepseek-model deepseek-v4-pro
+bookwhisper 社会学导论.epub --deepseek-model deepseek-v4-pro
 
 # 解读 EPUB，输出到指定目录
-bookwhisper interpret 社会学导论.epub --output ./audiobooks
+bookwhisper 社会学导论.epub --output ./audiobooks
 
 # 解读 MOBI 文件（需要安装 Calibre）
-bookwhisper interpret 社会学导论.mobi
+bookwhisper 社会学导论.mobi
 
 # 使用 novel 模式优化小说翻译（克制模式，仅做最小改动）
-bookwhisper interpret 小说.epub --mode novel
+bookwhisper 小说.epub --mode novel
 
 # 调小块大小，降低单次 API 调用量
-bookwhisper interpret 社会学导论.epub --chunk-max-chars 1500
+bookwhisper 社会学导论.epub --chunk-max-chars 1500
 
 # 批量翻译整个目录（默认 20 本并发，单本失败不影响其他）
-bookwhisper interpret ./books/
+bookwhisper ./books/
 
 # 批量翻译，限制并发数为 5
-bookwhisper interpret ./books/ --batch-workers 5
+bookwhisper ./books/ --batch-workers 5
 
 # 批量翻译 novel 模式
-bookwhisper interpret ./novels/ --mode novel --batch-workers 10
+bookwhisper ./novels/ --mode novel --batch-workers 10
 
 # 强制重新解读整本书（忽略断点续传）
-bookwhisper interpret 社会学导论.epub --no-resume
+bookwhisper 社会学导论.epub --no-resume
 
 # 开启详细日志排查问题
-bookwhisper interpret 社会学导论.epub --verbose
+bookwhisper 社会学导论.epub --verbose
 
 # 遭遇空内容时自动回退到原文（网络错误不触发，仅空内容触发）
-bookwhisper interpret 书籍.epub --fallback-to-original-on-empty
+bookwhisper 书籍.epub --fallback-to-original-on-empty
 
 # 组合使用：通过配置文件 + CLI 覆盖部分参数
-bookwhisper interpret 社会学导论.epub --config my_config.yaml --chunk-max-chars 2000
+bookwhisper 社会学导论.epub --config my_config.yaml --chunk-max-chars 2000
 ```
 
 ---
@@ -186,7 +186,7 @@ bookwhisper interpret 社会学导论.epub --config my_config.yaml --chunk-max-c
 传入目录路径即可批量翻译目录下所有电子书（递归扫描子目录）：
 
 ```bash
-bookwhisper interpret ./books/
+bookwhisper ./books/
 ```
 
 **行为：**
@@ -197,10 +197,10 @@ bookwhisper interpret ./books/
 
 ```bash
 # 批量翻译，限制 5 本并发
-bookwhisper interpret ./books/ --batch-workers 5
+bookwhisper ./books/ --batch-workers 5
 
 # 批量翻译小说，novel 模式
-bookwhisper interpret ./novels/ --mode novel --batch-workers 10
+bookwhisper ./novels/ --mode novel --batch-workers 10
 ```
 
 > `--parallel-workers` 控制每本书内部章节的并行度，`--batch-workers` 控制同时翻译几本书。
@@ -255,13 +255,13 @@ batch_workers: 20
 
 ```bash
 # 自动加载 ~/.bookwhisper.yaml
-bookwhisper interpret 书籍.epub
+bookwhisper 书籍.epub
 ```
 
 如果需要临时使用另一份配置，也可以通过 `--config` 覆盖：
 
 ```bash
-bookwhisper interpret 书籍.epub --config other_config.yaml
+bookwhisper 书籍.epub --config other_config.yaml
 ```
 
 **配置优先级**：CLI 参数 > 环境变量 > 配置文件（`--config` 指定 > `~/.bookwhisper.yaml`） > 默认值
@@ -274,17 +274,17 @@ bookwhisper interpret 书籍.epub --config other_config.yaml
 
 ```bash
 # 第一次运行，跑到第 18 章时网络断了
-bookwhisper interpret 长书.epub
+bookwhisper 长书.epub
 
 # 重新运行，自动跳过前 17 章，从第 18 章继续
-bookwhisper interpret 长书.epub
+bookwhisper 长书.epub
 ```
 
 断点信息保存在输出目录下的 `.bookwhisper_{书名}.checkpoint.json` 文件中。
 
 ```bash
 # 强制从头重新解读
-bookwhisper interpret 长书.epub --no-resume
+bookwhisper 长书.epub --no-resume
 ```
 
 ---
